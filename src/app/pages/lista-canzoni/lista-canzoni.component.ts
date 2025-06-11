@@ -9,6 +9,7 @@ import { KaraokeService } from '../../services/karaoke.service';
 export class ListaCanzoniComponent implements OnInit {
   canzoni: any[] = [];
   top20: any[] = [];
+  cantate: boolean[] = [];
   isAdmin: boolean = true; // Simulazione admin
 
   constructor(private karaokeService: KaraokeService) {}
@@ -22,6 +23,7 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.getCanzoni().subscribe({
       next: (data) => {
         this.canzoni = data;
+        this.cantate = new Array(data.length).fill(false); // inizializza tutti a false
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -38,6 +40,14 @@ export class ListaCanzoniComponent implements OnInit {
         console.error('Errore nel recupero della Top 20:', err);
       }
     });
+  }
+
+  toggleCantata(index: number): void {
+    this.cantate[index] = !this.cantate[index];
+  }
+
+  eGiaCantata(index: number): boolean {
+    return this.cantate[index];
   }
 
   resetLista(): void {

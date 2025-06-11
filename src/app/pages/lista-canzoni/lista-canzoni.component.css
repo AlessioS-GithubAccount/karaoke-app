@@ -1,0 +1,14 @@
+.cantata {
+  color: #ff4d4d !important; /* rosso brillante */
+  font-weight: bold;
+}
+
+.btn-danger {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
+.btn-success {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}

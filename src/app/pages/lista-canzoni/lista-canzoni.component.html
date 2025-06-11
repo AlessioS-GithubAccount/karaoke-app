@@ -1,7 +1,6 @@
 <div class="container mt-5">
   <div class="d-flex justify-content-between mb-4 align-items-center">
     <h2>Lista delle Canzoni 🎶</h2>
-
     <button *ngIf="isAdmin" class="btn btn-danger" (click)="resetLista()">
       🔄 Reset Lista Giornaliera
     </button>
@@ -10,6 +9,7 @@
   <table class="table table-dark table-striped table-hover">
     <thead>
       <tr>
+        <th *ngIf="isAdmin">🎤</th>
         <th>#</th>
         <th>Nome</th>
         <th>Artista</th>
@@ -20,6 +20,13 @@
     </thead>
     <tbody>
       <tr *ngFor="let canzone of canzoni; let i = index">
+        <td *ngIf="isAdmin">
+          <button (click)="toggleCantata(i)"
+                  class="btn btn-sm"
+                  [ngClass]="eGiaCantata(i) ? 'btn-danger' : 'btn-success'">
+            {{ eGiaCantata(i) ? 'Cantata' : 'Da cantare' }}
+          </button>
+        </td>
         <td>{{ i + 1 }}</td>
         <td>{{ canzone.nome }}</td>
         <td>{{ canzone.artista }}</td>
