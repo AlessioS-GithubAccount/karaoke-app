@@ -1,8 +1,11 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
+import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+
+// Importa FormsModule per template-driven forms
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -10,7 +13,9 @@ import { AppComponent } from './app.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FormsModule ,
+    HttpClientModule 
   ],
   providers: [],
   bootstrap: [AppComponent]
