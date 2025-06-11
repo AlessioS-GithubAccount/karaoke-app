@@ -2,17 +2,19 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
 import { FormsModule } from '@angular/forms';
 
-import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
+import { AppComponent } from './app.component';
 import { HomeComponent } from './pages/home/home.component';
+import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
+
+import { KaraokeService } from './services/karaoke.service';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ListaCanzoniComponent,
-    HomeComponent
+    HomeComponent,
+    ListaCanzoniComponent
   ],
   imports: [
     BrowserModule,
@@ -20,7 +22,7 @@ import { HomeComponent } from './pages/home/home.component';
     FormsModule,
     HttpClientModule
   ],
-  providers: [],
+  providers: [KaraokeService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

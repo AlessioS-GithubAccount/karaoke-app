@@ -6,17 +6,17 @@
       <form #karaokeForm="ngForm" (ngSubmit)="onSubmit(karaokeForm)">
         <div class="mb-3">
           <label for="nome" class="form-label">Nome</label>
-          <input type="text" class="form-control" id="nome" name="nome" [(ngModel)]="formData.nome" placeholder="Inserisci il nome">
+          <input type="text" class="form-control" id="nome" name="nome" [(ngModel)]="formData.nome" placeholder="Inserisci il nome" required>
         </div>
 
         <div class="mb-3">
           <label for="artista" class="form-label">Artista / Band</label>
-          <input type="text" class="form-control" id="artista" name="artista" [(ngModel)]="formData.artista" placeholder="Inserisci artista o band">
+          <input type="text" class="form-control" id="artista" name="artista" [(ngModel)]="formData.artista" placeholder="Inserisci artista o band" required>
         </div>
 
         <div class="mb-3">
           <label for="canzone" class="form-label">Canzone</label>
-          <input type="text" class="form-control" id="canzone" name="canzone" [(ngModel)]="formData.canzone" placeholder="Inserisci il titolo della canzone">
+          <input type="text" class="form-control" id="canzone" name="canzone" [(ngModel)]="formData.canzone" placeholder="Inserisci il titolo della canzone" required>
         </div>
 
         <div class="mb-3">
@@ -32,7 +32,6 @@
         <button type="submit" class="btn btn-primary w-100">Salva</button>
       </form>
 
-      <!-- Pulsante per andare alla lista canzoni -->
       <div class="text-center mt-3">
         <a routerLink="/lista-canzoni" class="btn btn-outline-light">Vai alla Lista Canzoni</a>
       </div>

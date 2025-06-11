@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { KaraokeService } from '../../services/karaoke.service';
 
 @Component({
   selector: 'app-lista-canzoni',
@@ -9,14 +9,14 @@ import { HttpClient } from '@angular/common/http';
 export class ListaCanzoniComponent implements OnInit {
   canzoni: any[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(private karaokeService: KaraokeService) {}
 
   ngOnInit(): void {
     this.caricaCanzoni();
   }
 
   caricaCanzoni(): void {
-    this.http.get<any[]>('http://localhost:3000/api/canzoni').subscribe({
+    this.karaokeService.getCanzoni().subscribe({
       next: (data) => {
         this.canzoni = data;
       },

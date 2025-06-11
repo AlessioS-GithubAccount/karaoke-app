@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { NgForm } from '@angular/forms';
+import { KaraokeService } from '../../services/karaoke.service';
 
 @Component({
   selector: 'app-home',
@@ -14,8 +16,21 @@ export class HomeComponent {
     note: ''
   };
 
-  onSubmit(form: any) {
-    console.log('Form inviato:', this.formData);
-    // Qui puoi salvare i dati, fare chiamate HTTP, ecc.
+  constructor(private karaokeService: KaraokeService) {}
+
+  onSubmit(form: NgForm) {
+    if (form.valid) {
+      this.karaokeService.addCanzone(this.formData).subscribe({
+        next: (response) => {
+          console.log('Dati salvati nel backend:', response);
+          alert(`Ciao ${this.formData.nome}, la canzone è in coda! 🎤`);
+          form.resetForm();
+        },
+        error: (err) => {
+          console.error('Errore durante l\'invio dei dati', err);
+          alert('Errore durante il salvataggio. Riprova.');
+        }
+      });
+    }
   }
 }
