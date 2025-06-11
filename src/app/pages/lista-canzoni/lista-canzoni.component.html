@@ -1,0 +1,11 @@
+<h2>🎶 Lista Canzoni</h2>
+
+<ul *ngIf="canzoni.length > 0; else nessuna">
+  <li *ngFor="let c of canzoni">
+    <strong>{{ c.canzone }}</strong> - {{ c.artista }} ({{ c.nome }})
+  </li>
+</ul>
+
+<ng-template #nessuna>
+  <p>Nessuna canzone trovata.</p>
+</ng-template>
