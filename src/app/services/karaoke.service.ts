@@ -6,10 +6,11 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class KaraokeService {
+  private apiUrl = 'http://localhost:3000/api/canzoni';
+  private resetUrl = 'http://localhost:3000/api/reset';
+  private top20Url = 'http://localhost:3000/api/top20';
 
-  private apiUrl = 'http://localhost:3000/api/canzoni'; // Cambia se usi una porta diversa
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getCanzoni(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
@@ -17,5 +18,13 @@ export class KaraokeService {
 
   addCanzone(canzone: any): Observable<any> {
     return this.http.post(this.apiUrl, canzone);
+  }
+
+  resetLista(): Observable<any> {
+    return this.http.delete(this.resetUrl);
+  }
+
+  getTop20(): Observable<any[]> {
+    return this.http.get<any[]>(this.top20Url);
   }
 }

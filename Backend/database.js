@@ -7,10 +7,10 @@ const conn = mysql.createConnection({
   database: 'karaokedb'
 });
 
-conn.connect((err) => {
+conn.connect(err => {
   if (err) {
     console.error('Errore di connessione al database:', err);
-    return;
+    process.exit(1); // uscita se non si connette
   }
   console.log('Connesso al database MySQL!');
 });
