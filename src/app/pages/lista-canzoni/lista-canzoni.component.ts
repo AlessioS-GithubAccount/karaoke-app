@@ -23,7 +23,7 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.getCanzoni().subscribe({
       next: (data) => {
         this.canzoni = data;
-        this.cantate = new Array(data.length).fill(false); // inizializza tutti a false
+        this.cantate = new Array(data.length).fill(false);
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -50,6 +50,10 @@ export class ListaCanzoniComponent implements OnInit {
     return this.cantate[index];
   }
 
+  get numeroCantate(): number {
+    return this.cantate.filter(c => c).length;
+  }
+
   resetLista(): void {
     if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
       this.karaokeService.resetLista().subscribe({
@@ -63,5 +67,21 @@ export class ListaCanzoniComponent implements OnInit {
         }
       });
     }
+  }
+
+  partecipaAllaCanzone(canzone: any): void {
+    if (canzone.partecipanti_add < 2 && canzone.accetta_partecipanti) {
+      this.karaokeService.aggiungiPartecipante(canzone.id).subscribe({
+        next: () => this.caricaCanzoni(),
+        error: (err) => {
+          console.error('Errore nella partecipazione:', err);
+          alert('Errore durante la partecipazione ❌');
+        }
+      });
+    }
+  }
+
+  partecipazioneCompleta(canzone: any): boolean {
+    return canzone.partecipanti_add >= 2;
   }
 }

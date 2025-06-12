@@ -27,4 +27,8 @@ export class KaraokeService {
   getTop20(): Observable<any[]> {
     return this.http.get<any[]>(this.top20Url);
   }
+
+  aggiungiPartecipante(idCanzone: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${idCanzone}/partecipa`, {});
+  }
 }
