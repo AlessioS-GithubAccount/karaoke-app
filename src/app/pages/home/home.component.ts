@@ -13,7 +13,9 @@ export class HomeComponent {
     artista: '',
     canzone: '',
     tonalita: '',
-    note: ''
+    note: '',
+    cantanti_add: 1,              // default 1 microfono
+    accetta_partecipanti: false  // default no partecipanti
   };
 
   constructor(private karaokeService: KaraokeService) {}
@@ -24,7 +26,10 @@ export class HomeComponent {
         next: (response) => {
           console.log('Dati salvati nel backend:', response);
           alert(`Ciao ${this.formData.nome}, la canzone è in coda! 🎤`);
-          form.resetForm();
+          form.resetForm({
+            cantanti_add: 1,
+            accetta_partecipanti: false
+          });
         },
         error: (err) => {
           console.error('Errore durante l\'invio dei dati', err);

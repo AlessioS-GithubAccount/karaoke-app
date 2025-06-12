@@ -44,7 +44,7 @@ app.post('/api/canzoni', (req, res) => {
 
 // GET tutte le canzoni
 app.get('/api/canzoni', (req, res) => {
-  db.query('SELECT * FROM canzoni ORDER BY id DESC', (err, results) => {
+  db.query('SELECT * FROM canzoni ORDER BY id ASC', (err, results) => {
     if (err) {
       console.error('Errore nel recupero delle canzoni:', err);
       return res.status(500).json({ message: 'Errore nel recupero delle canzoni' });
