@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class KaraokeService {
   private apiUrl = 'http://localhost:3000/api/canzoni';
-  private resetUrl = 'http://localhost:3000/api/reset';
+  private resetUrl = 'http://localhost:3000/api/reset-canzoni'; // endpoint per il reset
   private top20Url = 'http://localhost:3000/api/top20';
 
   constructor(private http: HttpClient) {}
@@ -20,8 +20,9 @@ export class KaraokeService {
     return this.http.post(this.apiUrl, canzone);
   }
 
-  resetLista(): Observable<any> {
-    return this.http.delete(this.resetUrl);
+  // Metodo modificato per inviare la password nel body della richiesta POST
+  resetLista(password: string): Observable<any> {
+    return this.http.post(this.resetUrl, { password });
   }
 
   getTop20(): Observable<any[]> {

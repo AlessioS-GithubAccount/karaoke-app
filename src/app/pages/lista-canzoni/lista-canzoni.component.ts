@@ -56,16 +56,21 @@ export class ListaCanzoniComponent implements OnInit {
 
   resetLista(): void {
     if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
-      this.karaokeService.resetLista().subscribe({
-        next: () => {
-          alert('Lista giornaliera resettata ✅');
-          this.caricaCanzoni();
-        },
-        error: (err) => {
-          console.error('Errore durante il reset:', err);
-          alert('Errore durante il reset ❌');
-        }
-      });
+      const pwd = prompt('Inserisci la password di amministratore');
+      if (pwd) {
+        this.karaokeService.resetLista(pwd).subscribe({
+          next: () => {
+            alert('Lista giornaliera resettata ✅');
+            this.caricaCanzoni();
+          },
+          error: (err) => {
+            console.error('Errore durante il reset:', err);
+            alert('Errore durante il reset ❌');
+          }
+        });
+      } else {
+        alert('Password non inserita, operazione annullata.');
+      }
     }
   }
 

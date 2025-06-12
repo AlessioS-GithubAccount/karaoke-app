@@ -3,7 +3,7 @@
     <div class="container" style="max-width: 500px;">
       <h1 class="mb-4 text-center">Playlist generator</h1>
 
-      <form #karaokeForm="ngForm" (ngSubmit)="onSubmit(karaokeForm)">
+      <form #karaokeForm="ngForm" (ngSubmit)="onSubmit(karaokeForm)" novalidate>
         <div class="mb-3">
           <label for="nome" class="form-label">Nome</label>
           <input type="text" class="form-control" id="nome" name="nome" [(ngModel)]="formData.nome" placeholder="Inserisci il nome" required>
@@ -24,15 +24,29 @@
           <input type="text" class="form-control" id="tonalita" name="tonalita" [(ngModel)]="formData.tonalita" placeholder="Inserisci la tonalità">
         </div>
 
-        
-
-        <!-- Nuovo campo microfoni -->
+        <!-- Campo num_microfoni -->
         <div class="mb-3">
-          <label for="cantanti_add" class="form-label">Microfoni (1-3)</label>
-          <input type="number" class="form-control" id="cantanti_add" name="cantanti_add" [(ngModel)]="formData.cantanti_add" min="1" max="3" placeholder="1-3" required>
+          <label for="num_microfoni" class="form-label">Microfoni (1-3)</label>
+          <input
+            type="number"
+            class="form-control"
+            id="num_microfoni"
+            name="num_microfoni"
+            [(ngModel)]="formData.num_microfoni"
+            #numMicrofoni="ngModel"
+            min="1"
+            max="3"
+            required
+            placeholder="Inserisci un numero da 1 a 3"
+            (blur)="validateMicrofoni()"
+            [class.is-invalid]="numMicrofoni.invalid && (numMicrofoni.dirty || numMicrofoni.touched)"
+          >
+          <div *ngIf="numMicrofoni.invalid && (numMicrofoni.dirty || numMicrofoni.touched)" class="text-danger mt-1">
+            Inserisci un numero valido da 1 a 3.
+          </div>
         </div>
 
-        <!-- Nuova checkbox accetta partecipanti -->
+        <!-- Checkbox accetta partecipanti -->
         <div class="mb-3 form-check">
           <input type="checkbox" class="form-check-input" id="accetta_partecipanti" name="accetta_partecipanti" [(ngModel)]="formData.accetta_partecipanti">
           <label class="form-check-label" for="accetta_partecipanti">Accetti partecipanti?</label>
@@ -41,11 +55,10 @@
         <div class="mb-3">
           <label for="note" class="form-label">Note</label>
           <textarea class="form-control" id="note" name="note" [(ngModel)]="formData.note" rows="3" placeholder="Inserisci note aggiuntive"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Salva</button>
-        </form>
+        </div>
 
-      
+        <button type="submit" class="btn btn-primary w-100" [disabled]="!karaokeForm.valid || microfoniInvalid">Salva</button>
+      </form>
     </div>
   </div>
 </body>

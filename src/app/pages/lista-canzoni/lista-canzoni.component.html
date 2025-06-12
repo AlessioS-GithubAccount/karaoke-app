@@ -43,13 +43,16 @@
           <button
             class="btn btn-primary btn-sm"
             (click)="partecipaAllaCanzone(canzone)"
-            [disabled]="partecipazioneCompleta(canzone)"
-            [ngStyle]="{ opacity: partecipazioneCompleta(canzone) ? 0.5 : 1 }"
+            [disabled]="!canzone.accetta_partecipanti || partecipazioneCompleta(canzone)"
+            [ngStyle]="{ opacity: (!canzone.accetta_partecipanti || partecipazioneCompleta(canzone)) ? 0.5 : 1 }"
           >
             🎤 Partecipa
           </button>
           <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
             Raggiunto num microfoni max
+          </div>
+          <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
+            Partecipazione non disponibile
           </div>
         </td>
       </tr>
