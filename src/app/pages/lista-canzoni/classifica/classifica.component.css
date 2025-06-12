@@ -1,0 +1,12 @@
+/* Styling semplice per dare un tocco elegante */
+table {
+  font-size: 1.1rem;
+}
+
+th, td {
+  vertical-align: middle;
+}
+
+h2 {
+  font-weight: bold;
+}

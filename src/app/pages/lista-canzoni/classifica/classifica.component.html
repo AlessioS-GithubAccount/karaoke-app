@@ -1,1 +1,28 @@
-<p>classifica works!</p>
+<div class="container mt-5">
+  <h2 class="text-center mb-4">🏆 Classifica Top 20 Canzoni Più Richieste</h2>
+
+  <table class="table table-dark table-striped table-hover">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Canzone</th>
+        <th>Artista</th>
+        <th>Richieste</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of top20; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ c.canzone }}</td>
+        <td>{{ c.artista }}</td>
+        <td>{{ c.numero_richieste }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="text-center mt-4">
+    <a routerLink="/lista-canzoni" class="btn btn-outline-light">
+      🔙 Torna alla Lista Canzoni
+    </a>
+  </div>
+</div>

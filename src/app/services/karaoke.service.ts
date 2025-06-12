@@ -32,4 +32,9 @@ export class KaraokeService {
   aggiungiPartecipante(idCanzone: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idCanzone}/partecipa`, {});
   }
+
+  getClassifica() {
+  return this.http.get<any[]>('/api/classifica');
+}
+
 }

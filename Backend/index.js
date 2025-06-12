@@ -154,3 +154,20 @@ app.put('/api/canzoni/:id/partecipa', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server backend attivo su http://localhost:${PORT}`);
 });
+
+//chiama le canzoni in classica dopo query
+app.get('/api/classifica', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT canzone, artista, conteggio
+      FROM classifica
+      ORDER BY conteggio DESC
+      LIMIT 20
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('Errore nel recupero della classifica:', err);
+    res.status(500).send('Errore nel recupero della classifica');
+  }
+});
+
