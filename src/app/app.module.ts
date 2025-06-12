@@ -9,12 +9,14 @@ import { HomeComponent } from './pages/home/home.component';
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
 
 import { KaraokeService } from './services/karaoke.service';
+import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    ListaCanzoniComponent
+    ListaCanzoniComponent,
+    ClassificaComponent
   ],
   imports: [
     BrowserModule,
