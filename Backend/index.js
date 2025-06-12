@@ -150,12 +150,31 @@ app.put('/api/canzoni/:id/partecipa', (req, res) => {
   });
 });
 
-// Avvio server
-app.listen(PORT, () => {
-  console.log(`🚀 Server backend attivo su http://localhost:${PORT}`);
+// PUT: aggiorna il campo "cantata" di una canzone
+app.put('/api/canzoni/:id/cantata', (req, res) => {
+  const id = parseInt(req.params.id);
+  const { cantata } = req.body;
+
+  if (typeof cantata !== 'boolean') {
+    return res.status(400).json({ message: 'Il campo "cantata" deve essere booleano' });
+  }
+
+  const query = 'UPDATE canzoni SET cantata = ? WHERE id = ?';
+  db.query(query, [cantata ? 1 : 0, id], (err, result) => {
+    if (err) {
+      console.error('Errore nell\'aggiornamento della canzone:', err);
+      return res.status(500).json({ message: 'Errore interno del server' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata' });
+    }
+
+    res.json({ message: 'Stato cantata aggiornato con successo', id, cantata });
+  });
 });
 
-//chiama le canzoni in classica dopo query
+// GET classifica canzoni
 app.get('/api/classifica', async (req, res) => {
   try {
     const [rows] = await db.query(`
@@ -171,3 +190,7 @@ app.get('/api/classifica', async (req, res) => {
   }
 });
 
+// Avvio server
+app.listen(PORT, () => {
+  console.log(`🚀 Server backend attivo su http://localhost:${PORT}`);
+});

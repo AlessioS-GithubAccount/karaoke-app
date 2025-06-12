@@ -23,7 +23,8 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.getCanzoni().subscribe({
       next: (data) => {
         this.canzoni = data;
-        this.cantate = new Array(data.length).fill(false);
+        // Sincronizza array cantate col campo 'cantata' di ogni canzone o false
+        this.cantate = this.canzoni.map(c => c.cantata === true);
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -43,7 +44,20 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   toggleCantata(index: number): void {
-    this.cantate[index] = !this.cantate[index];
+    const canzone = this.canzoni[index];
+    const nuovoStato = !this.cantate[index];
+
+    this.karaokeService.aggiornaCantata(canzone.id, nuovoStato).subscribe({
+      next: () => {
+        this.cantate[index] = nuovoStato;
+        // Evita ricaricare per evitare delay e conflitti, aggiorna solo il campo localmente
+        this.canzoni[index].cantata = nuovoStato;
+      },
+      error: (err) => {
+        console.error('Errore aggiornamento cantata:', err);
+        alert('Errore durante l\'aggiornamento dello stato cantata');
+      }
+    });
   }
 
   eGiaCantata(index: number): boolean {
@@ -83,6 +97,8 @@ export class ListaCanzoniComponent implements OnInit {
           alert('Errore durante la partecipazione ❌');
         }
       });
+    } else {
+      alert('Non è possibile partecipare a questa canzone.');
     }
   }
 
