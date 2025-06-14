@@ -15,7 +15,8 @@ export class HomeComponent {
     tonalita: '',
     note: '',
     num_microfoni: 1,              // default 1 microfono
-    accetta_partecipanti: false   // default no partecipanti
+    accetta_partecipanti: false,   // default no partecipanti
+    partecipanti_add: 1
   };
 
   microfoniInvalid = false;

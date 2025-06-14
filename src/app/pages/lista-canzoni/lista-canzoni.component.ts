@@ -9,7 +9,6 @@ import { KaraokeService } from '../../services/karaoke.service';
 export class ListaCanzoniComponent implements OnInit {
   canzoni: any[] = [];
   top20: any[] = [];
-  cantate: boolean[] = [];
   isAdmin: boolean = true; // Simulazione admin
 
   constructor(private karaokeService: KaraokeService) {}
@@ -23,8 +22,6 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.getCanzoni().subscribe({
       next: (data) => {
         this.canzoni = data;
-        // Sincronizza array cantate col campo 'cantata' di ogni canzone o false
-        this.cantate = this.canzoni.map(c => c.cantata === true);
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -45,12 +42,10 @@ export class ListaCanzoniComponent implements OnInit {
 
   toggleCantata(index: number): void {
     const canzone = this.canzoni[index];
-    const nuovoStato = !this.cantate[index];
+    const nuovoStato = !canzone.cantata;
 
     this.karaokeService.aggiornaCantata(canzone.id, nuovoStato).subscribe({
       next: () => {
-        this.cantate[index] = nuovoStato;
-        // Evita ricaricare per evitare delay e conflitti, aggiorna solo il campo localmente
         this.canzoni[index].cantata = nuovoStato;
       },
       error: (err) => {
@@ -60,12 +55,8 @@ export class ListaCanzoniComponent implements OnInit {
     });
   }
 
-  eGiaCantata(index: number): boolean {
-    return this.cantate[index];
-  }
-
   get numeroCantate(): number {
-    return this.cantate.filter(c => c).length;
+    return this.canzoni.filter(c => c.cantata).length;
   }
 
   resetLista(): void {
@@ -89,12 +80,15 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   partecipaAllaCanzone(canzone: any): void {
-    if (canzone.partecipanti_add < 2 && canzone.accetta_partecipanti) {
+    if (canzone.partecipanti_add < 3 && canzone.accetta_partecipanti) {
       this.karaokeService.aggiungiPartecipante(canzone.id).subscribe({
-        next: () => this.caricaCanzoni(),
+        next: (response) => {
+          canzone.partecipanti_add = response.partecipanti_add;
+          alert(`Canterai insieme a ${response.artista}`);
+        },
         error: (err) => {
           console.error('Errore nella partecipazione:', err);
-          alert('Errore durante la partecipazione ❌');
+          alert(err.error?.message || 'Errore durante la partecipazione ❌');
         }
       });
     } else {
@@ -103,6 +97,6 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   partecipazioneCompleta(canzone: any): boolean {
-    return canzone.partecipanti_add >= 2;
+    return canzone.partecipanti_add >= 3;
   }
 }

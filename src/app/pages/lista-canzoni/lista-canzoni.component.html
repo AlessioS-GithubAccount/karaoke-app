@@ -32,8 +32,8 @@
         <td *ngIf="isAdmin">
           <button (click)="toggleCantata(i)"
                   class="btn btn-sm"
-                  [ngClass]="eGiaCantata(i) ? 'btn-danger' : 'btn-success'">
-            {{ eGiaCantata(i) ? 'Cantata' : 'Da cantare' }}
+                  [ngClass]="canzone.cantata ? 'btn-danger' : 'btn-success'">
+            {{ canzone.cantata ? 'Cantata' : 'Da cantare' }}
           </button>
         </td>
         <td>{{ i + 1 }}</td>
@@ -43,13 +43,11 @@
         <td>{{ canzone.tonalita }}</td>
         <td>{{ canzone.note }}</td>
         <td>
-          <button
-            class="btn btn-primary btn-sm"
-            (click)="partecipaAllaCanzone(canzone)"
-            [disabled]="!canzone.accetta_partecipanti || partecipazioneCompleta(canzone)"
-            [ngStyle]="{ opacity: (!canzone.accetta_partecipanti || partecipazioneCompleta(canzone)) ? 0.5 : 1 }"
-          >
-            🎤 Partecipa
+          <button 
+            class="btn btn-primary"
+            [disabled]="canzone.partecipanti_add >= 3 || !canzone.accetta_partecipanti"
+            (click)="partecipaAllaCanzone(canzone)">
+            Partecipa
           </button>
           <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
             Raggiunto num microfoni max
