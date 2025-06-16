@@ -10,8 +10,12 @@ export class KaraokeService {
   private resetUrl = 'http://localhost:3000/api/reset-canzoni';
   private top20Url = 'http://localhost:3000/api/top20';
 
+  // Variabile privata per memorizzare il nome dell'utente
+  private nomeUtente: string = '';
+
   constructor(private http: HttpClient) {}
 
+  // Metodi HTTP già esistenti
   getCanzoni(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
   }
@@ -36,8 +40,12 @@ export class KaraokeService {
     return this.http.get<any[]>('/api/classifica');
   }
 
-  // Metodo per aggiornare il campo "cantata" della canzone con id specifico
   aggiornaCantata(idCanzone: number, cantata: boolean): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idCanzone}/cantata`, { cantata });
   }
+
+  // --- Metodo per recuperare da DB il nome del client che sceglie la canzone dal form ---
+  getNomePartecipante(idCanzone: number): Observable<{ nome: string }> {
+    return this.http.get<{ nome: string }>(`${this.apiUrl}/${idCanzone}/nome-partecipante`);
+ }
 }

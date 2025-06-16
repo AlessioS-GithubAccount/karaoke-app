@@ -14,13 +14,15 @@ app.get('/', (req, res) => {
 
 // POST: inserisce in `canzoni` e `raccolta_canzoni`
 app.post('/api/canzoni', (req, res) => {
-  const { nome, artista, canzone, tonalita, note, num_microfoni, accetta_partecipanti, partecipanti_add } = req.body;
+  const {
+    nome, artista, canzone, tonalita, note,
+    num_microfoni, accetta_partecipanti, partecipanti_add
+  } = req.body;
 
   if (!nome || !artista || !canzone) {
     return res.status(400).json({ message: 'nome, artista e canzone sono obbligatori' });
   }
 
-  // Validazione num_microfoni (default 1, range 1-3)
   let numMicrofoniValue = 1;
   if (num_microfoni !== undefined) {
     if (!Number.isInteger(num_microfoni) || num_microfoni < 1 || num_microfoni > 3) {
@@ -32,13 +34,19 @@ app.post('/api/canzoni', (req, res) => {
   const accettaPartecipantiValue = accetta_partecipanti !== undefined ? accetta_partecipanti : false;
   const partecipantiAddValue = partecipanti_add !== undefined ? partecipanti_add : 0;
 
-  const values = [nome, artista, canzone, tonalita || null, note || null, numMicrofoniValue, accettaPartecipantiValue, partecipantiAddValue];
+  const values = [
+    nome, artista, canzone, tonalita || null, note || null,
+    numMicrofoniValue, accettaPartecipantiValue, partecipantiAddValue
+  ];
 
   const insertCanzoni = `
     INSERT INTO canzoni 
     (nome, artista, canzone, tonalita, note, num_microfoni, accetta_partecipanti, partecipanti_add) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-  const insertRaccolta = 'INSERT INTO raccolta_canzoni (nome, artista, canzone, tonalita, note) VALUES (?, ?, ?, ?, ?)';
+
+  const insertRaccolta = `
+    INSERT INTO raccolta_canzoni (nome, artista, canzone, tonalita, note) 
+    VALUES (?, ?, ?, ?, ?)`;
 
   db.query(insertCanzoni, values, (err1, result1) => {
     if (err1) {
@@ -68,7 +76,25 @@ app.get('/api/canzoni', (req, res) => {
   });
 });
 
-// RESET canzoni (solo per admin, password semplice)
+// GET nome partecipante (nuova rotta)
+app.get('/api/canzoni/:id/nome-partecipante', (req, res) => {
+  const id = parseInt(req.params.id);
+
+  db.query('SELECT nome FROM canzoni WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      console.error('Errore nel recupero del nome:', err);
+      return res.status(500).json({ message: 'Errore interno del server' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata' });
+    }
+
+    res.status(200).json({ nome: results[0].nome });
+  });
+});
+
+// RESET canzoni
 app.post('/api/reset-canzoni', (req, res) => {
   const { password } = req.body;
 
@@ -86,7 +112,7 @@ app.post('/api/reset-canzoni', (req, res) => {
   });
 });
 
-// GET top 20 più richieste nella raccolta
+// GET top 20
 app.get('/api/top20', (req, res) => {
   const query = `
     SELECT canzone, artista, COUNT(*) AS richieste
@@ -106,7 +132,7 @@ app.get('/api/top20', (req, res) => {
   });
 });
 
-// PUT: partecipa a una canzone (incrementa partecipanti_add se possibile)
+// PUT: partecipa a una canzone
 app.put('/api/canzoni/:id/partecipa', (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -126,14 +152,11 @@ app.put('/api/canzoni/:id/partecipa', (req, res) => {
       return res.status(400).json({ message: 'Partecipazione non consentita per questa canzone' });
     }
 
-    const maxPartecipanti = canzone.num_microfoni;
-    const partecipantiAttuali = canzone.partecipanti_add;
-
-    if (partecipantiAttuali >= maxPartecipanti) {
+    if (canzone.partecipanti_add >= canzone.num_microfoni) {
       return res.status(400).json({ message: 'Numero massimo di partecipanti raggiunto' });
     }
 
-    const nuovoNumeroPartecipanti = partecipantiAttuali + 1;
+    const nuovoNumeroPartecipanti = canzone.partecipanti_add + 1;
 
     db.query(
       'UPDATE canzoni SET partecipanti_add = ? WHERE id = ?',
@@ -144,13 +167,13 @@ app.put('/api/canzoni/:id/partecipa', (req, res) => {
           return res.status(500).json({ message: 'Errore aggiornamento partecipanti' });
         }
 
-        return res.json({ message: 'Partecipazione registrata', partecipanti_add: nuovoNumeroPartecipanti });
+        res.json({ message: 'Partecipazione registrata', partecipanti_add: nuovoNumeroPartecipanti });
       }
     );
   });
 });
 
-// PUT: aggiorna il campo "cantata" di una canzone
+// PUT: aggiorna "cantata"
 app.put('/api/canzoni/:id/cantata', (req, res) => {
   const id = parseInt(req.params.id);
   const { cantata } = req.body;
@@ -159,10 +182,9 @@ app.put('/api/canzoni/:id/cantata', (req, res) => {
     return res.status(400).json({ message: 'Il campo "cantata" deve essere booleano' });
   }
 
-  const query = 'UPDATE canzoni SET cantata = ? WHERE id = ?';
-  db.query(query, [cantata ? 1 : 0, id], (err, result) => {
+  db.query('UPDATE canzoni SET cantata = ? WHERE id = ?', [cantata ? 1 : 0, id], (err, result) => {
     if (err) {
-      console.error('Errore nell\'aggiornamento della canzone:', err);
+      console.error('Errore aggiornamento cantata:', err);
       return res.status(500).json({ message: 'Errore interno del server' });
     }
 
@@ -174,7 +196,7 @@ app.put('/api/canzoni/:id/cantata', (req, res) => {
   });
 });
 
-// GET classifica canzoni
+// GET classifica
 app.get('/api/classifica', async (req, res) => {
   try {
     const [rows] = await db.query(`
@@ -185,7 +207,7 @@ app.get('/api/classifica', async (req, res) => {
     `);
     res.json(rows);
   } catch (err) {
-    console.error('Errore nel recupero della classifica:', err);
+    console.error('Errore recupero classifica:', err);
     res.status(500).send('Errore nel recupero della classifica');
   }
 });
