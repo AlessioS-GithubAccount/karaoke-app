@@ -11,6 +11,8 @@ import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.compo
 import { KaraokeService } from './services/karaoke.service';
 import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
+import { LoginComponent } from './AUTH_login/login.component';
+import { RegisterComponent } from './AUTH_register/register.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +21,9 @@ import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-mu
     HomeComponent,
     ListaCanzoniComponent,
     ClassificaComponent,
-    ArchivioMusicaleComponent  ],
+    ArchivioMusicaleComponent,
+    LoginComponent,
+    RegisterComponent  ],
   imports: [
     BrowserModule,
     AppRoutingModule,

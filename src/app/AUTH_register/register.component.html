@@ -1,0 +1,76 @@
+<div class="container mt-5" style="max-width: 500px;">
+  <h2 class="text-center mb-4">📝 Registrazione Nuovo Utente</h2>
+
+  <form (ngSubmit)="register()" #registerForm="ngForm">
+    <!-- Username -->
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        class="form-control"
+        [(ngModel)]="username"
+        required>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        class="form-control"
+        [(ngModel)]="password"
+        required>
+    </div>
+
+    <!-- Domanda recupero -->
+    <div class="mb-3">
+      <label for="domandaRecupero" class="form-label">Domanda di Recupero Password</label>
+      <select
+        id="domandaRecupero"
+        name="domandaRecupero"
+        class="form-select"
+        [(ngModel)]="domandaRecupero"
+        required>
+        <option value="" disabled selected>Seleziona una domanda</option>
+        <option value="nome_primo_amicizia">Qual è il nome del tuo animale domestico?</option>
+        <option value="città_preferita">Qual è la tua città preferita?</option>
+        <option value="nome_madre">Qual è il nome di tua madre/padre?</option>
+        <option value="animale_preferito">Qual è il tuo animale preferito?</option>
+        <option value="codicepin">Crea il tuo codice PIN di recupero</option>
+      </select>
+    </div>
+
+    <!-- Risposta alla domanda -->
+    <div class="mb-3">
+      <label for="rispostaRecupero" class="form-label">Risposta alla domanda</label>
+      <input
+        type="text"
+        id="rispostaRecupero"
+        name="rispostaRecupero"
+        class="form-control"
+        [(ngModel)]="rispostaRecupero"
+        required
+        placeholder="Inserisci la tua risposta segreta">
+    </div>
+
+    <div class="mb-2 text-muted small">
+      La risposta alla domanda di recupero ti permetterà di recuperare la tua password, anche senza email.
+    </div>
+
+    <button type="submit" class="btn btn-success w-100 mb-3" [disabled]="!registerForm.valid">
+      🆕 Crea Account
+    </button>
+
+    <a routerLink="/login" class="btn btn-outline-primary w-100">
+      🔙 Torna al Login
+    </a>
+  </form>
+
+  <div class="mt-4 text-center text-muted small">
+    <em>Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili.</em>
+  </div>
+</div>

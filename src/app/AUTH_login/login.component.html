@@ -1,0 +1,84 @@
+<!-- Pulsante Admin fisso in alto a destra della pagina -->
+<div style="position: fixed; top: 15px; right: 20px; z-index: 1050;">
+  <button 
+    type="button" 
+    class="btn btn-warning"
+    (click)="login('admin')">
+    🔑 Login Admin
+  </button>
+</div>
+
+<!-- Contenitore form login -->
+<div class="container mt-5" style="max-width: 500px;">
+  <h2 class="text-center mb-4">🎤 Benvenuto al Karaoke Pub</h2>
+  
+  <form (ngSubmit)="login('client')" #loginForm="ngForm">
+
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input 
+        type="text" 
+        id="username" 
+        name="username" 
+        class="form-control" 
+        [(ngModel)]="username" 
+        required>
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input 
+        type="password" 
+        id="password" 
+        name="password" 
+        class="form-control" 
+        [(ngModel)]="password" 
+        required>
+    </div>
+
+    <!-- Solo risposta alla domanda di recupero -->
+    <div class="mb-3">
+      <label for="rispostaRecupero" class="form-label">
+        Risposta alla domanda di recupero
+      </label>
+      <input 
+        type="text" 
+        id="rispostaRecupero" 
+        name="rispostaRecupero" 
+        class="form-control" 
+        [(ngModel)]="rispostaRecupero" 
+        required
+        placeholder="Inserisci la tua risposta segreta">
+    </div>
+
+    <div class="mb-2 text-muted small">
+      La risposta alla domanda di recupero ti permetterà di recuperare la tua password senza bisogno di email.
+    </div>
+
+    <button 
+      type="submit" 
+      class="btn btn-primary w-100 mb-3" 
+      [disabled]="!loginForm.valid">
+      🔐 Login 
+    </button>
+
+    <button 
+      type="button" 
+      class="btn btn-outline-secondary w-100 mb-2" 
+      (click)="loginOspite()">
+      🎟️ Entra come Ospite
+    </button>
+
+    <!-- Link alla pagina di registrazione -->
+    <a 
+      routerLink="/register" 
+      class="btn btn-outline-success w-100">
+      🆕 Registrati
+    </a>
+
+  </form>
+
+  <div class="mt-4 text-center text-muted small">
+    <em>Questo sito non tratta dati personali come email, numeri di telefono o informazioni sensibili.</em>
+  </div>
+</div>
