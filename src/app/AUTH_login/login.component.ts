@@ -21,10 +21,7 @@ export class LoginComponent {
 
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('ruolo', res.ruolo);
-
-        // Usa il ruolo o il tipo per navigare
+        // Navigazione basata sul ruolo
         if (tipo === 'admin' || res.ruolo === 'admin') {
           this.router.navigate(['/admin']);
         } else {

@@ -13,16 +13,36 @@ interface LoginResponse {
 })
 export class AuthService {
   private loginUrl = 'http://localhost:3000/api/auth/login';
+  private logoutUrl = 'http://localhost:3000/api/auth/logout';
 
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(this.loginUrl, { username, password });
+    return new Observable<LoginResponse>((observer) => {
+      this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
+        next: (res) => {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('ruolo', res.ruolo);
+          localStorage.setItem('username', username); // ⬅️ aggiunto
+          observer.next(res);
+        },
+        error: (err) => observer.error(err)
+      });
+    });
   }
 
-  logout() {
+  logout(): void {
+    const username = localStorage.getItem('username');
+    if (username) {
+      this.http.post(this.logoutUrl, { username }).subscribe({
+        next: () => console.log('Logout notificato al backend'),
+        error: (err) => console.error('Errore logout backend:', err)
+      });
+    }
+
     localStorage.removeItem('token');
     localStorage.removeItem('ruolo');
+    localStorage.removeItem('username');
   }
 
   isLoggedIn(): boolean {

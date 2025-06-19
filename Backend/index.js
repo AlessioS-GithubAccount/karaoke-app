@@ -23,11 +23,25 @@ app.post('/api/auth/login', async (req, res) => {
     const passwordOk = await bcrypt.compare(password, user.password_hash);
     if (!passwordOk) return res.status(401).json({ message: 'Credenziali non valide' });
 
+    await db.query('UPDATE users SET online_status = 1 WHERE id = ?', [user.id]);
+
     const token = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, SECRET_KEY, { expiresIn: '2h' });
     res.json({ message: 'Login riuscito', token, ruolo: user.ruolo });
   } catch (err) {
     console.error('Errore login:', err);
     res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+// 🚪 LOGOUT
+app.post('/api/auth/logout', async (req, res) => {
+  const { username } = req.body;
+  try {
+    await db.query('UPDATE users SET online_status = 0 WHERE username = ?', [username]);
+    res.json({ message: 'Logout effettuato' });
+  } catch (err) {
+    console.error('Errore logout:', err);
+    res.status(500).json({ message: 'Errore durante il logout' });
   }
 });
 
