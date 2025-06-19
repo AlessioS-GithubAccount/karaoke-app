@@ -9,15 +9,13 @@ import { Router } from '@angular/router';
 export class LoginComponent {
   username: string = '';
   password: string = '';
-  domandaRecupero: string = '';
-  rispostaRecupero: string = '';
 
   constructor(private router: Router) {}
 
   login(tipo: 'admin' | 'client') {
-    // Controllo campi richiesti
-    if (!this.username || !this.password || !this.domandaRecupero || !this.rispostaRecupero) {
-      alert('Per favore compila tutti i campi, inclusa la domanda di recupero e la risposta.');
+    // Controllo campi richiesti senza domanda e risposta segreta
+    if (!this.username || !this.password) {
+      alert('Per favore compila username e password.');
       return;
     }
 

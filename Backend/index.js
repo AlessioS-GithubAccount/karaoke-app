@@ -1,236 +1,47 @@
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const db = require('./database');
 
-const app = express();
+const app = express();          // <-- definisci app qui
 const PORT = 3000;
+const SECRET_KEY = 'karaoke_super_segreto';
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('✅ API Karaoke attiva! Puoi inviare e recuperare dati a /api/canzoni');
-});
+// 🔐 AUTH - Login senza risposta segreta
+app.post('/api/auth/login', async (req, res) => {
+  const { username, password } = req.body;
 
-// POST: inserisce in `canzoni` e `raccolta_canzoni`
-app.post('/api/canzoni', (req, res) => {
-  const {
-    nome, artista, canzone, tonalita, note,
-    num_microfoni, accetta_partecipanti, partecipanti_add
-  } = req.body;
-
-  if (!nome || !artista || !canzone) {
-    return res.status(400).json({ message: 'nome, artista e canzone sono obbligatori' });
-  }
-
-  let numMicrofoniValue = 1;
-  if (num_microfoni !== undefined) {
-    if (!Number.isInteger(num_microfoni) || num_microfoni < 1 || num_microfoni > 3) {
-      return res.status(400).json({ message: 'num_microfoni deve essere un intero da 1 a 3' });
-    }
-    numMicrofoniValue = num_microfoni;
-  }
-
-  const accettaPartecipantiValue = accetta_partecipanti !== undefined ? accetta_partecipanti : false;
-  const partecipantiAddValue = partecipanti_add !== undefined ? partecipanti_add : 0;
-
-  const values = [
-    nome, artista, canzone, tonalita || null, note || null,
-    numMicrofoniValue, accettaPartecipantiValue, partecipantiAddValue
-  ];
-
-  const insertCanzoni = `
-    INSERT INTO canzoni 
-    (nome, artista, canzone, tonalita, note, num_microfoni, accetta_partecipanti, partecipanti_add) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-  const insertRaccolta = `
-    INSERT INTO raccolta_canzoni (nome, artista, canzone, tonalita, note) 
-    VALUES (?, ?, ?, ?, ?)`;
-
-  db.query(insertCanzoni, values, (err1, result1) => {
-    if (err1) {
-      console.error('Errore inserimento in canzoni:', err1);
-      return res.status(500).json({ message: 'Errore salvataggio canzoni' });
-    }
-
-    db.query(insertRaccolta, [nome, artista, canzone, tonalita || null, note || null], (err2) => {
-      if (err2) {
-        console.error('Errore inserimento in raccolta:', err2);
-        return res.status(500).json({ message: 'Errore salvataggio raccolta' });
-      }
-
-      res.status(201).json({ message: 'Canzone salvata con successo', id: result1.insertId });
-    });
-  });
-});
-
-// GET tutte le canzoni
-app.get('/api/canzoni', (req, res) => {
-  db.query('SELECT * FROM canzoni ORDER BY id ASC', (err, results) => {
-    if (err) {
-      console.error('Errore nel recupero delle canzoni:', err);
-      return res.status(500).json({ message: 'Errore nel recupero delle canzoni' });
-    }
-    res.status(200).json(results);
-  });
-});
-
-// GET nome partecipante (nuova rotta)
-app.get('/api/canzoni/:id/nome-partecipante', (req, res) => {
-  const id = parseInt(req.params.id);
-
-  db.query('SELECT nome FROM canzoni WHERE id = ?', [id], (err, results) => {
-    if (err) {
-      console.error('Errore nel recupero del nome:', err);
-      return res.status(500).json({ message: 'Errore interno del server' });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Canzone non trovata' });
-    }
-
-    res.status(200).json({ nome: results[0].nome });
-  });
-});
-
-// RESET canzoni
-app.post('/api/reset-canzoni', (req, res) => {
-  const { password } = req.body;
-
-  if (password !== 'admin123') {
-    return res.status(401).json({ message: 'Password errata. Accesso negato.' });
-  }
-
-  db.query('DELETE FROM canzoni', (err) => {
-    if (err) {
-      console.error('Errore durante il reset:', err);
-      return res.status(500).json({ message: 'Errore durante il reset' });
-    }
-
-    res.status(200).json({ message: 'Tabella canzoni resettata con successo' });
-  });
-});
-
-// GET top 20
-app.get('/api/top20', (req, res) => {
-  const query = `
-    SELECT canzone, artista, COUNT(*) AS richieste
-    FROM raccolta_canzoni
-    GROUP BY canzone, artista
-    ORDER BY richieste DESC
-    LIMIT 20
-  `;
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('Errore nel recupero top 20:', err);
-      return res.status(500).json({ message: 'Errore recupero top20' });
-    }
-
-    res.status(200).json(results);
-  });
-});
-
-// PUT: partecipa a una canzone
-app.put('/api/canzoni/:id/partecipa', (req, res) => {
-  const id = parseInt(req.params.id);
-
-  db.query('SELECT * FROM canzoni WHERE id = ?', [id], (err, results) => {
-    if (err) {
-      console.error('Errore ricerca canzone:', err);
-      return res.status(500).json({ message: 'Errore ricerca canzone' });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Canzone non trovata' });
-    }
-
-    const canzone = results[0];
-
-    if (!canzone.accetta_partecipanti) {
-      return res.status(400).json({ message: 'Partecipazione non consentita per questa canzone' });
-    }
-
-    if (canzone.partecipanti_add >= canzone.num_microfoni) {
-      return res.status(400).json({ message: 'Numero massimo di partecipanti raggiunto' });
-    }
-
-    const nuovoNumeroPartecipanti = canzone.partecipanti_add + 1;
-
-    db.query(
-      'UPDATE canzoni SET partecipanti_add = ? WHERE id = ?',
-      [nuovoNumeroPartecipanti, id],
-      (err2) => {
-        if (err2) {
-          console.error('Errore aggiornamento partecipanti:', err2);
-          return res.status(500).json({ message: 'Errore aggiornamento partecipanti' });
-        }
-
-        res.json({ message: 'Partecipazione registrata', partecipanti_add: nuovoNumeroPartecipanti });
-      }
-    );
-  });
-});
-
-// PUT: aggiorna "cantata"
-app.put('/api/canzoni/:id/cantata', (req, res) => {
-  const id = parseInt(req.params.id);
-  const { cantata } = req.body;
-
-  if (typeof cantata !== 'boolean') {
-    return res.status(400).json({ message: 'Il campo "cantata" deve essere booleano' });
-  }
-
-  db.query('UPDATE canzoni SET cantata = ? WHERE id = ?', [cantata ? 1 : 0, id], (err, result) => {
-    if (err) {
-      console.error('Errore aggiornamento cantata:', err);
-      return res.status(500).json({ message: 'Errore interno del server' });
-    }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Canzone non trovata' });
-    }
-
-    res.json({ message: 'Stato cantata aggiornato con successo', id, cantata });
-  });
-});
-
-// GET classifica
-app.get('/api/classifica', async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT canzone, artista, conteggio
-      FROM classifica
-      ORDER BY conteggio DESC
-      LIMIT 20
-    `);
-    res.json(rows);
+    const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    if (rows.length === 0) {
+      return res.status(401).json({ message: 'Credenziali non valide' });
+    }
+
+    const user = rows[0];
+    const passwordOk = await bcrypt.compare(password, user.password_hash);
+
+    if (!passwordOk) {
+      return res.status(401).json({ message: 'Credenziali non valide' });
+    }
+
+    const token = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, SECRET_KEY, {
+      expiresIn: '2h',
+    });
+
+    res.json({ message: 'Login riuscito', token, ruolo: user.ruolo });
   } catch (err) {
-    console.error('Errore recupero classifica:', err);
-    res.status(500).send('Errore nel recupero della classifica');
+    console.error('Errore nel login:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
   }
 });
 
-
+// Puoi aggiungere qui altre rotte...
 
 // Avvio server
 app.listen(PORT, () => {
-  console.log(`🚀 Server backend attivo su http://localhost:${PORT}`);
-});
-
-// GET archivio musicale, chiama dati canzone-artista per generare uno storico canzoni (senza duplicati)
-app.get('/api/archivio-musicale', (req, res) => {
-  const sql = `
-    SELECT DISTINCT canzone, artista
-    FROM raccolta_canzoni
-    ORDER BY artista ASC
-  `;
-  db.query(sql, [], (err, rows) => {
-    if (err) {
-      console.error('Errore nel recupero dell\'archivio musicale:', err);
-      return res.status(500).json({ message: 'Errore nel recupero dell\'archivio musicale' });
-    }
-    res.json(rows);
-  });
+  console.log(`🚀 Server attivo su http://localhost:${PORT}`);
 });

@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CapitalizeWordsPipe } from './capitalize-words.pipe';
 
 import { AppComponent } from './app.component';
-import { HomeComponent } from './pages/home/home.component';
+import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
 import { KaraokeService } from './services/karaoke.service';
 import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
@@ -18,7 +18,7 @@ import { RegisterComponent } from './AUTH_register/register.component';
   declarations: [
     AppComponent,
     CapitalizeWordsPipe,
-    HomeComponent,
+    PrenotaCanzoniComponent,
     ListaCanzoniComponent,
     ClassificaComponent,
     ArchivioMusicaleComponent,

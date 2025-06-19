@@ -1,93 +1,96 @@
-<div class="container mt-5">
-  <h2>Lista delle Canzoni 🎶</h2>
+<body class="bg-dark text-light" style="min-height: 100vh; margin: 0;">
+  <div class="container mt-5">
+    <nav class="p-3 text-center bg-dark d-flex justify-content-center gap-2" style="max-width: 600px; margin: auto;">
+      <a routerLink="/prenota-canzoni" class="btn btn-light flex-fill">Prenota Canzone</a>
+      <a routerLink="/archivio-musicale" class="btn btn-outline-light flex-fill">📚 Vai all'Archivio Musicale</a>
+    </nav>
 
-  <p class="text-muted fst-italic mb-3">
-    L’ ordine delle canzoni potrebbe cambiare leggermente per permettere a tutti di divertirsi al meglio. Grazie di cuore per la comprensione e buon divertimento!
-  </p>
+    <h2>Lista delle Canzoni 🎶</h2>
 
-  <div class="d-flex justify-content-between mb-4 align-items-center">
-    <div *ngIf="isAdmin" class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-      <div class="text-light bg-secondary px-3 py-2 rounded text-center">
-        🎤 Cantate: <strong>{{ numeroCantate }}</strong>
+    <p class="text-muted fst-italic mb-3">
+      L’ ordine delle canzoni potrebbe cambiare leggermente per permettere a tutti di divertirsi al meglio. Grazie di cuore per la comprensione e buon divertimento!
+    </p>
+
+    <div class="d-flex justify-content-between mb-4 align-items-center">
+      <div *ngIf="isAdmin" class="d-flex flex-column flex-md-row align-items-md-center gap-2">
+        <div class="text-light bg-secondary px-3 py-2 rounded text-center">
+          🎤 Cantate: <strong>{{ numeroCantate }}</strong>
+        </div>
+        <a routerLink="/classifica-top20" class="btn btn-warning">
+          🏆 Classifica Top 20
+        </a>
+        <button class="btn btn-danger" (click)="resetLista()">
+          🔄 Reset Lista Giornaliera
+        </button>
       </div>
-      <a routerLink="/classifica-top20" class="btn btn-warning">
-        🏆 Classifica Top 20
-      </a>
-      <button class="btn btn-danger" (click)="resetLista()">
-        🔄 Reset Lista Giornaliera
-      </button>
     </div>
+
+    <table class="table table-dark table-striped table-hover">
+      <thead>
+        <tr>
+          <th *ngIf="isAdmin">🎤</th>
+          <th>#</th>
+          <th>Nome</th>
+          <th>Artista</th>
+          <th>Canzone</th>
+          <th>Tonalità</th>
+          <th>Note</th>
+          <th>Partecipa</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let canzone of canzoni; let i = index">
+          <td *ngIf="isAdmin">
+            <button (click)="toggleCantata(i)"
+                    class="btn btn-sm"
+                    [ngClass]="canzone.cantata ? 'btn-danger' : 'btn-success'">
+              {{ canzone.cantata ? 'Cantata' : 'Da cantare' }}
+            </button>
+          </td>
+          <td>{{ i + 1 }}</td>
+          <td>{{ canzone.nome | capitalizeWords }}</td>
+          <td>{{ canzone.artista | capitalizeWords }}</td>
+          <td>{{ canzone.canzone | capitalizeWords }}</td>
+          <td>{{ canzone.tonalita }}</td>
+          <td>{{ canzone.note }}</td>
+          <td>
+            <button 
+              class="btn btn-primary"
+              [disabled]="canzone.partecipanti_add >= 3 || !canzone.accetta_partecipanti"
+              (click)="partecipaAllaCanzone(canzone)">
+              Partecipa
+            </button>
+            <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
+              Raggiunto num microfoni max
+            </div>
+            <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
+              Partecipazione non disponibile
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <hr class="border-light">
+
+    <h2 class="text-center my-4">🏆 Top 20 Richieste</h2>
+    <table class="table table-dark table-striped table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Canzone</th>
+          <th>Artista</th>
+          <th>Richieste</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of top20; let i = index">
+          <td>{{ i + 1 }}</td>
+          <td>{{ c.canzone | capitalizeWords }}</td>
+          <td>{{ c.artista | capitalizeWords }}</td>
+          <td>{{ c.numero_richieste }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-
-  <table class="table table-dark table-striped table-hover">
-    <thead>
-      <tr>
-        <th *ngIf="isAdmin">🎤</th>
-        <th>#</th>
-        <th>Nome</th>
-        <th>Artista</th>
-        <th>Canzone</th>
-        <th>Tonalità</th>
-        <th>Note</th>
-        <th>Partecipa</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let canzone of canzoni; let i = index">
-        <td *ngIf="isAdmin">
-          <button (click)="toggleCantata(i)"
-                  class="btn btn-sm"
-                  [ngClass]="canzone.cantata ? 'btn-danger' : 'btn-success'">
-            {{ canzone.cantata ? 'Cantata' : 'Da cantare' }}
-          </button>
-        </td>
-        <td>{{ i + 1 }}</td>
-        <td>{{ canzone.nome | capitalizeWords }}</td>
-        <td>{{ canzone.artista | capitalizeWords }}</td>
-        <td>{{ canzone.canzone | capitalizeWords }}</td>
-        <td>{{ canzone.tonalita }}</td>
-        <td>{{ canzone.note }}</td>
-        <td>
-          <button 
-            class="btn btn-primary"
-            [disabled]="canzone.partecipanti_add >= 3 || !canzone.accetta_partecipanti"
-            (click)="partecipaAllaCanzone(canzone)">
-            Partecipa
-          </button>
-          <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
-            Raggiunto num microfoni max
-          </div>
-          <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
-            Partecipazione non disponibile
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="text-center mt-3 mb-5">
-    <a routerLink="/" class="btn btn-outline-light">Torna alla Home</a>
-  </div>
-
-  <hr>
-
-  <h2 class="text-center my-4">🏆 Top 20 Richieste</h2>
-  <table class="table table-dark table-striped table-hover">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Canzone</th>
-        <th>Artista</th>
-        <th>Richieste</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let c of top20; let i = index">
-        <td>{{ i + 1 }}</td>
-        <td>{{ c.canzone | capitalizeWords }}</td>
-        <td>{{ c.artista | capitalizeWords }}</td>
-        <td>{{ c.numero_richieste }}</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+</body>
