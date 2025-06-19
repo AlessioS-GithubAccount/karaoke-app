@@ -1,4 +1,4 @@
-<!-- Pulsante Admin fisso in alto a destra della pagina -->
+<!-- Pulsante Admin fisso in alto a destra -->
 <div style="position: fixed; top: 15px; right: 20px; z-index: 1050;">
   <button 
     type="button" 
@@ -8,10 +8,10 @@
   </button>
 </div>
 
-<!-- Contenitore form login -->
+<!-- Form login -->
 <div class="container mt-5" style="max-width: 500px;">
   <h2 class="text-center mb-4">🎤 Benvenuto al Karaoke Pub</h2>
-  
+
   <form (ngSubmit)="login('client')" #loginForm="ngForm">
 
     <div class="mb-3">
@@ -50,7 +50,6 @@
       🎟️ Entra come Ospite
     </button>
 
-    <!-- Link alla pagina di registrazione -->
     <a 
       routerLink="/register" 
       class="btn btn-outline-success w-100">
