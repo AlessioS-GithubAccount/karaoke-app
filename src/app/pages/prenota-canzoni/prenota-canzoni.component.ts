@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { KaraokeService } from '../../services/karaoke.service';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-prenota-canzoni',
@@ -14,14 +16,18 @@ export class PrenotaCanzoniComponent {
     canzone: '',
     tonalita: '',
     note: '',
-    num_microfoni: 1,              // default 1 microfono
-    accetta_partecipanti: false,   // default no partecipanti
+    num_microfoni: 1,
+    accetta_partecipanti: false,
     partecipanti_add: 1
   };
 
   microfoniInvalid = false;
 
-  constructor(private karaokeService: KaraokeService) {}
+  constructor(
+    private karaokeService: KaraokeService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   validateMicrofoni() {
     const val = this.formData.num_microfoni;
@@ -50,5 +56,10 @@ export class PrenotaCanzoniComponent {
     } else {
       alert('Per favore, inserisci un numero di microfoni valido da 1 a 3.');
     }
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

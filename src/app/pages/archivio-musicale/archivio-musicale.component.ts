@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { KaraokeService } from '../../services/karaoke.service';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-archivio-musicale',
@@ -8,14 +10,23 @@ import { KaraokeService } from '../../services/karaoke.service';
 })
 export class ArchivioMusicaleComponent implements OnInit {
 
-  archivio: any[] = []; // ✅ questa è la variabile usata nel tuo HTML
+  archivio: any[] = [];
 
-  constructor(private karaokeService: KaraokeService) {}
+  constructor(
+    private karaokeService: KaraokeService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.karaokeService.getTop20().subscribe({
+    this.karaokeService.getArchivioMusicale().subscribe({
       next: (data) => this.archivio = data,
       error: (err) => console.error('Errore nel caricamento archivio:', err)
     });
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
