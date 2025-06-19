@@ -48,4 +48,8 @@ export class KaraokeService {
   getNomePartecipante(idCanzone: number): Observable<{ nome: string }> {
     return this.http.get<{ nome: string }>(`${this.apiUrl}/${idCanzone}/nome-partecipante`);
  }
+
+  getArchivioMusicale(): Observable<any[]> {
+   return this.http.get<any[]>('http://localhost:3000/api/archivio-musicale');
+  }
 }

@@ -37,9 +37,9 @@
           </button>
         </td>
         <td>{{ i + 1 }}</td>
-        <td>{{ canzone.nome }}</td>
-        <td>{{ canzone.artista }}</td>
-        <td>{{ canzone.canzone }}</td>
+        <td>{{ canzone.nome | capitalizeWords }}</td>
+        <td>{{ canzone.artista | capitalizeWords }}</td>
+        <td>{{ canzone.canzone | capitalizeWords }}</td>
         <td>{{ canzone.tonalita }}</td>
         <td>{{ canzone.note }}</td>
         <td>
@@ -79,8 +79,8 @@
     <tbody>
       <tr *ngFor="let c of top20; let i = index">
         <td>{{ i + 1 }}</td>
-        <td>{{ c.canzone }}</td>
-        <td>{{ c.artista }}</td>
+        <td>{{ c.canzone | capitalizeWords }}</td>
+        <td>{{ c.artista | capitalizeWords }}</td>
         <td>{{ c.numero_richieste }}</td>
       </tr>
     </tbody>

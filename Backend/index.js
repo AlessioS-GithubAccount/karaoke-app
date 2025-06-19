@@ -212,7 +212,25 @@ app.get('/api/classifica', async (req, res) => {
   }
 });
 
+
+
 // Avvio server
 app.listen(PORT, () => {
   console.log(`🚀 Server backend attivo su http://localhost:${PORT}`);
+});
+
+// GET archivio musicale, chiama dati canzone-artista per generare uno storico canzoni (senza duplicati)
+app.get('/api/archivio-musicale', (req, res) => {
+  const sql = `
+    SELECT DISTINCT canzone, artista
+    FROM raccolta_canzoni
+    ORDER BY artista ASC
+  `;
+  db.query(sql, [], (err, rows) => {
+    if (err) {
+      console.error('Errore nel recupero dell\'archivio musicale:', err);
+      return res.status(500).json({ message: 'Errore nel recupero dell\'archivio musicale' });
+    }
+    res.json(rows);
+  });
 });
