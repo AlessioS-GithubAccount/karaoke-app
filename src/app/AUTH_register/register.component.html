@@ -5,36 +5,19 @@
     <!-- Username -->
     <div class="mb-3">
       <label for="username" class="form-label">Username</label>
-      <input
-        type="text"
-        id="username"
-        name="username"
-        class="form-control"
-        [(ngModel)]="username"
-        required>
+      <input type="text" id="username" name="username" class="form-control" [(ngModel)]="username" required>
     </div>
 
     <!-- Password -->
     <div class="mb-3">
       <label for="password" class="form-label">Password</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        class="form-control"
-        [(ngModel)]="password"
-        required>
+      <input type="password" id="password" name="password" class="form-control" [(ngModel)]="password" required>
     </div>
 
     <!-- Domanda recupero -->
     <div class="mb-3">
       <label for="domandaRecupero" class="form-label">Domanda di Recupero Password</label>
-      <select
-        id="domandaRecupero"
-        name="domandaRecupero"
-        class="form-select"
-        [(ngModel)]="domandaRecupero"
-        required>
+      <select id="domandaRecupero" name="domandaRecupero" class="form-select" [(ngModel)]="domandaRecupero" required>
         <option value="" disabled selected>Seleziona una domanda</option>
         <option value="nome_primo_amicizia">Qual è il nome del tuo animale domestico?</option>
         <option value="città_preferita">Qual è la tua città preferita?</option>
@@ -47,18 +30,19 @@
     <!-- Risposta alla domanda -->
     <div class="mb-3">
       <label for="rispostaRecupero" class="form-label">Risposta alla domanda</label>
-      <input
-        type="text"
-        id="rispostaRecupero"
-        name="rispostaRecupero"
-        class="form-control"
-        [(ngModel)]="rispostaRecupero"
-        required
-        placeholder="Inserisci la tua risposta segreta">
+      <input type="text" id="rispostaRecupero" name="rispostaRecupero" class="form-control"
+             [(ngModel)]="rispostaRecupero" required placeholder="Inserisci la tua risposta segreta">
+    </div>
+
+    <!-- PIN admin opzionale -->
+    <div class="mb-3">
+      <label for="keypass" class="form-label">Admin Mode Keypass (PIN)</label>
+      <input type="password" id="keypass" name="keypass" class="form-control"
+             [(ngModel)]="keypass" placeholder="Lascia vuoto per utente normale">
     </div>
 
     <div class="mb-2 text-muted small">
-      La risposta alla domanda di recupero ti permetterà di recuperare la tua password, anche senza email.
+      Se il PIN è corretto, l'account sarà creato con privilegi admin.
     </div>
 
     <button type="submit" class="btn btn-success w-100 mb-3" [disabled]="!registerForm.valid">

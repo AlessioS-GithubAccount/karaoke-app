@@ -7,6 +7,7 @@ const db = require('./database'); // pool mysql2
 const app = express();
 const PORT = 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
+const PIN_ADMIN = '0000'; // 👈 Cambia se vuoi usare un PIN più sicuro
 
 app.use(cors());
 app.use(express.json());
@@ -30,6 +31,38 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (err) {
     console.error('Errore login:', err);
     res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+// 🆕 REGISTRAZIONE UTENTE
+app.post('/api/auth/register', async (req, res) => {
+  const { username, password, domandaRecupero, rispostaRecupero, keypass } = req.body;
+
+  if (!username || !password || !domandaRecupero || !rispostaRecupero) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
+  }
+
+  try {
+    const [existing] = await db.query('SELECT id FROM users WHERE username = ?', [username]);
+    if (existing.length > 0) {
+      return res.status(409).json({ message: 'Username già in uso' });
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+    const risposta_hash = await bcrypt.hash(rispostaRecupero, 10);
+    const ruolo = keypass === PIN_ADMIN ? 'admin' : 'client';
+
+    await db.query(
+      `INSERT INTO users 
+        (username, password_hash, domanda_recupero, risposta_recupero_hash, ruolo) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [username, password_hash, domandaRecupero, risposta_hash, ruolo]
+    );
+
+    res.status(201).json({ message: `Utente creato con ruolo ${ruolo}` });
+  } catch (err) {
+    console.error('Errore registrazione:', err);
+    res.status(500).json({ message: 'Errore durante la registrazione' });
   }
 });
 
@@ -85,7 +118,7 @@ app.put('/api/canzoni/:id/cantata', async (req, res) => {
   }
 });
 
-// 🎤 PUT aggiungi partecipante e incrementa numero_richieste
+// 🎤 PUT aggiungi partecipante
 app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   const { id } = req.params;
   try {
@@ -110,7 +143,7 @@ app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   }
 });
 
-// 🔁 POST reset lista giornaliera
+// 🔁 POST reset lista
 app.post('/api/reset-canzoni', async (req, res) => {
   const { password } = req.body;
   if (password !== 'karaokeadmin') {
@@ -126,7 +159,7 @@ app.post('/api/reset-canzoni', async (req, res) => {
   }
 });
 
-// 🏆 GET Top 20 richieste
+// 🏆 GET Top 20
 app.get('/api/top20', async (req, res) => {
   try {
     const [rows] = await db.query(`
@@ -164,7 +197,7 @@ app.get('/api/classifica', async (req, res) => {
   }
 });
 
-// 🛠️ Opzionale: Crea colonna numero_richieste se non esiste
+// 🛠️ Controllo colonna numero_richieste
 (async () => {
   try {
     const [result] = await db.query("SHOW COLUMNS FROM canzoni LIKE 'numero_richieste'");
@@ -173,11 +206,11 @@ app.get('/api/classifica', async (req, res) => {
       console.log("✅ Colonna 'numero_richieste' creata.");
     }
   } catch (e) {
-    console.error("❌ Errore durante il check/creazione della colonna numero_richieste:", e);
+    console.error("❌ Errore creazione colonna numero_richieste:", e);
   }
 })();
 
-// Avvia il server
+// Avvio server
 app.listen(PORT, () => {
   console.log(`🚀 Server attivo su http://localhost:${PORT}`);
 });
