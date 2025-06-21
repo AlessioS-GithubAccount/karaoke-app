@@ -7,7 +7,7 @@ const db = require('./database'); // pool mysql2
 const app = express();
 const PORT = 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
-const PIN_ADMIN = '0000'; // 👈 Cambia se vuoi usare un PIN più sicuro
+const PIN_ADMIN = '0000';
 
 app.use(cors());
 app.use(express.json());
@@ -93,10 +93,21 @@ app.get('/api/canzoni', async (req, res) => {
 app.post('/api/canzoni', async (req, res) => {
   const { nome, artista, canzone, tonalita, note } = req.body;
   try {
+    // Inserisci nella tabella principale
     await db.query(
       'INSERT INTO canzoni (nome, artista, canzone, tonalita, note) VALUES (?, ?, ?, ?, ?)',
       [nome, artista, canzone, tonalita, note]
     );
+
+    // Inserisci in raccolta_canzoni solo se non esiste già
+    await db.query(`
+      INSERT INTO raccolta_canzoni (artista, canzone)
+      SELECT * FROM (SELECT ? AS artista, ? AS canzone) AS tmp
+      WHERE NOT EXISTS (
+        SELECT 1 FROM raccolta_canzoni WHERE artista = ? AND canzone = ?
+      )
+    `, [artista, canzone, artista, canzone]);
+
     res.json({ message: 'Canzone aggiunta con successo' });
   } catch (err) {
     console.error('Errore aggiunta canzone:', err);
@@ -210,7 +221,7 @@ app.get('/api/classifica', async (req, res) => {
   }
 })();
 
-// Avvio server
+// ▶️ Avvio server
 app.listen(PORT, () => {
   console.log(`🚀 Server attivo su http://localhost:${PORT}`);
 });

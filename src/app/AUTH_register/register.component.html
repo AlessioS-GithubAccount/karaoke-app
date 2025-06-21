@@ -26,6 +26,10 @@
         <option value="codicepin">Crea il tuo codice PIN di recupero</option>
       </select>
     </div>
+    <div class="mb-2 text-muted small">
+      Seleziona una domanda e una risposta per il recupero password. 
+      <br>Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.
+    </div>
 
     <!-- Risposta alla domanda -->
     <div class="mb-3">
@@ -38,13 +42,10 @@
     <div class="mb-3">
       <label for="keypass" class="form-label">Admin Mode Keypass (PIN)</label>
       <input type="password" id="keypass" name="keypass" class="form-control"
-             [(ngModel)]="keypass" placeholder="Lascia vuoto per utente normale">
+             [(ngModel)]="keypass" placeholder="Campo compilabile solo dai gestori del karaoke">
     </div>
 
-    <div class="mb-2 text-muted small">
-      Se il PIN è corretto, l'account sarà creato con privilegi admin.
-    </div>
-
+    
     <button type="submit" class="btn btn-success w-100 mb-3" [disabled]="!registerForm.valid">
       🆕 Crea Account
     </button>

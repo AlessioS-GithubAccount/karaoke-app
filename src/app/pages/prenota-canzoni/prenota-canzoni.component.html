@@ -7,12 +7,12 @@
 
   <div class="d-flex justify-content-center align-items-center vh-100">
     <div class="container" style="max-width: 500px;">
-      <h1 class="mb-4 text-center">Playlist generator</h1>
+      <h1 class="mb-4 text-center">Scegli la tua canzone !</h1>
 
       <form #karaokeForm="ngForm" (ngSubmit)="onSubmit(karaokeForm)" novalidate>
         <div class="mb-3">
           <label for="nome" class="form-label">Nome</label>
-          <input type="text" class="form-control" id="nome" name="nome" [(ngModel)]="formData.nome" placeholder="Inserisci il nome" required>
+          <input type="text" class="form-control" id="nome" name="nome" [(ngModel)]="formData.nome" placeholder="Inserisci il tuo nome" required>
         </div>
 
         <div class="mb-3">
@@ -26,8 +26,8 @@
         </div>
 
         <div class="mb-3">
-          <label for="tonalita" class="form-label">Tonalità</label>
-          <input type="text" class="form-control" id="tonalita" name="tonalita" [(ngModel)]="formData.tonalita" placeholder="Inserisci la tonalità">
+          <label for="tonalita" class="form-label">Cambia Tonalità</label>
+          <input type="text" class="form-control" id="tonalita" name="tonalita" [(ngModel)]="formData.tonalita" placeholder="esempio -2, -1, +1, +2">
         </div>
 
         <!-- Campo num_microfoni -->
@@ -55,7 +55,7 @@
         <!-- Checkbox accetta partecipanti -->
         <div class="mb-3 form-check">
           <input type="checkbox" class="form-check-input" id="accetta_partecipanti" name="accetta_partecipanti" [(ngModel)]="formData.accetta_partecipanti">
-          <label class="form-check-label" for="accetta_partecipanti">Accetti partecipanti?</label>
+          <label class="form-check-label" for="accetta_partecipanti">Accetti partecipanti in sala?</label>
         </div>
 
         <div class="mb-3">

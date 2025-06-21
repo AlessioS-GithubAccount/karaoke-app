@@ -19,11 +19,17 @@ export class ArchivioMusicaleComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.karaokeService.getArchivioMusicale().subscribe({
-      next: (data) => this.archivio = data,
-      error: (err) => console.error('Errore nel caricamento archivio:', err)
-    });
-  }
+  this.karaokeService.getArchivioMusicale().subscribe({
+    next: (data) => {
+      this.archivio = data.filter((item, index, self) =>
+        index === self.findIndex((t) =>
+          t.canzone === item.canzone && t.artista === item.artista
+        )
+      );
+    },
+    error: (err) => console.error('Errore nel caricamento archivio:', err)
+  });
+}
 
   logout(): void {
     this.authService.logout();
