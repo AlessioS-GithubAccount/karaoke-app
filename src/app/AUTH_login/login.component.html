@@ -2,11 +2,12 @@
 <div style="position: fixed; top: 15px; right: 20px; z-index: 1050;">
   <button 
     type="button" 
-    class="btn btn-warning"
+    class="btn btn-warning admin-login-btn"
     (click)="login('admin')">
     🔑 Login Admin
   </button>
 </div>
+
 
 <!-- Form login -->
 <div class="container mt-5" style="max-width: 500px;">
@@ -25,7 +26,7 @@
         required>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-2">
       <label for="password" class="form-label">Password</label>
       <input 
         type="password" 
@@ -38,23 +39,31 @@
 
     <button 
       type="submit" 
-      class="btn btn-primary w-100 mb-3" 
+      class="btn btn-primary w-100 mb-2" 
       [disabled]="!loginForm.valid">
       🔐 Login 
     </button>
 
     <button 
       type="button" 
-      class="btn btn-outline-secondary w-100 mb-2" 
+      class="btn btn-outline-secondary w-100 mb-5" 
       (click)="loginOspite()">
       🎟️ Entra come Ospite
     </button>
 
+    <label for="password" class="form-label text-center small">Non hai ancora un account? Registrati per avere un profilo personalizzato e accedere alle funzionalità avanzate.</label>
     <a 
       routerLink="/register" 
-      class="btn btn-outline-success w-100">
+      class="btn btn-outline-success w-100 mb-3">
       🆕 Registrati
     </a>
+
+     <button 
+    type="button" 
+    class="btn btn-warning admin-login-btn w-100 "
+    (click)="login('admin')">
+    🔑 Admin
+  </button>
 
   </form>
 

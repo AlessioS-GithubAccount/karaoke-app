@@ -1,1 +1,28 @@
+<nav class="navbar"> 
+  <div class="navbar-container">
+    <div class="logo">
+      <!-- Logo o testo -->
+      <img src="assets/images/logo.jpg" alt="Logo Pub" class="logo-img" />
+      <!-- Se preferisci solo testo, commenta sopra e usa questa: -->
+      <!-- <span>KaraokeApp</span> -->
+    </div>
+
+    <div class="title">Dorian Gray Karaoke</div>
+
+    <button class="burger" (click)="toggleMenu()" aria-label="Toggle menu">Menù
+      &#9776; <!-- simbolo hamburger -->
+    </button>
+
+    <ul [class.open]="menuOpen" class="nav-links">
+      <li><a routerLink="/" (click)="toggleMenu()">Home</a></li>
+      <li><a routerLink="/user-profile" (click)="toggleMenu()">Il Tuo Profilo</a></li>
+      <li><a routerLink="/prenota-canzoni" (click)="toggleMenu()">Prenota Canzoni</a></li>
+      <li><a routerLink="/lista-canzoni" (click)="toggleMenu()">Brani in coda karaoke</a></li>
+      <li><a routerLink="/archivio-musicale" (click)="toggleMenu()">Vai all'Archivio Musicale</a></li>
+      <li><a routerLink="/classifica-top20" (click)="toggleMenu()">Classifica Top 20</a></li>
+      <li><a (click)="logout()">Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
 <router-outlet></router-outlet>

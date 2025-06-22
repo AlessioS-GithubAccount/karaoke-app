@@ -1,0 +1,6 @@
+.admin-login-btn {
+  font-size: 0.85rem;      /* riduce dimensione testo */
+  padding: px 12px;       /* riduce spazi interni */
+  border-radius: 0.25rem;  /* leggermente stondato */
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2); /* ombra leggera */
+}

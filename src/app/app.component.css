@@ -1,0 +1,115 @@
+.navbar {
+  background-color: #222;
+  color: white;
+  padding: 0.5rem 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: grid;
+  grid-template-columns: auto 1fr auto; /* logo, titolo, burger */
+  align-items: center;
+  max-width: 1200px;
+  width: 100%; /* assicurati che usi tutta la larghezza */
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 60px;
+  position: relative;
+  box-sizing: border-box; /* utile per padding e larghezza */
+}
+
+/* Reset margini e padding e posizionamento per evitare sovrapposizioni */
+.logo, .title, .burger {
+  margin: 0;
+  padding: 0;
+}
+
+/* Logo a sinistra */
+.logo {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  border-radius: 20px;
+}
+
+.logo-img {
+  height: 60px;
+  width: auto;
+}
+
+/* Titolo centrato */
+.title {
+  justify-self: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+/* Burger menu a destra */
+.burger {
+  justify-self: end;
+  font-size: 28px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  z-index: 1100;
+  display: block;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Menu laterale a tendina */
+.nav-links {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background-color: #333;
+  list-style: none;
+  padding: 1rem;
+  margin: 0;
+  display: none;
+  flex-direction: column;
+  width: 200px;
+  border-radius: 0 0 0 5px;
+  box-sizing: border-box;
+}
+
+.nav-links.open {
+  display: flex;
+}
+
+.nav-links li {
+  margin: 0.5rem 0;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+}
+

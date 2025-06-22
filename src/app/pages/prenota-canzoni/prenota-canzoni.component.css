@@ -1,0 +1,40 @@
+.required-asterisk {
+  color: red;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
+.required-legend {
+  margin-top: 8px;
+  color: red;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.form-columns {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.form-col {
+  flex: 1 1 220px;  /* larghezza minima colonna */
+  max-width: 300px;
+}
+
+/* Mantieni la dark mode globale o aggiungi questo in root */
+body.bg-dark, .bg-dark {
+  background-color: #121212 !important;
+  color: #eee !important;
+}
+
+.form-columns {
+  display: flex;
+  gap: 7rem; /* prima era 1.5rem, ora raddoppiato */
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+
+/* eventuali altri tuoi stili */
