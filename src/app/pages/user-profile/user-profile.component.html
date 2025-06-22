@@ -1,0 +1,38 @@
+<div class="container mt-4">
+  <h2 class="text-center mb-4">🎤 Il tuo account</h2>
+  <h4 class="text-center mb-4">Benvenuto  {{ username }}</h4>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Caricamento in corso...</p>
+  </div>
+
+  <div *ngIf="!loading && esibizioni.length === 0" class="text-center mt-4">
+    <p>Nessuna esibizione trovata.</p>
+  </div>
+
+  <div *ngIf="!loading && esibizioni.length > 0">
+    <div *ngFor="let esibizione of esibizioni" class="card mb-3 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">{{ esibizione.canzone }} <small class="text-muted">di {{ esibizione.artista }}</small></h5>
+        <p class="card-text">
+          <strong>Tonalità:</strong> {{ esibizione.tonalita || 'Standard' }}<br>
+          <strong>Data:</strong> {{ esibizione.data_esibizione | date:'short' }}
+        </p>
+
+        <div *ngIf="esibizione.voti.length > 0">
+          <p class="mb-1"><strong>Feedback ricevuti:</strong></p>
+          <div class="d-flex gap-2 flex-wrap">
+            <span *ngFor="let voto of esibizione.voti" class="badge bg-secondary p-2 fs-5">
+              {{ voto.emoji }} × {{ voto.count }}
+            </span>
+          </div>
+        </div>
+
+        <div *ngIf="esibizione.voti.length === 0" class="text-muted">
+          Nessun voto ancora.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

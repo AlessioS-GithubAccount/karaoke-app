@@ -78,6 +78,55 @@ app.post('/api/auth/logout', async (req, res) => {
   }
 });
 
+// 🧑‍💻 GET utente per username (dati profilo)
+app.get('/api/users/by-username/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const [rows] = await db.query('SELECT id, username, ruolo, online_status, created_at FROM users WHERE username = ?', [username]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Utente non trovato' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Errore fetch user:', err);
+    res.status(500).json({ message: 'Errore nel recupero utente' });
+  }
+});
+
+// 🎤 GET esibizioni di uno user con voti aggregati per emoji
+app.get('/api/esibizioni/user/:id', async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        se.id AS esibizione_id,
+        c.canzone,
+        c.artista,
+        se.tonalita,
+        se.data_esibizione
+      FROM storico_esibizioni se
+      JOIN canzoni c ON se.canzone_id = c.id
+      WHERE se.user_id = ?
+      ORDER BY se.data_esibizione DESC
+    `, [userId]);
+
+    for (const esibizione of rows) {
+      const [voti] = await db.query(`
+        SELECT emoji, COUNT(*) AS count
+        FROM voti_emoji
+        WHERE esibizione_id = ?
+        GROUP BY emoji
+        ORDER BY count DESC
+      `, [esibizione.esibizione_id]);
+
+      esibizione.voti = voti;
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Errore fetch esibizioni:', err);
+    res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
+  }
+});
+
 // 🎵 GET tutte le canzoni
 app.get('/api/canzoni', async (req, res) => {
   try {
@@ -93,13 +142,11 @@ app.get('/api/canzoni', async (req, res) => {
 app.post('/api/canzoni', async (req, res) => {
   const { nome, artista, canzone, tonalita, note } = req.body;
   try {
-    // Inserisci nella tabella principale
     await db.query(
       'INSERT INTO canzoni (nome, artista, canzone, tonalita, note) VALUES (?, ?, ?, ?, ?)',
       [nome, artista, canzone, tonalita, note]
     );
 
-    // Inserisci in raccolta_canzoni solo se non esiste già
     await db.query(`
       INSERT INTO raccolta_canzoni (artista, canzone)
       SELECT * FROM (SELECT ? AS artista, ? AS canzone) AS tmp
@@ -119,7 +166,6 @@ app.post('/api/canzoni', async (req, res) => {
 app.put('/api/canzoni/:id/cantata', async (req, res) => {
   const { id } = req.params;
   const { cantata } = req.body;
-
   try {
     await db.query('UPDATE canzoni SET cantata = ? WHERE id = ?', [cantata, id]);
     res.json({ message: 'Stato cantata aggiornato' });

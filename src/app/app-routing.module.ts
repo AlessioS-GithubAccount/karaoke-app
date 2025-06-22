@@ -7,6 +7,7 @@ import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
 import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
+import { UserProfileComponent } from './pages/user-profile/user-profile.component';  // <-- importa
 
 const routes: Routes = [
   { path: '', component: LoginComponent }, 
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: 'lista-canzoni', component: ListaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
   { path: 'archivio-musicale', component: ArchivioMusicaleComponent },
+  { path: 'user-profile', component: UserProfileComponent },  
   { path: '**', redirectTo: '', pathMatch: 'full' }
 ];
 

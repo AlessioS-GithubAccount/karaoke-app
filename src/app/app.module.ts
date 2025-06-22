@@ -14,6 +14,7 @@ import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
 import { LoginComponent } from './AUTH_login/login.component';
 import { RegisterComponent } from './AUTH_register/register.component';
+import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { RegisterComponent } from './AUTH_register/register.component';
     ClassificaComponent,
     ArchivioMusicaleComponent,
     LoginComponent,
-    RegisterComponent  ],
+    RegisterComponent,
+    UserProfileComponent  ],
   imports: [
     BrowserModule,
     AppRoutingModule,

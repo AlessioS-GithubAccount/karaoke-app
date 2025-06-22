@@ -25,7 +25,8 @@ export class LoginComponent {
         if (tipo === 'admin' || res.ruolo === 'admin') {
           this.router.navigate(['/admin']);
         } else {
-          this.router.navigate(['/prenota-canzoni']);
+          // Reindirizza l'utente client alla pagina profilo
+          this.router.navigate(['/user-profile']);
         }
       },
       error: (err) => {
@@ -35,6 +36,7 @@ export class LoginComponent {
   }
 
   loginOspite() {
+    // Puoi modificare anche questa rotta se vuoi
     this.router.navigate(['/prenota-canzoni']);
   }
 }
