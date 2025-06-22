@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { FormControl } from '@angular/forms';
 import { debounceTime, startWith } from 'rxjs/operators';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-prenota-canzoni',
@@ -31,6 +32,7 @@ export class PrenotaCanzoniComponent implements OnInit {
   canzoneControl = new FormControl('');
 
   microfoniInvalid = false;
+  guestId: string = '';
 
   constructor(
     private karaokeService: KaraokeService,
@@ -39,6 +41,10 @@ export class PrenotaCanzoniComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // 🧑‍🎤 Imposta guestId se non presente
+    this.guestId = sessionStorage.getItem('guestId') || uuidv4();
+    sessionStorage.setItem('guestId', this.guestId);
+
     this.karaokeService.getArchivioMusicale().subscribe((data) => {
       this.archivio = data;
 
@@ -46,26 +52,22 @@ export class PrenotaCanzoniComponent implements OnInit {
         .pipe(debounceTime(200), startWith(''))
         .subscribe(val => {
           const input = (val || '').toLowerCase();
-          if (input === '') {
-            this.artistiFiltrati = [];
-          } else {
-            this.artistiFiltrati = [...new Set(this.archivio
-              .map(e => e.artista)
-              .filter(a => a.toLowerCase().startsWith(input)))];
-          }
+          this.artistiFiltrati = input === ''
+            ? []
+            : [...new Set(this.archivio
+                .map(e => e.artista)
+                .filter(a => a.toLowerCase().startsWith(input)))];
         });
 
       this.canzoneControl.valueChanges
         .pipe(debounceTime(200), startWith(''))
         .subscribe(val => {
           const input = (val || '').toLowerCase();
-          if (input === '') {
-            this.canzoniFiltrate = [];
-          } else {
-            this.canzoniFiltrate = [...new Set(this.archivio
-              .map(e => e.canzone)
-              .filter(c => c.toLowerCase().startsWith(input)))];
-          }
+          this.canzoniFiltrate = input === ''
+            ? []
+            : [...new Set(this.archivio
+                .map(e => e.canzone)
+                .filter(c => c.toLowerCase().startsWith(input)))];
         });
     });
   }
@@ -79,11 +81,17 @@ export class PrenotaCanzoniComponent implements OnInit {
     this.validateMicrofoni();
 
     if (form.valid && !this.microfoniInvalid) {
-      // aggiorno formData dai FormControl
       this.formData.artista = this.artistaControl.value || '';
       this.formData.canzone = this.canzoneControl.value || '';
 
-      this.karaokeService.addCanzone(this.formData).subscribe({
+      const userId = this.authService.getUserId(); // deve restituire null o id numerico
+      const canzonePayload = {
+        ...this.formData,
+        user_id: userId || null,
+        guest_id: userId ? null : this.guestId
+      };
+
+      this.karaokeService.addCanzone(canzonePayload).subscribe({
         next: (response) => {
           console.log('Dati salvati nel backend:', response);
           alert(`Ciao ${this.formData.nome}, la canzone è in coda! 🎤`);
@@ -92,8 +100,6 @@ export class PrenotaCanzoniComponent implements OnInit {
             accetta_partecipanti: false
           });
           this.microfoniInvalid = false;
-
-          // resetto anche i FormControl
           this.artistaControl.setValue('');
           this.canzoneControl.setValue('');
         },

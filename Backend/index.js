@@ -140,11 +140,11 @@ app.get('/api/canzoni', async (req, res) => {
 
 // ➕ POST nuova canzone
 app.post('/api/canzoni', async (req, res) => {
-  const { nome, artista, canzone, tonalita, note } = req.body;
+  const { nome, artista, canzone, tonalita, note, user_id, guest_id } = req.body;
   try {
     await db.query(
-      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note) VALUES (?, ?, ?, ?, ?)',
-      [nome, artista, canzone, tonalita, note]
+      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null]
     );
 
     await db.query(`

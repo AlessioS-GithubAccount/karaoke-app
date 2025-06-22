@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import * as jwt_decode from 'jwt-decode';  // importa tutto come jwt_decode
 
 interface LoginResponse {
   message: string;
@@ -23,10 +24,10 @@ export class AuthService {
         next: (res) => {
           localStorage.setItem('token', res.token);
           localStorage.setItem('ruolo', res.ruolo);
-          localStorage.setItem('username', username); // ⬅️ aggiunto
+          localStorage.setItem('username', username);
           observer.next(res);
         },
-        error: (err) => observer.error(err)
+        error: (err) => observer.error(err),
       });
     });
   }
@@ -36,7 +37,7 @@ export class AuthService {
     if (username) {
       this.http.post(this.logoutUrl, { username }).subscribe({
         next: () => console.log('Logout notificato al backend'),
-        error: (err) => console.error('Errore logout backend:', err)
+        error: (err) => console.error('Errore logout backend:', err),
       });
     }
 
@@ -47,5 +48,18 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
+  }
+
+  getUserId(): number | null {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      // Qui chiamiamo jwt_decode.default(token)
+      const decoded: any = (jwt_decode as any).default(token);
+      return decoded.id || null;
+    } catch {
+      return null;
+    }
   }
 }
