@@ -29,6 +29,7 @@ export class PrenotaCanzoniComponent implements OnInit {
   microfoniInvalid = false;
   guestId: string | null = null;
   isLoggedIn = false;
+  isAdmin = false;
   showAccessPrompt = false;
 
   constructor(
@@ -39,15 +40,14 @@ export class PrenotaCanzoniComponent implements OnInit {
 
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn();
+    this.isAdmin = this.authService.getRole() === 'admin';
     this.guestId = sessionStorage.getItem('guestId');
 
     if (!this.isLoggedIn && !this.guestId) {
-      // Né loggato né ospite => mostra messaggio invito login o guest
       this.showAccessPrompt = true;
-      return; // non caricare archivio o altro
+      return;
     }
 
-    // Se ospite senza guestId => assegna guestId
     if (!this.guestId) {
       this.guestId = uuidv4();
       sessionStorage.setItem('guestId', this.guestId);

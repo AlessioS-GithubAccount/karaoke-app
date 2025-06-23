@@ -29,8 +29,8 @@
     [class.open]="menuOpen"
     (click)="toggleMenu()"
   >
+  <li><a href="#" (click)="goToLogin($event)">Accedi</a></li>
     <li><a routerLink="/">Home</a></li>
-    <li><a href="#" (click)="goToLogin($event)">Login</a></li>
     <li><a routerLink="/user-profile">Il Tuo Profilo</a></li>
     <li><a routerLink="/prenota-canzoni">Prenota Canzoni</a></li>
     <li><a routerLink="/lista-canzoni">Brani in coda karaoke</a></li>

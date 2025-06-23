@@ -19,18 +19,18 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<LoginResponse> {
-    return new Observable<LoginResponse>((observer) => {
-      this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
-        next: (res) => {
-          localStorage.setItem('token', res.token);
-          localStorage.setItem('ruolo', res.ruolo);
-          localStorage.setItem('username', username);
-          observer.next(res);
-        },
-        error: (err) => observer.error(err),
-      });
+  return new Observable<LoginResponse>((observer) => {
+    this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
+      next: (res) => {
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('role', res.ruolo);  // SALVA 'role', non 'ruolo'
+        localStorage.setItem('username', username);
+        observer.next(res);
+      },
+      error: (err) => observer.error(err),
     });
-  }
+  });
+}
 
   logout(): void {
     const username = localStorage.getItem('username');
@@ -62,4 +62,9 @@ export class AuthService {
       return null;
     }
   }
+
+ getRole(): string | null {
+  return localStorage.getItem('role'); // Leggi da 'role'
+}
+
 }

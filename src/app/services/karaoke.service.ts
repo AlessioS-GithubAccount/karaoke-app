@@ -24,8 +24,9 @@ export class KaraokeService {
     return this.http.post(this.apiUrl, canzone);
   }
 
-  resetLista(password: string): Observable<any> {
-    return this.http.post(this.resetUrl, { password });
+  // ✅ Metodo corretto per il reset
+  resetLista(): Observable<any> {
+    return this.http.delete(this.resetUrl);
   }
 
   getTop20(): Observable<any[]> {
@@ -44,12 +45,11 @@ export class KaraokeService {
     return this.http.put(`${this.apiUrl}/${idCanzone}/cantata`, { cantata });
   }
 
-  // --- Metodo per recuperare da DB il nome del client che sceglie la canzone dal form ---
   getNomePartecipante(idCanzone: number): Observable<{ nome: string }> {
     return this.http.get<{ nome: string }>(`${this.apiUrl}/${idCanzone}/nome-partecipante`);
- }
+  }
 
   getArchivioMusicale(): Observable<any[]> {
-   return this.http.get<any[]>('http://localhost:3000/api/archivio-musicale');
+    return this.http.get<any[]>('http://localhost:3000/api/archivio-musicale');
   }
 }

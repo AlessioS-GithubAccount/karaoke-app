@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
 export class ListaCanzoniComponent implements OnInit {
   canzoni: any[] = [];
   top20: any[] = [];
-  isAdmin: boolean = true; // Simulazione admin
+  isAdmin: boolean = false;
 
   constructor(
     private karaokeService: KaraokeService,
@@ -20,6 +20,7 @@ export class ListaCanzoniComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.getRole() === 'admin';
     this.caricaCanzoni();
     this.caricaTop20();
   }
@@ -43,6 +44,7 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   toggleCantata(index: number): void {
+    if (!this.isAdmin) return;
     const canzone = this.canzoni[index];
     const nuovoStato = !canzone.cantata;
 
@@ -62,22 +64,18 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   resetLista(): void {
+    if (!this.isAdmin) return;
     if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
-      const pwd = prompt('Inserisci la password di amministratore');
-      if (pwd) {
-        this.karaokeService.resetLista(pwd).subscribe({
-          next: () => {
-            alert('Lista giornaliera resettata ✅');
-            this.caricaCanzoni();
-          },
-          error: (err) => {
-            console.error('Errore durante il reset:', err);
-            alert('Errore durante il reset ❌');
-          }
-        });
-      } else {
-        alert('Password non inserita, operazione annullata.');
-      }
+      this.karaokeService.resetLista().subscribe({
+        next: () => {
+          alert('Lista giornaliera resettata ✅');
+          this.caricaCanzoni();
+        },
+        error: (err) => {
+          console.error('Errore durante il reset:', err);
+          alert('Errore durante il reset ❌');
+        }
+      });
     }
   }
 

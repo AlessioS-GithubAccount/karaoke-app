@@ -138,13 +138,14 @@ app.get('/api/canzoni', async (req, res) => {
   }
 });
 
-// ➕ POST nuova canzone
+// ➕ POST nuova canzone (inserito accetta_partecipanti)
 app.post('/api/canzoni', async (req, res) => {
-  const { nome, artista, canzone, tonalita, note, user_id, guest_id } = req.body;
+  const { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
+
   try {
     await db.query(
-      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null]
+      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0]
     );
 
     await db.query(`
@@ -254,16 +255,23 @@ app.get('/api/classifica', async (req, res) => {
   }
 });
 
-// 🛠️ Controllo colonna numero_richieste
+// 🛠️ Controllo colonna numero_richieste e accetta_partecipanti
 (async () => {
   try {
-    const [result] = await db.query("SHOW COLUMNS FROM canzoni LIKE 'numero_richieste'");
-    if (result.length === 0) {
+    // numero_richieste
+    const [resultNum] = await db.query("SHOW COLUMNS FROM canzoni LIKE 'numero_richieste'");
+    if (resultNum.length === 0) {
       await db.query("ALTER TABLE canzoni ADD COLUMN numero_richieste INT DEFAULT 0");
       console.log("✅ Colonna 'numero_richieste' creata.");
     }
+    // accetta_partecipanti
+    const [resultAcc] = await db.query("SHOW COLUMNS FROM canzoni LIKE 'accetta_partecipanti'");
+    if (resultAcc.length === 0) {
+      await db.query("ALTER TABLE canzoni ADD COLUMN accetta_partecipanti TINYINT(1) DEFAULT 0");
+      console.log("✅ Colonna 'accetta_partecipanti' creata.");
+    }
   } catch (e) {
-    console.error("❌ Errore creazione colonna numero_richieste:", e);
+    console.error("❌ Errore creazione colonne:", e);
   }
 })();
 
