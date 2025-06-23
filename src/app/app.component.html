@@ -1,28 +1,53 @@
-<nav class="navbar"> 
+<nav class="navbar">
   <div class="navbar-container">
+    <!-- Sinistra -->
     <div class="logo">
-      <!-- Logo o testo -->
       <img src="assets/images/logo.jpg" alt="Logo Pub" class="logo-img" />
-      <!-- Se preferisci solo testo, commenta sopra e usa questa: -->
-      <!-- <span>KaraokeApp</span> -->
     </div>
 
-    <div class="title">Dorian Gray Karaoke</div>
+    <!-- Centro -->
+    <div class="navbar-title">
+      <h2>Dorian Gray Karaoke</h2>
+    </div>
 
-    <button class="burger" (click)="toggleMenu()" aria-label="Toggle menu">Menù
-      &#9776; <!-- simbolo hamburger -->
-    </button>
-
-    <ul [class.open]="menuOpen" class="nav-links">
-      <li><a routerLink="/" (click)="toggleMenu()">Home</a></li>
-      <li><a routerLink="/user-profile" (click)="toggleMenu()">Il Tuo Profilo</a></li>
-      <li><a routerLink="/prenota-canzoni" (click)="toggleMenu()">Prenota Canzoni</a></li>
-      <li><a routerLink="/lista-canzoni" (click)="toggleMenu()">Brani in coda karaoke</a></li>
-      <li><a routerLink="/archivio-musicale" (click)="toggleMenu()">Vai all'Archivio Musicale</a></li>
-      <li><a routerLink="/classifica-top20" (click)="toggleMenu()">Classifica Top 20</a></li>
-      <li><a (click)="logout()">Logout</a></li>
-    </ul>
+    <!-- Destra -->
+    <div class="navbar-right right-controls">
+      <button
+        class="burger"
+        (click)="toggleMenu()"
+        aria-label="Toggle menu"
+      >
+        <span>Menù</span>
+        <span>&#9776;</span>
+      </button>
+    </div>
   </div>
+
+  <!-- Menù mobile -->
+  <ul
+    class="nav-links"
+    [class.open]="menuOpen"
+    (click)="toggleMenu()"
+  >
+    <li><a routerLink="/">Home</a></li>
+    <li><a href="#" (click)="goToLogin($event)">Login</a></li>
+    <li><a routerLink="/user-profile">Il Tuo Profilo</a></li>
+    <li><a routerLink="/prenota-canzoni">Prenota Canzoni</a></li>
+    <li><a routerLink="/lista-canzoni">Brani in coda karaoke</a></li>
+    <li><a routerLink="/archivio-musicale">Archivio Musicale</a></li>
+    <li><a routerLink="/classifica-top20">Classifica Top 20</a></li>
+    <li><a href="#" (click)="logout()">Logout</a></li>
+    <li>
+      <button
+        class="toggle-darkmode"
+        [ngClass]="{ light: !darkMode }"
+        (click)="toggleDarkMode()"
+      >
+        <span>{{ darkMode ? '🌙' : '☀️' }}</span>
+        <span>{{ darkMode ? 'Dark Mode' : 'Light Mode' }}</span>
+      </button>
+    </li>
+  </ul>
 </nav>
 
 <router-outlet></router-outlet>

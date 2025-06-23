@@ -13,7 +13,7 @@
 
 .form-columns {
   display: flex;
-  gap: 1.5rem;
+  gap: 7rem; /* mantenuto il gap più ampio */
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -29,11 +29,15 @@ body.bg-dark, .bg-dark {
   color: #eee !important;
 }
 
-.form-columns {
-  display: flex;
-  gap: 7rem; /* prima era 1.5rem, ora raddoppiato */
-  flex-wrap: wrap;
-  justify-content: center;
+/* Aggiungo margine top al container per distanziare dalla navbar */
+.container.mt-4 {
+  margin-top: 0rem !important;
+}
+
+.fullscreen-wrapper {
+  height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 2rem;
 }
 
 

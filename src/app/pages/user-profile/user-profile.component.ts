@@ -16,7 +16,7 @@ interface Esibizione {
   styleUrls: ['./user-profile.component.css']
 })
 export class UserProfileComponent implements OnInit {
-  username: string | null = '';
+  username: string | null = null;
   esibizioni: Esibizione[] = [];
   loading = true;
 
@@ -27,7 +27,7 @@ export class UserProfileComponent implements OnInit {
     if (this.username) {
       this.fetchUserData(this.username);
     } else {
-      this.loading = false;
+      this.loading = false;  // Non caricare dati, utente non loggato
     }
   }
 
@@ -46,7 +46,7 @@ export class UserProfileComponent implements OnInit {
                   .then(results => {
                     this.esibizioni = esibizioni.map((e, i) => ({
                       ...e,
-                      voti: results[i] ?? []  // ← fallback a array vuoto se undefined
+                      voti: results[i] ?? []  // fallback a array vuoto se undefined
                     }));
                     this.loading = false;
                   });

@@ -1,86 +1,81 @@
 .navbar {
   background-color: #222;
   color: white;
-  padding: 0.5rem 0;
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 1000;
+  padding: 0.5rem 0;
+  height: 60px;
 }
 
 .navbar-container {
-  display: grid;
-  grid-template-columns: auto 1fr auto; /* logo, titolo, burger */
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   max-width: 1200px;
-  width: 100%; /* assicurati che usi tutta la larghezza */
+  width: 100%;
   margin: 0 auto;
-  padding: 0 2rem;
-  height: 60px;
+  padding: 0 1rem;
+  height: 100%;
+  box-sizing: border-box;
   position: relative;
-  box-sizing: border-box; /* utile per padding e larghezza */
-}
-
-/* Reset margini e padding e posizionamento per evitare sovrapposizioni */
-.logo, .title, .burger {
-  margin: 0;
-  padding: 0;
-}
-
-/* Logo a sinistra */
-.logo {
-  justify-self: start;
-  display: flex;
-  align-items: center;
-  border-radius: 20px;
 }
 
 .logo-img {
-  height: 60px;
+  height: 50px;
   width: auto;
 }
 
-/* Titolo centrato */
-.title {
-  justify-self: center;
+.navbar-title h2 {
+  margin: 0;
   font-size: 1.5rem;
   font-weight: bold;
   color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   text-align: center;
 }
 
-/* Burger menu a destra */
+/* Container burger */
+.right-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Burger button */
 .burger {
-  justify-self: end;
-  font-size: 28px;
   background: none;
   border: none;
   color: white;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  gap: 12px;
+  position: relative;
   z-index: 1100;
-  display: block;
-  padding: 0;
-  margin: 0;
-  line-height: 1;
+  left: 6rem;
 }
 
-/* Menu laterale a tendina */
+.burger span:last-child {
+  font-size: 1.5rem;
+}
+
+/* Mobile Menu */
 .nav-links {
   position: absolute;
   top: 60px;
-  right: 0;
+  right: 1rem; /* posizionamento sotto al burger */
   background-color: #333;
   list-style: none;
   padding: 1rem;
   margin: 0;
   display: none;
   flex-direction: column;
-  width: 200px;
-  border-radius: 0 0 0 5px;
+  width: 220px;
+  border-radius: 0 0 5px 5px;
   box-sizing: border-box;
+  z-index: 1050;
 }
 
 .nav-links.open {
@@ -95,21 +90,34 @@
   color: white;
   text-decoration: none;
   font-size: 1rem;
-  margin: 0;
-  padding: 0;
 }
 
 .nav-links a:hover {
   text-decoration: underline;
 }
 
-@media (min-width: 768px) {
-  .nav-links {
-    display: none;
-  }
-
-  .nav-links.open {
-    display: flex;
-  }
+/* Dark mode button */
+.toggle-darkmode {
+  border: 1px solid white;
+  background-color: transparent;
+  color: white;
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
+.toggle-darkmode.light {
+  background-color: white;
+  color: black;
+  border-color: white;
+}
+
+.toggle-darkmode:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}

@@ -1,14 +1,3 @@
-<!-- Pulsante Admin fisso in alto a destra -->
-<div style="position: fixed; top: 15px; right: 20px; z-index: 1050;">
-  <button 
-    type="button" 
-    class="btn btn-warning admin-login-btn"
-    (click)="login('admin')">
-    🔑 Login Admin
-  </button>
-</div>
-
-
 <!-- Form login -->
 <div class="container mt-5" style="max-width: 500px;">
   <h2 class="text-center mb-4">🎤 Benvenuto al Karaoke Pub</h2>
@@ -51,7 +40,8 @@
       🎟️ Entra come Ospite
     </button>
 
-    <label for="password" class="form-label text-center small">Non hai ancora un account? Registrati per avere un profilo personalizzato e accedere alle funzionalità avanzate.</label>
+    <label for="password" class="form-label text-center small">Non hai ancora un account? Registrati per avere un profilo personalizzato 
+      e accedere alle funzionalità avanzate. Oppure canta subito come ospite</label>
     <a 
       routerLink="/register" 
       class="btn btn-outline-success w-100 mb-3">

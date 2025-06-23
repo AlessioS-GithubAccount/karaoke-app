@@ -27,7 +27,9 @@ export class PrenotaCanzoniComponent implements OnInit {
   canzoniFiltrate: string[] = [];
 
   microfoniInvalid = false;
-  guestId: string = '';
+  guestId: string | null = null;
+  isLoggedIn = false;
+  showAccessPrompt = false;
 
   constructor(
     private karaokeService: KaraokeService,
@@ -36,12 +38,27 @@ export class PrenotaCanzoniComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.guestId = sessionStorage.getItem('guestId') || uuidv4();
-    sessionStorage.setItem('guestId', this.guestId);
+    this.isLoggedIn = this.authService.isLoggedIn();
+    this.guestId = sessionStorage.getItem('guestId');
 
+    if (!this.isLoggedIn && !this.guestId) {
+      // Né loggato né ospite => mostra messaggio invito login o guest
+      this.showAccessPrompt = true;
+      return; // non caricare archivio o altro
+    }
+
+    // Se ospite senza guestId => assegna guestId
+    if (!this.guestId) {
+      this.guestId = uuidv4();
+      sessionStorage.setItem('guestId', this.guestId);
+    }
+
+    this.loadArchivio();
+  }
+
+  loadArchivio(): void {
     this.karaokeService.getArchivioMusicale().subscribe((data) => {
       this.archivio = data;
-      // eventualmente console.log(this.archivio);
     });
   }
 
@@ -104,5 +121,16 @@ export class PrenotaCanzoniComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  goToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
+  enterAsGuest(): void {
+    this.guestId = uuidv4();
+    sessionStorage.setItem('guestId', this.guestId);
+    this.showAccessPrompt = false;
+    this.loadArchivio();
   }
 }

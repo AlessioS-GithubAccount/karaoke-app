@@ -15,6 +15,7 @@ import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-mu
 import { LoginComponent } from './AUTH_login/login.component';
 import { RegisterComponent } from './AUTH_register/register.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
+import { HomepageComponent } from './pages/homepage/homepage.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { UserProfileComponent } from './pages/user-profile/user-profile.componen
     ArchivioMusicaleComponent,
     LoginComponent,
     RegisterComponent,
-    UserProfileComponent  ],
+    UserProfileComponent,
+    HomepageComponent  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
