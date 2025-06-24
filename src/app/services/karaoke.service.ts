@@ -52,4 +52,19 @@ export class KaraokeService {
   getArchivioMusicale(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:3000/api/archivio-musicale');
   }
+
+  deleteCanzone(id: number) {
+  const token = localStorage.getItem('token');
+  return this.http.delete(`${this.apiUrl}/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+}
+
+aggiornaCanzone(id: number, dati: { nome: string, artista: string, canzone: string }): Observable<any> {
+  return this.http.put(`http://localhost:3000/api/canzoni/${id}`, dati);
+}
+
+
 }

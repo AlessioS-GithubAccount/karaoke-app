@@ -275,6 +275,53 @@ app.get('/api/classifica', async (req, res) => {
   }
 })();
 
+// DELETE canzone per id (solo admin)
+app.delete('/api/canzoni/:id', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Token mancante' });
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    if (decoded.ruolo !== 'admin') {
+      return res.status(403).json({ message: 'Accesso negato' });
+    }
+
+    const { id } = req.params;
+    const [result] = await db.query('DELETE FROM canzoni WHERE id = ?', [id]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata' });
+    }
+
+    res.json({ message: 'Canzone eliminata con successo' });
+  } catch (err) {
+    console.error('Errore eliminazione canzone:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+// PUT admin aggiorna canzone (nome, artista, canzone)
+app.put('/api/canzoni/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nome, artista, canzone } = req.body;
+
+  if (!nome || !artista || !canzone) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
+  }
+
+  try {
+    await db.query(
+      'UPDATE canzoni SET nome = ?, artista = ?, canzone = ? WHERE id = ?',
+      [nome, artista, canzone, id]
+    );
+    res.json({ message: 'Canzone aggiornata con successo' });
+  } catch (err) {
+    console.error('Errore aggiornamento canzone:', err);
+    res.status(500).json({ message: 'Errore durante l\'aggiornamento' });
+  }
+});
+
+
 // ▶️ Avvio server
 app.listen(PORT, () => {
   console.log(`🚀 Server attivo su http://localhost:${PORT}`);

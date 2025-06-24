@@ -13,6 +13,9 @@ export class ListaCanzoniComponent implements OnInit {
   top20: any[] = [];
   isAdmin: boolean = false;
 
+  editingIndex: number | null = null;
+  editedCanzone: any = null;
+
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
@@ -106,6 +109,50 @@ export class ListaCanzoniComponent implements OnInit {
 
   partecipazioneCompleta(canzone: any): boolean {
     return canzone.partecipanti_add >= 3;
+  }
+
+  eliminaCanzone(id: number, index: number): void {
+    if (!this.isAdmin) return;
+    if (confirm('Sei sicuro di voler eliminare questa canzone?')) {
+      this.karaokeService.deleteCanzone(id).subscribe({
+        next: () => {
+          alert('Canzone eliminata con successo');
+          this.canzoni.splice(index, 1);
+        },
+        error: (err) => {
+          console.error('Errore eliminazione canzone:', err);
+          alert('Errore durante l\'eliminazione della canzone');
+        }
+      });
+    }
+  }
+
+  modifica(index: number): void {
+    this.editingIndex = index;
+    this.editedCanzone = { ...this.canzoni[index] };
+  }
+
+  annullaModifica(): void {
+    this.editingIndex = null;
+    this.editedCanzone = null;
+  }
+
+  salvaModifica(index: number): void {
+    if (!this.isAdmin) return;
+
+    const canzoneModificata = this.editedCanzone;
+    this.karaokeService.aggiornaCanzone(canzoneModificata.id, canzoneModificata).subscribe({
+      next: () => {
+        this.canzoni[index] = { ...canzoneModificata };
+        this.editingIndex = null;
+        this.editedCanzone = null;
+        alert('Modifica salvata con successo');
+      },
+      error: (err) => {
+        console.error('Errore durante il salvataggio:', err);
+        alert('Errore durante il salvataggio della canzone');
+      }
+    });
   }
 
   logout(): void {

@@ -1,96 +1,86 @@
-<body class="bg-dark text-light" style="min-height: 100vh; margin: 0;">
-  <div class="container mt-5">
-    <nav class="p-3 text-center bg-dark d-flex justify-content-center gap-2" style="max-width: 600px; margin: auto;">
-    </nav>
-
-    <h2>Lista delle Canzoni 🎶</h2>
-
-    <p class="text-muted fst-italic mb-3">
-      L’ordine delle canzoni potrebbe cambiare leggermente per permettere a tutti di divertirsi al meglio. Grazie di cuore per la comprensione e buon divertimento!
-    </p>
-
-    <div class="d-flex justify-content-between mb-4 align-items-center">
-      <div *ngIf="isAdmin" class="d-flex flex-column flex-md-row align-items-md-center gap-2">
-        <div class="text-light bg-secondary px-3 py-2 rounded text-center">
-          🎤 Cantate: <strong>{{ numeroCantate }}</strong>
-        </div>
-        <a routerLink="/classifica-top20" class="btn btn-warning">
-          🏆 Classifica Top 20
-        </a>
-        <button class="btn btn-danger" (click)="resetLista()">
-          🔄 Reset Lista Giornaliera
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th *ngIf="isAdmin">Stato</th>
+      <th>#</th>
+      <th>Nome</th>
+      <th>Artista</th>
+      <th>Canzone</th>
+      <th *ngIf="isAdmin">Tonalità</th>
+      <th *ngIf="isAdmin">Note</th>
+      <th>Partecipa</th>
+      <th *ngIf="isAdmin">Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let canzone of canzoni; let i = index">
+      <!-- Stato cantata -->
+      <td *ngIf="isAdmin">
+        <button (click)="toggleCantata(i)" class="btn btn-sm"
+                [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'">
+          {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
         </button>
-      </div>
-    </div>
+      </td>
 
-    <table class="table table-dark table-striped table-hover">
-      <thead>
-        <tr>
-          <th *ngIf="isAdmin">🎤</th>
-          <th>#</th>
-          <th>Nome</th>
-          <th>Artista</th>
-          <th>Canzone</th>
-          <th *ngIf="isAdmin">Tonalità</th>
-          <th *ngIf="isAdmin">Note</th>
-          <th>Partecipa</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let canzone of canzoni; let i = index">
-          <td>
-              <button 
-                (click)="isAdmin ? toggleCantata(i) : null"
-                class="btn btn-sm"
-                [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'"
-                [disabled]="!isAdmin">
-                {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
-              </button>
-          </td>
-          <td>{{ i + 1 }}</td>
-          <td>{{ canzone.nome | capitalizeWords }}</td>
-          <td>{{ canzone.artista | capitalizeWords }}</td>
-          <td>{{ canzone.canzone | capitalizeWords }}</td>
-          <td *ngIf="isAdmin">{{ canzone.tonalita }}</td>
-          <td *ngIf="isAdmin">{{ canzone.note }}</td>
-          <td>
-            <button 
-              class="btn btn-primary"
-              [disabled]="canzone.partecipanti_add >= 3 || !canzone.accetta_partecipanti"
-              (click)="partecipaAllaCanzone(canzone)">
-              Partecipa
-            </button>
-            <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
-              Raggiunto num microfoni max
-            </div>
-            <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
-              Partecipazione non disponibile
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <!-- Numero -->
+      <td>{{ i + 1 }}</td>
 
-    <hr class="border-light">
+      <!-- Nome -->
+      <td *ngIf="editingIndex === i">
+        <input [(ngModel)]="editedCanzone.nome" class="form-control form-control-sm" />
+      </td>
+      <td *ngIf="editingIndex !== i">{{ canzone.nome }}</td>
 
-    <h2 class="text-center my-4">🏆 Top 20 Richieste</h2>
-    <table class="table table-dark table-striped table-hover">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Canzone</th>
-          <th>Artista</th>
-          <th>Richieste</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let c of top20; let i = index">
-          <td>{{ i + 1 }}</td>
-          <td>{{ c.canzone | capitalizeWords }}</td>
-          <td>{{ c.artista | capitalizeWords }}</td>
-          <td>{{ c.numero_richieste }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</body>
+      <!-- Artista -->
+      <td *ngIf="editingIndex === i">
+        <input [(ngModel)]="editedCanzone.artista" class="form-control form-control-sm" />
+      </td>
+      <td *ngIf="editingIndex !== i">{{ canzone.artista }}</td>
+
+      <!-- Canzone -->
+      <td *ngIf="editingIndex === i">
+        <input [(ngModel)]="editedCanzone.canzone" class="form-control form-control-sm" />
+      </td>
+      <td *ngIf="editingIndex !== i">{{ canzone.canzone }}</td>
+
+      <!-- Tonalità -->
+      <td *ngIf="isAdmin">
+        <ng-container *ngIf="editingIndex === i; else tonalitaStatic">
+          <input [(ngModel)]="editedCanzone.tonalita" class="form-control form-control-sm" />
+        </ng-container>
+        <ng-template #tonalitaStatic>{{ canzone.tonalita }}</ng-template>
+      </td>
+
+      <!-- Note -->
+      <td *ngIf="isAdmin">
+        <ng-container *ngIf="editingIndex === i; else noteStatic">
+          <input [(ngModel)]="editedCanzone.note" class="form-control form-control-sm" />
+        </ng-container>
+        <ng-template #noteStatic>{{ canzone.note }}</ng-template>
+      </td>
+
+      <!-- Partecipa -->
+      <td>
+        <button class="btn btn-primary"
+                [disabled]="canzone.partecipanti_add >= 3 || !canzone.accetta_partecipanti"
+                (click)="partecipaAllaCanzone(canzone)">
+          Partecipa
+        </button>
+        <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
+          Raggiunto num microfoni max
+        </div>
+        <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
+          Partecipazione non disponibile
+        </div>
+      </td>
+
+      <!-- Azioni admin -->
+      <td *ngIf="isAdmin">
+        <button *ngIf="editingIndex !== i" class="btn btn-sm btn-warning me-1" (click)="modifica(i)">Modifica</button>
+        <button *ngIf="editingIndex === i" class="btn btn-sm btn-success me-1" (click)="salvaModifica(i)">Salva</button>
+        <button *ngIf="editingIndex === i" class="btn btn-sm btn-secondary me-1" (click)="annullaModifica()">Annulla</button>
+        <button class="btn btn-sm btn-danger" (click)="eliminaCanzone(canzone.id, i)">Elimina</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
