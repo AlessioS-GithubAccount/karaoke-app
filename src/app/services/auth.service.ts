@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import * as jwt_decode from 'jwt-decode';  // importa tutto come jwt_decode
+import { jwtDecode } from 'jwt-decode';  // Import nominato per v4+
 
 interface LoginResponse {
   message: string;
@@ -19,18 +19,18 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<LoginResponse> {
-  return new Observable<LoginResponse>((observer) => {
-    this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
-      next: (res) => {
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('role', res.ruolo);  // SALVA 'role', non 'ruolo'
-        localStorage.setItem('username', username);
-        observer.next(res);
-      },
-      error: (err) => observer.error(err),
+    return new Observable<LoginResponse>((observer) => {
+      this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
+        next: (res) => {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('role', res.ruolo);
+          localStorage.setItem('username', username);
+          observer.next(res);
+        },
+        error: (err) => observer.error(err),
+      });
     });
-  });
-}
+  }
 
   logout(): void {
     const username = localStorage.getItem('username');
@@ -42,7 +42,7 @@ export class AuthService {
     }
 
     localStorage.removeItem('token');
-    localStorage.removeItem('ruolo');
+    localStorage.removeItem('role');
     localStorage.removeItem('username');
   }
 
@@ -55,16 +55,16 @@ export class AuthService {
     if (!token) return null;
 
     try {
-      // Qui chiamiamo jwt_decode.default(token)
-      const decoded: any = (jwt_decode as any).default(token);
+      const decoded: any = jwtDecode(token);
+      console.log('Decoded token:', decoded);
       return decoded.id || null;
-    } catch {
+    } catch (e) {
+      console.log('AuthService.getUserId() failed to decode token', e);
       return null;
     }
   }
 
- getRole(): string | null {
-  return localStorage.getItem('role'); // Leggi da 'role'
-}
-
+  getRole(): string | null {
+    return localStorage.getItem('role');
+  }
 }

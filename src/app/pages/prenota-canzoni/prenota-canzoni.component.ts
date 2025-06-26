@@ -43,6 +43,7 @@ export class PrenotaCanzoniComponent implements OnInit {
     this.isAdmin = this.authService.getRole() === 'admin';
     this.guestId = sessionStorage.getItem('guestId');
 
+  
     if (!this.isLoggedIn && !this.guestId) {
       this.showAccessPrompt = true;
       return;
@@ -90,6 +91,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
     if (form.valid && !this.microfoniInvalid) {
       const userId = this.authService.getUserId();
+       console.log('DEBUG - userId:', userId, 'guestId:', this.guestId);
       const canzonePayload = {
         ...this.formData,
         user_id: userId || null,
