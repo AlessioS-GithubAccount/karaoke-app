@@ -107,6 +107,9 @@ export class PrenotaCanzoniComponent implements OnInit {
           this.microfoniInvalid = false;
           this.artistiFiltrati = [];
           this.canzoniFiltrate = [];
+
+          // Qui il redirect a lista-canzoni
+          this.router.navigate(['/lista-canzoni']);
         },
         error: (err) => {
           console.error('Errore durante l\'invio dei dati', err);

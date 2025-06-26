@@ -12,6 +12,29 @@ const PIN_ADMIN = '0000';
 app.use(cors());
 app.use(express.json());
 
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  console.log('Authorization header:', authHeader); // <-- log
+
+  if (!authHeader) {
+    console.log('Token mancante');
+    return res.status(401).json({ message: 'Token mancante' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  console.log('Token estratto:', token); // <-- log
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    console.log('Token decodificato:', decoded); // <-- log
+    req.user = decoded;
+    next();
+  } catch (err) {
+    console.log('Token non valido:', err.message);
+    return res.status(403).json({ message: 'Token non valido' });
+  }
+}
+
 // 🔐 LOGIN
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
@@ -244,18 +267,16 @@ app.get('/api/classifica', async (req, res) => {
   }
 });
 
+
 // DELETE canzone per id (solo admin)
-app.delete('/api/canzoni/:id', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Token mancante' });
+app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
+  const user = req.user;
+  if (user.ruolo !== 'admin') {
+    return res.status(403).json({ message: 'Accesso negato' });
+  }
 
+  const { id } = req.params;
   try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    if (decoded.ruolo !== 'admin') {
-      return res.status(403).json({ message: 'Accesso negato' });
-    }
-
-    const { id } = req.params;
     const [result] = await db.query('DELETE FROM canzoni WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
