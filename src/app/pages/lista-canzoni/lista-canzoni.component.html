@@ -1,7 +1,7 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th *ngIf="isAdmin">Stato</th>
+      <th >Stato</th>
       <th>#</th>
       <th>Nome</th>
       <th>Artista</th>
@@ -18,6 +18,14 @@
       <td *ngIf="isAdmin">
         <button (click)="toggleCantata(i)" class="btn btn-sm"
                 [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'">
+          {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
+        </button>
+      </td>
+      <td *ngIf="!isAdmin">
+        <button class="btn btn-sm"
+                [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'"
+                disabled
+                [style.opacity]="'1'">
           {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
         </button>
       </td>
