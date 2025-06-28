@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { jwtDecode } from 'jwt-decode';  // Import nominato per v4+
+import { jwtDecode } from 'jwt-decode';
 
 interface LoginResponse {
   message: string;
   token: string;
+  refreshToken: string;
   ruolo: string;
 }
 
@@ -15,6 +16,7 @@ interface LoginResponse {
 export class AuthService {
   private loginUrl = 'http://localhost:3000/api/auth/login';
   private logoutUrl = 'http://localhost:3000/api/auth/logout';
+  private refreshUrl = 'http://localhost:3000/api/auth/token';
 
   constructor(private http: HttpClient) {}
 
@@ -23,6 +25,7 @@ export class AuthService {
       this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
         next: (res) => {
           localStorage.setItem('token', res.token);
+          localStorage.setItem('refresh_token', res.refreshToken);
           localStorage.setItem('role', res.ruolo);
           localStorage.setItem('username', username);
           observer.next(res);
@@ -42,6 +45,7 @@ export class AuthService {
     }
 
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('role');
     localStorage.removeItem('username');
   }
@@ -56,7 +60,6 @@ export class AuthService {
 
     try {
       const decoded: any = jwtDecode(token);
-      console.log('Decoded token:', decoded);
       return decoded.id || null;
     } catch (e) {
       console.log('AuthService.getUserId() failed to decode token', e);
@@ -66,5 +69,10 @@ export class AuthService {
 
   getRole(): string | null {
     return localStorage.getItem('role');
+  }
+
+  refreshToken(): Observable<any> {
+    const refresh = localStorage.getItem('refresh_token');
+    return this.http.post<{ token: string }>(this.refreshUrl, { refreshToken: refresh });
   }
 }

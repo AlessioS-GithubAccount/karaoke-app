@@ -7,7 +7,10 @@ const db = require('./database');
 const app = express();
 const PORT = 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
+const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';
+
+let refreshTokens = [];
 
 app.use(cors());
 app.use(express.json());
@@ -39,11 +42,42 @@ app.post('/api/auth/login', async (req, res) => {
     await db.query('UPDATE users SET online_status = 1 WHERE id = ?', [user.id]);
 
     const token = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, SECRET_KEY, { expiresIn: '2h' });
-    res.json({ message: 'Login riuscito', token, ruolo: user.ruolo });
+    const refreshToken = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, REFRESH_SECRET, { expiresIn: '7d' });
+
+    refreshTokens.push(refreshToken);
+
+    res.json({ message: 'Login riuscito', token, refreshToken, ruolo: user.ruolo });
   } catch (err) {
     res.status(500).json({ message: 'Errore interno del server' });
   }
 });
+
+app.post('/api/auth/token', (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken || !refreshTokens.includes(refreshToken)) {
+    return res.status(403).json({ message: 'Refresh token non valido' });
+  }
+
+  try {
+    const user = jwt.verify(refreshToken, REFRESH_SECRET);
+    const newAccessToken = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, SECRET_KEY, { expiresIn: '2h' });
+    res.json({ token: newAccessToken });
+  } catch (err) {
+    return res.status(403).json({ message: 'Token non valido' });
+  }
+});
+
+app.post('/api/auth/logout', async (req, res) => {
+  const { username, refreshToken } = req.body;
+  try {
+    refreshTokens = refreshTokens.filter(token => token !== refreshToken);
+    await db.query('UPDATE users SET online_status = 0 WHERE username = ?', [username]);
+    res.json({ message: 'Logout effettuato' });
+  } catch (err) {
+    res.status(500).json({ message: 'Errore durante il logout' });
+  }
+});
+
 
 app.post('/api/auth/register', async (req, res) => {
   const { username, password, domandaRecupero, rispostaRecupero, keypass } = req.body;

@@ -8,7 +8,9 @@ import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.compo
 import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
-import { HomepageComponent } from './pages/homepage/homepage.component';  
+import { HomepageComponent } from './pages/homepage/homepage.component';
+
+import { AuthService } from './services/auth.service';  // Importa la guardia di autenticazione
 
 const routes: Routes = [
   { path: '', component: HomepageComponent },   // Home come root
@@ -18,7 +20,7 @@ const routes: Routes = [
   { path: 'lista-canzoni', component: ListaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
   { path: 'archivio-musicale', component: ArchivioMusicaleComponent },
-  { path: 'user-profile', component: UserProfileComponent },  
+  { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthService] },  // Protetta da AuthGuard
   { path: '**', redirectTo: '', pathMatch: 'full' }  // redirect a home se rotta sconosciuta
 ];
 
