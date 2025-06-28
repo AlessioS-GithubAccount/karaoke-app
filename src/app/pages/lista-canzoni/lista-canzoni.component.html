@@ -1,7 +1,7 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th >Stato</th>
+      <th>Stato</th>
       <th>#</th>
       <th>Nome</th>
       <th>Artista</th>
@@ -9,7 +9,7 @@
       <th *ngIf="isAdmin">Tonalità</th>
       <th *ngIf="isAdmin">Note</th>
       <th>Partecipa</th>
-      <th *ngIf="isAdmin">Azioni</th>
+      <th>Azioni</th>
     </tr>
   </thead>
   <tbody>
@@ -82,13 +82,14 @@
         </div>
       </td>
 
-      <!-- Azioni admin -->
-      <td *ngIf="isAdmin">
+      <!-- Azioni (visibili se admin o proprietario) -->
+      <td *ngIf="canEditOrDelete(canzone)">
         <button *ngIf="editingIndex !== i" class="btn btn-sm btn-warning me-1" (click)="modifica(i)">Modifica</button>
         <button *ngIf="editingIndex === i" class="btn btn-sm btn-success me-1" (click)="salvaModifica(i)">Salva</button>
         <button *ngIf="editingIndex === i" class="btn btn-sm btn-secondary me-1" (click)="annullaModifica()">Annulla</button>
         <button class="btn btn-sm btn-danger" (click)="eliminaCanzone(canzone.id, i)">Elimina</button>
       </td>
+      <td *ngIf="!canEditOrDelete(canzone)"></td>
     </tr>
   </tbody>
 </table>

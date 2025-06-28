@@ -12,6 +12,7 @@ export class ListaCanzoniComponent implements OnInit {
   canzoni: any[] = [];
   top20: any[] = [];
   isAdmin: boolean = false;
+  userId: number | null = null;
 
   editingIndex: number | null = null;
   editedCanzone: any = null;
@@ -24,6 +25,7 @@ export class ListaCanzoniComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.getRole() === 'admin';
+    this.userId = this.authService.getUserId();
     this.caricaCanzoni();
     this.caricaTop20();
   }
@@ -69,15 +71,10 @@ export class ListaCanzoniComponent implements OnInit {
   resetLista(): void {
     if (!this.isAdmin) return;
     if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
-      this.karaokeService.resetLista().subscribe({
-        next: () => {
-          alert('Lista giornaliera resettata ✅');
-          this.caricaCanzoni();
-        },
-        error: (err) => {
-          console.error('Errore durante il reset:', err);
-          alert('Errore durante il reset ❌');
-        }
+      this.karaokeService.resetLista('karaokeadmin').subscribe(response => {
+        console.log('Reset riuscito:', response);
+      }, error => {
+        console.error('Errore nel reset:', error);
       });
     }
   }
@@ -112,7 +109,7 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   eliminaCanzone(id: number, index: number): void {
-    if (!this.isAdmin) return;
+    if (!this.canEditOrDelete(this.canzoni[index])) return;
     if (confirm('Sei sicuro di voler eliminare questa canzone?')) {
       this.karaokeService.deleteCanzone(id).subscribe({
         next: () => {
@@ -128,6 +125,7 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   modifica(index: number): void {
+    if (!this.canEditOrDelete(this.canzoni[index])) return;
     this.editingIndex = index;
     this.editedCanzone = { ...this.canzoni[index] };
   }
@@ -138,7 +136,7 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   salvaModifica(index: number): void {
-    if (!this.isAdmin) return;
+    if (!this.canEditOrDelete(this.canzoni[index])) return;
 
     const canzoneModificata = this.editedCanzone;
     this.karaokeService.aggiornaCanzone(canzoneModificata.id, canzoneModificata).subscribe({
@@ -153,6 +151,10 @@ export class ListaCanzoniComponent implements OnInit {
         alert('Errore durante il salvataggio della canzone');
       }
     });
+  }
+
+  canEditOrDelete(canzone: any): boolean {
+    return this.isAdmin || (this.userId !== null && canzone.user_id === this.userId);
   }
 
   logout(): void {
