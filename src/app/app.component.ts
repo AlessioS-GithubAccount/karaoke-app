@@ -82,6 +82,7 @@ export class AppComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+    sessionStorage.removeItem('guestId'); // ❗️ Rimozione esplicita dell'ospite
     this.router.navigate(['/login']);
   }
 }
