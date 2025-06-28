@@ -19,15 +19,22 @@ export class UserProfileComponent implements OnInit {
   username: string | null = null;
   esibizioni: Esibizione[] = [];
   loading = true;
+  isLoggedIn = false;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    const token = localStorage.getItem('token');
+    const isGuest = sessionStorage.getItem('guestId');
     this.username = localStorage.getItem('username');
-    if (this.username) {
+
+    // Loggato se c'è token e NON guest
+    this.isLoggedIn = !!token && !isGuest;
+
+    if (this.isLoggedIn && this.username) {
       this.fetchUserData(this.username);
     } else {
-      this.loading = false;  // Non caricare dati, utente non loggato
+      this.loading = false;  // Non caricare dati se non loggato
     }
   }
 
@@ -39,14 +46,14 @@ export class UserProfileComponent implements OnInit {
             .subscribe({
               next: (esibizioni) => {
                 const votiRequests = esibizioni.map((e) =>
-                  this.http.get<{ emoji: string; count: number }[]>(`http://localhost:3000/api/esibizioni/${e.id}/voti`)
+                  this.http.get<{ emoji: string; count: number }[]>(`http://localhost:3000/api/esibizioni/${e.id}/voti`).toPromise()
                 );
 
-                Promise.all(votiRequests.map(r => r.toPromise()))
+                Promise.all(votiRequests)
                   .then(results => {
                     this.esibizioni = esibizioni.map((e, i) => ({
                       ...e,
-                      voti: results[i] ?? []  // fallback a array vuoto se undefined
+                      voti: results[i] ?? []
                     }));
                     this.loading = false;
                   });
