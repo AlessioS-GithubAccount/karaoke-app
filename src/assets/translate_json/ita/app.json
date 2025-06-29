@@ -1,0 +1,16 @@
+{
+  "navbar": {
+    "title": "Karaoke App",
+    "menu": "Menù",
+    "login": "Accedi",
+    "home": "Home",
+    "profile": "Il Tuo Profilo",
+    "book_song": "Prenota Canzoni",
+    "queue": "Brani in coda karaoke",
+    "archive": "Archivio Musicale",
+    "top_20": "Classifica Top 20",
+    "logout": "Logout",
+    "dark_mode": "Dark Mode",
+    "light_mode": "Light Mode"
+  }
+}

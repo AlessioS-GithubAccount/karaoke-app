@@ -30,16 +30,26 @@ function verifyToken(req, res, next) {
 }
 
 
+const mapDomande = {
+  nome_primo_amicizia: "Qual è il nome del tuo animale domestico?",
+  "città_preferita": "Qual è la tua città preferita?",
+  nome_madre: "Qual è il nome di tua madre/padre?",
+  animale_preferito: "Qual è il tuo animale preferito?",
+  codicepin: "Crea il tuo codice PIN di recupero"
+};
+
 
 app.get('/api/auth/forgot-password/question/:username', async (req, res) => {
   const { username } = req.params;
   try {
     const [rows] = await db.query('SELECT domanda_recupero FROM users WHERE username = ?', [username]);
-    console.log('Query result:', rows);  
+    console.log('Query result:', rows);
     if (rows.length === 0) return res.status(404).json({ message: 'Utente non trovato' });
 
-    const domanda = rows[0].domanda_recupero;
-    if (!domanda) return res.status(404).json({ message: 'Domanda segreta assente per questo utente' });
+    const keyDomanda = rows[0].domanda_recupero;
+    if (!keyDomanda) return res.status(404).json({ message: 'Domanda segreta assente per questo utente' });
+
+    const domanda = mapDomande[keyDomanda] || keyDomanda;
 
     res.json({ domanda });
   } catch (err) {

@@ -1,0 +1,23 @@
+{
+  "LISTA.STATO": "Stato",
+  "LISTA.NUMERO": "#",
+  "LISTA.NOME": "Nome",
+  "LISTA.ARTISTA": "Artista",
+  "LISTA.CANZONE": "Canzone",
+  "LISTA.TONALITA": "Tonalità",
+  "LISTA.NOTE": "Note",
+  "LISTA.PARTECIPA": "Partecipa",
+  "LISTA.AZIONI": "Azioni",
+
+  "LISTA.STATO.CANTATA": "Cantata",
+  "LISTA.STATO.DA_CANTARE": "Da cantare",
+
+  "LISTA.BOTTONE.PARTECIPA": "Partecipa",
+  "LISTA.PARTECIPAZIONE.PIENA": "Raggiunto num microfoni max",
+  "LISTA.PARTECIPAZIONE.NON_DISPONIBILE": "Partecipazione non disponibile",
+
+  "LISTA.AZIONE.MODIFICA": "Modifica",
+  "LISTA.AZIONE.SALVA": "Salva",
+  "LISTA.AZIONE.ANNULLA": "Annulla",
+  "LISTA.AZIONE.ELIMINA": "Elimina"
+}

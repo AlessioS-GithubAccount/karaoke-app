@@ -1,0 +1,11 @@
+{
+  "TITLE": "🎤 Benvenuto al Karaoke Pub",
+  "LABEL_USERNAME": "Username",
+  "LABEL_PASSWORD": "Password",
+  "LINK_FORGOT_PASSWORD": "Hai dimenticato la password?",
+  "BUTTON_LOGIN": "🔐 Login",
+  "BUTTON_GUEST": "🎟️ Entra come Ospite",
+  "TEXT_NO_ACCOUNT": "Non hai ancora un account? Registrati per avere un profilo personalizzato e accedere alle funzionalità avanzate. Oppure canta subito come ospite",
+  "BUTTON_REGISTER": "🆕 Registrati",
+  "INFO_PRIVACY": "Questo sito non tratta dati personali come email, numeri di telefono o informazioni sensibili."
+}

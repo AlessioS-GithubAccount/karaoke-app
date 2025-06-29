@@ -1,0 +1,11 @@
+{
+  "PROFILO.TITOLO": "Il tuo profilo.",
+  "PROFILO.BENVENUTO": "Benvenuto {{username}} !",
+  "PROFILO.CARICAMENTO": "Caricamento dati...",
+  "PROFILO.NESSUNA_ESIBIZIONE": "Non hai ancora esibizioni registrate.",
+  "PROFILO.DATA": "Data",
+  "PROFILO.VOTI": "Voti",
+  "PROFILO.NON_LOGGATO_TITOLO": "Non sei loggato!",
+  "PROFILO.NON_LOGGATO_TESTO": "Per vedere il tuo profilo devi prima effettuare il login.",
+  "PROFILO.BOTTONE_LOGIN": "Vai al Login"
+}

@@ -1,0 +1,20 @@
+{
+  "TITLE": "📝 Registrazione Nuovo Utente",
+  "LABEL_USERNAME": "Username",
+  "LABEL_PASSWORD": "Password",
+  "TEXT_PASSWORD_RECOVERY_INFO": "Seleziona una domanda e una risposta per il recupero password. Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.",
+  "LABEL_RECOVERY_QUESTION": "Domanda di Recupero Password",
+  "OPTION_SELECT_QUESTION": "Seleziona una domanda",
+  "OPTION_PET_NAME": "Qual è il nome del tuo animale domestico?",
+  "OPTION_FAVORITE_CITY": "Qual è la tua città preferita?",
+  "OPTION_MOTHER_NAME": "Qual è il nome di tua madre/padre?",
+  "OPTION_FAVORITE_ANIMAL": "Qual è il tuo animale preferito?",
+  "OPTION_PIN_CODE": "Crea il tuo codice PIN di recupero",
+  "LABEL_RECOVERY_ANSWER": "Risposta alla domanda",
+  "PLACEHOLDER_RECOVERY_ANSWER": "Inserisci la tua risposta segreta",
+  "LABEL_ADMIN_KEYPASS": "Admin Mode Keypass (PIN)",
+  "PLACEHOLDER_ADMIN_KEYPASS": "Campo compilabile solo dai gestori del karaoke",
+  "BUTTON_CREATE_ACCOUNT": "🆕 Crea Account",
+  "BUTTON_BACK_TO_LOGIN": "🔙 Torna al Login",
+  "INFO_PRIVACY": "Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili."
+}

@@ -1,0 +1,13 @@
+{
+  "HOME.TITOLO": "Benvenuto su WebApp Karaoke",
+  "HOME.SOTTOTITOLO": "Scopri i brani, prenota la tua canzone e divertiti!",
+
+  "HOME.FEATURE1.TITOLO": "🎤 Prenota Canzoni",
+  "HOME.FEATURE1.TESTO": "Scegli le tue canzoni preferite e mettile in coda.",
+
+  "HOME.FEATURE2.TITOLO": "📋 Lista Brani",
+  "HOME.FEATURE2.TESTO": "Visualizza la lista dei brani in coda per il karaoke.",
+
+  "HOME.FEATURE3.TITOLO": "⭐ Classifica Top 20",
+  "HOME.FEATURE3.TESTO": "Scopri le canzoni più amate della settimana."
+}
