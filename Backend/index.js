@@ -38,7 +38,8 @@ app.post('/api/voti', async (req, res) => {
       emoji: string
     }
   */
-  const { esibizione_id, voter_id, emoji } = req.body;
+  const { canzone_id, voter_id, emoji } = req.body;
+  const esibizione_id = canzone_id; // per retrocompatibilità, se vuoi
 
   if (!esibizione_id || !voter_id || !emoji) {
     return res.status(400).json({ message: 'Parametri mancanti o errati' });

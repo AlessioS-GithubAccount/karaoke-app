@@ -46,13 +46,6 @@ export class ListaCanzoniComponent implements OnInit {
     this.isAdmin = this.authService.getRole() === 'admin';
     this.userId = this.authService.getUserId();
 
-    // Genera guestId se non loggato e non già presente in sessionStorage
-    this.guestId = sessionStorage.getItem('guestId');
-    if (!this.userId && !this.guestId) {
-      this.guestId = this.generateGuestId();
-      sessionStorage.setItem('guestId', this.guestId);
-    }
-
     this.caricaCanzoni();
     this.caricaTop20();
   }
