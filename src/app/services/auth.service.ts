@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 
 interface LoginResponse {
@@ -18,6 +18,12 @@ export class AuthService {
   private logoutUrl = 'http://localhost:3000/api/auth/logout';
   private refreshUrl = 'http://localhost:3000/api/auth/token';
 
+  // BehaviorSubject per stato login, inizializzato in base al token esistente
+  private loggedIn = new BehaviorSubject<boolean>(this.hasValidToken());
+
+  // Observable pubblico per iscriversi ai cambi di stato login
+  public isLoggedIn$ = this.loggedIn.asObservable();
+
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<LoginResponse> {
@@ -28,6 +34,9 @@ export class AuthService {
           localStorage.setItem('refresh_token', res.refreshToken);
           localStorage.setItem('role', res.ruolo);
           localStorage.setItem('username', username);
+
+          this.loggedIn.next(true); // Notifica login
+
           observer.next(res);
         },
         error: (err) => observer.error(err),
@@ -48,10 +57,19 @@ export class AuthService {
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('role');
     localStorage.removeItem('username');
+
+    this.loggedIn.next(false); // Notifica logout
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return this.loggedIn.value;
+  }
+
+  private hasValidToken(): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    // Eventuale controllo di validità del token qui
+    return true;
   }
 
   getUserId(): number | null {

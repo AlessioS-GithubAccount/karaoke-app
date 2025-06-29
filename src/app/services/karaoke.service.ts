@@ -11,6 +11,7 @@ export class KaraokeService {
   private top20Url = 'http://localhost:3000/api/top20';
   private archivioUrl = 'http://localhost:3000/api/archivio-musicale';
   private classificaUrl = 'http://localhost:3000/api/classifica';
+    private votiUrl = 'http://localhost:3000/api/voti';  
 
   private nomeUtente: string = '';
 
@@ -78,4 +79,10 @@ export class KaraokeService {
   getNomeUtente(): string {
     return this.nomeUtente;
   }
+
+   // Metodo per inviare o aggiornare un voto emoji
+  votaEmoji(esibizione_id: number, voter_id: number, emoji: string): Observable<any> {
+    const body = { esibizione_id, voter_id, emoji };
+    return this.http.post(this.votiUrl, body);
+  } 
 }

@@ -29,6 +29,7 @@ export class ListaCanzoniComponent implements OnInit {
   top20: any[] = [];
   isAdmin: boolean = false;
   userId: number | null = null;
+  guestId: string | null = null; // identif guest anonimo
 
   emojisVoto: string[] = ['😐', '😂', '👍', '😎', '🤩', '❤', '🔥'];
 
@@ -44,8 +45,21 @@ export class ListaCanzoniComponent implements OnInit {
   ngOnInit(): void {
     this.isAdmin = this.authService.getRole() === 'admin';
     this.userId = this.authService.getUserId();
+
+    // Genera guestId se non loggato e non già presente in sessionStorage
+    this.guestId = sessionStorage.getItem('guestId');
+    if (!this.userId && !this.guestId) {
+      this.guestId = this.generateGuestId();
+      sessionStorage.setItem('guestId', this.guestId);
+    }
+
     this.caricaCanzoni();
     this.caricaTop20();
+  }
+
+  generateGuestId(): string {
+    // Semplice ID random
+    return 'guest-' + Math.random().toString(36).substring(2, 15);
   }
 
   caricaCanzoni(): void {
@@ -82,7 +96,7 @@ export class ListaCanzoniComponent implements OnInit {
     });
   }
 
-  get numeroCantate(): number {
+  numeroCantate(): number {
     return this.canzoni.filter(c => c.cantata).length;
   }
 
@@ -90,7 +104,7 @@ export class ListaCanzoniComponent implements OnInit {
     if (!this.isAdmin) return;
     if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
       this.karaokeService.resetLista('karaokeadmin').subscribe({
-        next: (response) => {
+        next: () => {
           alert('Lista resettata con successo');
           this.caricaCanzoni();
         },
@@ -187,18 +201,22 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   // --- Nuova funzione per votare ---
- votaCanzone(index: number, emoji: string): void {
-    const canzone = this.canzoni[index];
-    this.karaokeService.inviaVotoEmoji(canzone.id, emoji).subscribe({
-      next: () => {
-        canzone.votoEmoji = emoji;  // salva localmente l'emoji scelta
-        alert(`Hai votato ${emoji} per "${canzone.nome}"`);
-      },
-      error: (err) => {
-        console.error('Errore nel salvataggio del voto emoji:', err);
-        alert('Errore nel salvataggio del voto emoji');
-      }
-    });
+votaCanzone(index: number, emoji: string): void {
+  const canzone = this.canzoni[index];
+  if (!this.userId) {
+    alert('Devi essere loggato per votare!');
+    return;
   }
+  this.karaokeService.votaEmoji(canzone.id, this.userId, emoji).subscribe({
+    next: () => {
+      canzone.votoEmoji = emoji;
+      alert(`Hai votato ${emoji} per "${canzone.nome}"`);
+    },
+    error: (err) => {
+      console.error('Errore nel salvataggio del voto emoji:', err);
+      alert('Errore nel salvataggio del voto emoji');
+    }
+  });
+}
 
 }

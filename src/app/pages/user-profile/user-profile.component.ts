@@ -1,5 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+
 
 interface Esibizione {
   id: number;
@@ -15,27 +18,34 @@ interface Esibizione {
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.css']
 })
-export class UserProfileComponent implements OnInit {
+export class UserProfileComponent implements OnInit, OnDestroy {
   username: string | null = null;
   esibizioni: Esibizione[] = [];
   loading = true;
   isLoggedIn = false;
+  private loginSub?: Subscription;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit(): void {
-    const token = localStorage.getItem('token');
-    const isGuest = sessionStorage.getItem('guestId');
-    this.username = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
+    this.loginSub = this.authService.isLoggedIn$.subscribe(loggedIn => {
+      this.isLoggedIn = loggedIn;
 
-    this.isLoggedIn = ( !!token && (role === 'user' || role === 'admin') ) || !!isGuest;
+      if (loggedIn) {
+        const username = localStorage.getItem('username');
+        if (username) {
+          this.loading = true;
+          this.fetchUserData(username);
+        }
+      } else {
+        this.esibizioni = [];
+        this.loading = false;
+      }
+    });
+  }
 
-    if (this.isLoggedIn && this.username) {
-      this.fetchUserData(this.username);
-    } else {
-      this.loading = false;
-    }
+  ngOnDestroy(): void {
+    this.loginSub?.unsubscribe();
   }
 
   fetchUserData(username: string): void {
@@ -56,7 +66,8 @@ export class UserProfileComponent implements OnInit {
                       voti: results[i] ?? []
                     }));
                     this.loading = false;
-                  });
+                  })
+                  .catch(() => this.loading = false);
               },
               error: () => this.loading = false
             });

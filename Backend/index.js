@@ -29,6 +29,48 @@ function verifyToken(req, res, next) {
   }
 }
 
+app.post('/api/voti', async (req, res) => {
+  /*
+    Body atteso:
+    {
+      esibizione_id: number,
+      voter_id: number, // obbligatorio, utente loggato
+      emoji: string
+    }
+  */
+  const { esibizione_id, voter_id, emoji } = req.body;
+
+  if (!esibizione_id || !voter_id || !emoji) {
+    return res.status(400).json({ message: 'Parametri mancanti o errati' });
+  }
+
+  try {
+    // Verifica se l'utente ha già votato questa esibizione
+    const [existingVote] = await db.query(
+      'SELECT * FROM voti_emoji WHERE esibizione_id = ? AND voter_id = ?',
+      [esibizione_id, voter_id]
+    );
+
+    if (existingVote.length > 0) {
+      // Aggiorna voto esistente
+      const votoId = existingVote[0].id;
+      await db.query('UPDATE voti_emoji SET emoji = ?, data_voto = CURRENT_TIMESTAMP WHERE id = ?', [emoji, votoId]);
+      return res.json({ message: 'Voto aggiornato' });
+    } else {
+      // Inserisci nuovo voto
+      await db.query(
+        'INSERT INTO voti_emoji (esibizione_id, voter_id, emoji) VALUES (?, ?, ?)',
+        [esibizione_id, voter_id, emoji]
+      );
+      return res.json({ message: 'Voto registrato' });
+    }
+  } catch (err) {
+    console.error('Errore API voti:', err);
+    return res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
 
 const mapDomande = {
   nome_primo_amicizia: "Qual è il nome del tuo animale domestico?",
@@ -109,12 +151,15 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
+  console.log('Login attempt for:', username);
   try {
     const [rows] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    console.log('User rows:', rows);
     if (rows.length === 0) return res.status(401).json({ message: 'Credenziali non valide' });
 
     const user = rows[0];
     const passwordOk = await bcrypt.compare(password, user.password_hash);
+    console.log('Password match:', passwordOk);
     if (!passwordOk) return res.status(401).json({ message: 'Credenziali non valide' });
 
     await db.query('UPDATE users SET online_status = 1 WHERE id = ?', [user.id]);
@@ -126,6 +171,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({ message: 'Login riuscito', token, refreshToken, ruolo: user.ruolo });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Errore interno del server' });
   }
 });
@@ -182,15 +228,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/logout', async (req, res) => {
-  const { username } = req.body;
-  try {
-    await db.query('UPDATE users SET online_status = 0 WHERE username = ?', [username]);
-    res.json({ message: 'Logout effettuato' });
-  } catch (err) {
-    res.status(500).json({ message: 'Errore durante il logout' });
-  }
-});
 
 app.get('/api/users/by-username/:username', async (req, res) => {
   const { username } = req.params;
