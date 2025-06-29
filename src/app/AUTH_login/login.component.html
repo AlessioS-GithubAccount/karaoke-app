@@ -25,6 +25,9 @@
         [(ngModel)]="password" 
         required>
     </div>
+    <div class="forgot-password-link text-center mb-2">
+      <a routerLink="/forgot-password">Hai dimenticato la password?</a>
+    </div>
 
     <button 
       type="submit" 
@@ -48,12 +51,12 @@
       🆕 Registrati
     </a>
 
-     <button 
+     <!-- <button 
     type="button" 
     class="btn btn-warning admin-login-btn w-100 "
     (click)="login('admin')">
     🔑 Admin
-  </button>
+  </button>  -->
 
   </form>
 

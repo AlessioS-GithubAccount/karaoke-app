@@ -3,25 +3,26 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { LoginComponent } from './AUTH_login/login.component';
 import { RegisterComponent } from './AUTH_register/register.component'; 
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
 import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
-import { AuthGuard } from './Interceptor/auth.guard';
 
-import { AuthService } from './services/auth.service';  // Importa la guardia di autenticazione
+import { AuthGuard } from './Interceptor/auth.guard';  // Importa la guardia di autenticazione
 
 const routes: Routes = [
   { path: '', component: HomepageComponent },   // Home come root
   { path: 'login', component: LoginComponent },  // Login su /login
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent }, 
   { path: 'prenota-canzoni', component: PrenotaCanzoniComponent },  
   { path: 'lista-canzoni', component: ListaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
   { path: 'archivio-musicale', component: ArchivioMusicaleComponent },
-  { path: 'user-profile', component: UserProfileComponent},  // Protetta da AuthGuard
+  { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuard] },  // Protetta da AuthGuard
   { path: '**', redirectTo: '', pathMatch: 'full' }  // redirect a home se rotta sconosciuta
 ];
 

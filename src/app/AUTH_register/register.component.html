@@ -14,7 +14,13 @@
       <input type="password" id="password" name="password" class="form-control" [(ngModel)]="password" required>
     </div>
 
-    <!-- Domanda recupero -->
+  
+    <div class="mb-2 text-muted small">
+      Seleziona una domanda e una risposta per il recupero password. 
+      <br>Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.
+    </div>
+
+      <!-- Domanda recupero -->
     <div class="mb-3">
       <label for="domandaRecupero" class="form-label">Domanda di Recupero Password</label>
       <select id="domandaRecupero" name="domandaRecupero" class="form-select" [(ngModel)]="domandaRecupero" required>
@@ -26,11 +32,6 @@
         <option value="codicepin">Crea il tuo codice PIN di recupero</option>
       </select>
     </div>
-    <div class="mb-2 text-muted small">
-      Seleziona una domanda e una risposta per il recupero password. 
-      <br>Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.
-    </div>
-
     <!-- Risposta alla domanda -->
     <div class="mb-3">
       <label for="rispostaRecupero" class="form-label">Risposta alla domanda</label>

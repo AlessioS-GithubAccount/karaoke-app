@@ -29,6 +29,74 @@ function verifyToken(req, res, next) {
   }
 }
 
+
+
+app.get('/api/auth/forgot-password/question/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const [rows] = await db.query('SELECT domanda_recupero FROM users WHERE username = ?', [username]);
+    console.log('Query result:', rows);  
+    if (rows.length === 0) return res.status(404).json({ message: 'Utente non trovato' });
+
+    const domanda = rows[0].domanda_recupero;
+    if (!domanda) return res.status(404).json({ message: 'Domanda segreta assente per questo utente' });
+
+    res.json({ domanda });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
+
+// 2) Verifica risposta e consente reset password
+app.post('/api/auth/forgot-password/verify', async (req, res) => {
+  const { username, risposta } = req.body;
+
+  if (!username || !risposta) {
+    return res.status(400).json({ valid: false, message: 'Campi mancanti' });
+  }
+
+  try {
+    const [rows] = await db.query('SELECT risposta_recupero_hash FROM users WHERE username = ?', [username]);
+    if (rows.length === 0) return res.status(404).json({ valid: false, message: 'Utente non trovato' });
+
+    const rispostaHash = rows[0].risposta_recupero_hash;
+    const rispostaOk = await bcrypt.compare(risposta, rispostaHash);
+
+    res.json({ valid: rispostaOk });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ valid: false, message: 'Errore interno del server' });
+  }
+});
+
+// ✅ RESET della password dopo verifica risposta segreta
+app.post('/api/auth/forgot-password/reset', async (req, res) => {
+  const { username, nuovaPassword } = req.body;
+
+  if (!username || !nuovaPassword) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
+  }
+
+  try {
+    const nuovaPasswordHash = await bcrypt.hash(nuovaPassword, 10);
+    const [result] = await db.query('UPDATE users SET password_hash = ? WHERE username = ?', [nuovaPasswordHash, username]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Utente non trovato' });
+    }
+
+    res.json({ message: 'Password aggiornata con successo' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Errore durante il reset della password' });
+  }
+});
+
+
+
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   try {

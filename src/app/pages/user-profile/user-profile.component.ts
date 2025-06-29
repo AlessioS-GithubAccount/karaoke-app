@@ -27,14 +27,14 @@ export class UserProfileComponent implements OnInit {
     const token = localStorage.getItem('token');
     const isGuest = sessionStorage.getItem('guestId');
     this.username = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
 
-    // Loggato se c'è token e NON guest
-    this.isLoggedIn = !!token && !isGuest;
+    this.isLoggedIn = ( !!token && (role === 'user' || role === 'admin') ) || !!isGuest;
 
     if (this.isLoggedIn && this.username) {
       this.fetchUserData(this.username);
     } else {
-      this.loading = false;  // Non caricare dati se non loggato
+      this.loading = false;
     }
   }
 
