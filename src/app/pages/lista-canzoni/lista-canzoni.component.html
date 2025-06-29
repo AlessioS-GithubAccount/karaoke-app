@@ -9,6 +9,7 @@
       <th *ngIf="isAdmin">Tonalità</th>
       <th *ngIf="isAdmin">Note</th>
       <th>Partecipa</th>
+      <th>Vota</th>
       <th>Azioni</th>
     </tr>
   </thead>
@@ -24,8 +25,7 @@
       <td *ngIf="!isAdmin">
         <button class="btn btn-sm"
                 [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'"
-                disabled
-                [style.opacity]="'1'">
+                disabled [style.opacity]="'1'">
           {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
         </button>
       </td>
@@ -35,26 +35,26 @@
 
       <!-- Nome -->
       <td *ngIf="editingIndex === i">
-        <input [(ngModel)]="editedCanzone.nome" class="form-control form-control-sm" />
+        <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.nome" class="form-control form-control-sm" />
       </td>
       <td *ngIf="editingIndex !== i">{{ canzone.nome }}</td>
 
       <!-- Artista -->
       <td *ngIf="editingIndex === i">
-        <input [(ngModel)]="editedCanzone.artista" class="form-control form-control-sm" />
+        <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.artista" class="form-control form-control-sm" />
       </td>
       <td *ngIf="editingIndex !== i">{{ canzone.artista }}</td>
 
       <!-- Canzone -->
       <td *ngIf="editingIndex === i">
-        <input [(ngModel)]="editedCanzone.canzone" class="form-control form-control-sm" />
+        <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.canzone" class="form-control form-control-sm" />
       </td>
       <td *ngIf="editingIndex !== i">{{ canzone.canzone }}</td>
 
       <!-- Tonalità -->
       <td *ngIf="isAdmin">
         <ng-container *ngIf="editingIndex === i; else tonalitaStatic">
-          <input [(ngModel)]="editedCanzone.tonalita" class="form-control form-control-sm" />
+          <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.tonalita" class="form-control form-control-sm" />
         </ng-container>
         <ng-template #tonalitaStatic>{{ canzone.tonalita }}</ng-template>
       </td>
@@ -62,7 +62,7 @@
       <!-- Note -->
       <td *ngIf="isAdmin">
         <ng-container *ngIf="editingIndex === i; else noteStatic">
-          <input [(ngModel)]="editedCanzone.note" class="form-control form-control-sm" />
+          <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.note" class="form-control form-control-sm" />
         </ng-container>
         <ng-template #noteStatic>{{ canzone.note }}</ng-template>
       </td>
@@ -82,7 +82,20 @@
         </div>
       </td>
 
-      <!-- Azioni (visibili se admin o proprietario) -->
+      <!-- Colonna Voto con emoji -->
+      <td>
+        <span *ngFor="let emoji of emojisVoto"
+              (click)="votaCanzone(i, emoji)"
+              [style.cursor]="'pointer'"
+              [style.fontSize]="'1.5rem'"
+              [title]="'Vota ' + emoji"
+              [class.selected]="canzoni[i].votoEmoji === emoji"
+              style="margin-right: 6px;">
+          {{ emoji }}
+        </span>
+      </td>
+
+      <!-- Azioni -->
       <td *ngIf="canEditOrDelete(canzone)">
         <button *ngIf="editingIndex !== i" class="btn btn-sm btn-warning me-1" (click)="modifica(i)">Modifica</button>
         <button *ngIf="editingIndex === i" class="btn btn-sm btn-success me-1" (click)="salvaModifica(i)">Salva</button>
@@ -93,3 +106,13 @@
     </tr>
   </tbody>
 </table>
+
+<!-- Reset lista giornaliera solo admin -->
+<div class="mt-3" *ngIf="isAdmin">
+  <button class="btn btn-danger" (click)="resetLista()">Reset Lista Giornaliera</button>
+</div>
+
+<!-- Logout -->
+<div class="mt-3 text-end">
+  <button class="btn btn-outline-secondary" (click)="logout()">Logout</button>
+</div>

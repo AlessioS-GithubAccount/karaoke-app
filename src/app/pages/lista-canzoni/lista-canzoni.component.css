@@ -62,3 +62,10 @@ p {
 .fst-italic {
   font-style: italic;
 }
+
+.selected {
+  filter: drop-shadow(0 0 2px gold);
+  transform: scale(1.2);
+  transition: transform 0.2s ease;
+}
+
