@@ -17,6 +17,7 @@ import { RegisterComponent } from './AUTH_register/register.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canzoni/user-canzoni.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password
     RegisterComponent,
     UserProfileComponent,
     HomepageComponent,
-    ForgotPasswordComponent  ],
+    ForgotPasswordComponent,
+    UserCanzoniComponent  ],
   imports: [
     BrowserModule,
     AppRoutingModule,

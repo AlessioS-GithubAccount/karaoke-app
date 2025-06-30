@@ -241,30 +241,7 @@ app.get('/api/users/by-username/:username', async (req, res) => {
   }
 });
 
-app.get('/api/esibizioni/user/:id', async (req, res) => {
-  const userId = req.params.id;
-  try {
-    const [rows] = await db.query(
-      `SELECT se.id AS esibizione_id, c.canzone, c.artista, se.tonalita, se.data_esibizione
-       FROM storico_esibizioni se
-       JOIN canzoni c ON se.canzone_id = c.id
-       WHERE se.user_id = ?
-       ORDER BY se.data_esibizione DESC`, [userId]
-    );
 
-    for (const esibizione of rows) {
-      const [voti] = await db.query(
-        `SELECT emoji, COUNT(*) AS count FROM voti_emoji WHERE esibizione_id = ? GROUP BY emoji ORDER BY count DESC`,
-        [esibizione.esibizione_id]
-      );
-      esibizione.voti = voti;
-    }
-
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
-  }
-});
 
 app.get('/api/canzoni', async (req, res) => {
   try {
@@ -276,26 +253,87 @@ app.get('/api/canzoni', async (req, res) => {
 });
 
 app.post('/api/canzoni', async (req, res) => {
-  const { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
+  const { nome, artista, canzone, tonalita, note, user_id, accetta_partecipanti } = req.body;
+
+  if (!user_id) {
+    return res.status(400).json({ message: 'user_id obbligatorio' });
+  }
+
   try {
-    await db.query(
-      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0]
+    // 1. Inserisce nella tabella `canzoni`
+    const [result] = await db.query(
+      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, NULL, ?)',
+      [nome, artista, canzone, tonalita, note, user_id, accetta_partecipanti ? 1 : 0]
     );
 
+    const canzoneId = result.insertId;
+
+    // 2. Inserisce nella `raccolta_canzoni` solo se non già presente
     await db.query(
-      `INSERT INTO raccolta_canzoni (artista, canzone)
-       SELECT * FROM (SELECT ? AS artista, ? AS canzone) AS tmp
+      `INSERT INTO raccolta_canzoni (artista, canzone, user_id)
+       SELECT * FROM (SELECT ? AS artista, ? AS canzone, ? AS user_id) AS tmp
        WHERE NOT EXISTS (
          SELECT 1 FROM raccolta_canzoni WHERE artista = ? AND canzone = ?
-       )`, [artista, canzone, artista, canzone]
+       )`, [artista, canzone, user_id, artista, canzone]
     );
 
-    res.json({ message: 'Canzone aggiunta con successo' });
+    // 3. Inserisce in `user_storico_esibizioni` duplicando i dati (no join futura necessaria)
+    await db.query(
+      'INSERT INTO user_storico_esibizioni (user_id, canzone_id, tonalita, nome, artista, canzone) VALUES (?, ?, ?, ?, ?, ?)',
+      [user_id, canzoneId, tonalita || null, nome, artista, canzone]
+    );
+
+    res.json({ message: 'Canzone aggiunta e storico aggiornato con successo' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Errore durante l\'aggiunta' });
   }
 });
+
+app.get('/api/esibizioni/user/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT id AS esibizione_id, nome, artista, canzone, tonalita, data_esibizione
+       FROM user_storico_esibizioni
+       WHERE user_id = ?
+       ORDER BY data_esibizione DESC`,
+      [userId]
+    );
+
+    /* Se vuoi aggiungere i voti emoji qui, puoi aggiungere un ciclo async (opzionale)
+       per ogni esibizione, ma attenzione alle performance */
+
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Errore nel recupero delle esibizioni:', err.message, err);
+    res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
+  }
+});
+
+
+app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
+  const esibizioneId = req.params.esibizioneId;
+
+  try {
+    const [voti] = await db.query(
+      `SELECT emoji, COUNT(*) AS count
+       FROM voti_emoji
+       WHERE esibizione_id = ?
+       GROUP BY emoji`,
+      [esibizioneId]
+    );
+
+    // Se non ci sono voti, ritorna array vuoto
+    res.json(voti || []);
+  } catch (err) {
+    console.error('Errore recupero voti:', err);
+    res.status(500).json({ message: 'Errore nel recupero dei voti' });
+  }
+});
+
+
 
 app.put('/api/canzoni/:id/cantata', async (req, res) => {
   const { id } = req.params;
@@ -413,9 +451,30 @@ app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
     await db.query('DELETE FROM canzoni WHERE id = ?', [id]);
     res.json({ message: 'Canzone eliminata con successo' });
   } catch (err) {
+    console.error('Errore in DELETE /api/canzoni/:id', err); // aggiungi questo
     res.status(500).json({ message: 'Errore interno del server' });
   }
 });
+
+app.delete('/api/esibizioni/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await db.query('DELETE FROM user_storico_esibizioni WHERE id = ?', [id]);
+
+    if (rows.affectedRows === 0) {
+      return res.status(404).json({ message: 'Esibizione non trovata' });
+    }
+
+    res.json({ message: 'Esibizione eliminata con successo' });
+  } catch (err) {
+    console.error('Errore eliminazione esibizione:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
+
 
 (async () => {
   try {

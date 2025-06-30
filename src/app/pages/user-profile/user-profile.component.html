@@ -1,34 +1,47 @@
-<div class="container mt-4">
-  <ng-container *ngIf="isLoggedIn; else notLoggedIn">
-    <!-- Profilo utente loggato -->
-    <h1>Il tuo profilo.</h1>
-    <h4>Benvenuto {{username}} !</h4>
+<ng-container *ngIf="isLoggedIn; else notLoggedIn">
+  <div class="user-profile-grid-container">
+    <h1 class="titleH1">🎤 Benvenuto {{ username }}!</h1>
+    <p class="subtitle">Scegli cosa esplorare nel tuo profilo</p>
 
-    <div *ngIf="loading">Caricamento dati...</div>
-
-    <div *ngIf="!loading && esibizioni.length === 0">
-      <p>Non hai ancora esibizioni registrate.</p>
+    <div class="profile-grid">
+      <div class="profile-card" routerLink="storico" routerLinkActive="active" tabindex="0" role="button">
+        <h3>📜<br>Storico</h3>
+        <p>Visualizza le tue esibizioni</p>
+      </div>
+      <div class="profile-card" routerLink="statistiche" routerLinkActive="active" tabindex="0" role="button">
+        <h3>📊<br>Statistiche</h3>
+        <p>Le tue performance in dettaglio</p>
+      </div>
+      <div class="profile-card" routerLink="badge" routerLinkActive="active" tabindex="0" role="button">
+        <h3>🏅<br>Badge</h3>
+        <p>Obiettivi raggiunti</p>
+      </div>
+      <div class="profile-card" routerLink="collaborazioni" routerLinkActive="active" tabindex="0" role="button">
+        <h3>🤝<br>Collaborazioni</h3>
+        <p>Chi hai cantato con più spesso</p>
+      </div>
+      <div class="profile-card" routerLink="voti" routerLinkActive="active" tabindex="0" role="button">
+        <h3>📈<br>Voti Emoji</h3>
+        <p>Riepilogo voti ricevuti</p>
+      </div>
+      <div class="profile-card" routerLink="modifica-profilo" routerLinkActive="active" tabindex="0" role="button">
+        <h3>⚙️<br>Modifica Profilo</h3>
+        <p>Cambia i tuoi dati</p>
+      </div>
+      <div class="profile-card" routerLink="privacy" routerLinkActive="active" tabindex="0" role="button">
+        <h3>🔐<br>Privacy</h3>
+        <p>Gestisci i tuoi dati personali</p>
+      </div>
     </div>
 
-    <div *ngIf="!loading && esibizioni.length > 0">
-      <ul>
-        <li *ngFor="let e of esibizioni">
-          <strong>{{ e.artista }}</strong> - {{ e.canzone }} ({{ e.tonalita }})<br />
-          Data: {{ e.data_esibizione | date:'dd/MM/yyyy' }}<br />
-          Voti:
-          <span *ngFor="let voto of e.voti">
-            {{ voto.emoji }} ({{ voto.count }})&nbsp;
-          </span>
-        </li>
-      </ul>
-    </div>
-  </ng-container>
+    <router-outlet></router-outlet>
+  </div>
+</ng-container>
 
-  <ng-template #notLoggedIn>
-    <div class="alert alert-warning text-center">
-      <h4>Non sei loggato!</h4>
-      <p>Per vedere il tuo profilo devi prima effettuare il login.</p>
-      <a routerLink="/login" class="btn btn-primary">Vai al Login</a>
-    </div>
-  </ng-template>
-</div>
+<ng-template #notLoggedIn>
+  <div class="alert alert-warning text-center mt-4">
+    <h4>Non sei loggato!</h4>
+    <p>Per vedere il tuo profilo devi prima effettuare il login.</p>
+    <a routerLink="/login" class="btn btn-primary">Vai al Login</a>
+  </div>
+</ng-template>

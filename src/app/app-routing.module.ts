@@ -9,21 +9,32 @@ import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.compo
 import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
+import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canzoni/user-canzoni.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 
 import { AuthGuard } from './Authguards/auth.guard';  // Importa la guardia di autenticazione
 
 const routes: Routes = [
-  { path: '', component: HomepageComponent },   // Home come root
-  { path: 'login', component: LoginComponent },  // Login su /login
+  { path: '', component: HomepageComponent },
+  { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent }, 
-  { path: 'prenota-canzoni', component: PrenotaCanzoniComponent},  
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'prenota-canzoni', component: PrenotaCanzoniComponent },
   { path: 'lista-canzoni', component: ListaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
   { path: 'archivio-musicale', component: ArchivioMusicaleComponent },
-  { path: 'user-profile', component: UserProfileComponent },  // Protetta da AuthGuard
-  { path: '**', redirectTo: '', pathMatch: 'full' }  // redirect a home se rotta sconosciuta
+
+  {
+    path: 'user-profile',
+    component: UserProfileComponent,
+    canActivate: [AuthGuard],
+    children: [
+      { path: 'storico', component: UserCanzoniComponent },
+      // Aggiungerai qui gli altri componenti come "statistiche", "badge", ecc.
+    ]
+  },
+
+  { path: '**', redirectTo: '', pathMatch: 'full' }
 ];
 
 @NgModule({

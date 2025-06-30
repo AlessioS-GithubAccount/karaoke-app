@@ -1,0 +1,64 @@
+<div class="userCanzoni-container">
+  <h2>🎤 Storico delle tue esibizioni</h2>
+
+  <table class="table table-bordered table-hover" *ngIf="esibizioni.length > 0; else noEsibizioni">
+    <thead class="table-dark">
+      <tr>
+        <th>Canzone</th>
+        <th>Artista</th>
+        <th>Tonalità</th>
+        <th>Hai cantato con</th>
+        <th>Voti</th>
+        <th>Data</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let canzone of esibizioni">
+        <td>{{ canzone.canzone }}</td>
+        <td>{{ canzone.artista }}</td>
+        <td>{{ canzone.tonalita || '—' }}</td>
+        <td>—</td> <!-- Collaboratori non ancora implementati -->
+        <td>{{ formattaVoti(canzone.voti || []) }}</td>
+        <td>{{ canzone.data_esibizione | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(canzone.esibizione_id)">Elimina</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noEsibizioni>
+    <div class="alert alert-info mt-3">Nessuna esibizione trovata.</div>
+  </ng-template>
+
+  <h2 class="mt-5">💭 La tua lista desideri</h2>
+
+  <table class="table table-striped" *ngIf="wishlist.length > 0; else noWishlist">
+    <thead>
+      <tr>
+        <th>Canzone</th>
+        <th>Artista</th>
+        <th>Tonalità</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let song of wishlist">
+        <td><input class="form-control" [(ngModel)]="song.canzone" /></td>
+        <td><input class="form-control" [(ngModel)]="song.artista" /></td>
+        <td><input class="form-control" [(ngModel)]="song.tonalita" /></td>
+        <td>
+          <button class="btn btn-success btn-sm" (click)="salvaWishlist(song)">💾</button>
+          <button class="btn btn-danger btn-sm" (click)="rimuoviWishlist(song.id)">🗑</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noWishlist>
+    <p>La tua lista dei desideri è vuota.</p>
+  </ng-template>
+
+  <button class="btn btn-primary mt-3" (click)="aggiungiRiga()">+ Aggiungi Canzone</button>
+</div>

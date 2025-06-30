@@ -18,13 +18,39 @@ export class AuthService {
   private logoutUrl = 'http://localhost:3000/api/auth/logout';
   private refreshUrl = 'http://localhost:3000/api/auth/token';
 
-  // BehaviorSubject per stato login, inizializzato in base al token esistente
+  // Stato login BehaviorSubject inizializzato in base a validità token
   private loggedIn = new BehaviorSubject<boolean>(this.hasValidToken());
-
-  // Observable pubblico per iscriversi ai cambi di stato login
   public isLoggedIn$ = this.loggedIn.asObservable();
 
-  constructor(private http: HttpClient) {}
+  // Caching utente loggato
+  private currentUserSubject = new BehaviorSubject<any | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
+
+  constructor(private http: HttpClient) {
+    this.loadUserFromStorage();
+  }
+
+  private loadUserFromStorage() {
+    const username = localStorage.getItem('username');
+    if (username) {
+      this.http.get<any>(`http://localhost:3000/api/users/by-username/${username}`).subscribe({
+        next: user => this.currentUserSubject.next(user),
+        error: () => this.currentUserSubject.next(null),
+      });
+    } else {
+      this.currentUserSubject.next(null);
+    }
+  }
+
+  // Metodo pubblico per ottenere l'utente loggato come Observable
+  getUtenteLoggato(): Observable<any | null> {
+    return this.currentUser$;
+  }
+
+  // Ricarica manuale utente loggato (es. dopo login)
+  reloadUtenteLoggato() {
+    this.loadUserFromStorage();
+  }
 
   login(username: string, password: string): Observable<LoginResponse> {
     return new Observable<LoginResponse>((observer) => {
@@ -35,7 +61,8 @@ export class AuthService {
           localStorage.setItem('role', res.ruolo);
           localStorage.setItem('username', username);
 
-          this.loggedIn.next(true); // Notifica login
+          this.loggedIn.next(true);
+          this.reloadUtenteLoggato();
 
           observer.next(res);
         },
@@ -58,7 +85,8 @@ export class AuthService {
     localStorage.removeItem('role');
     localStorage.removeItem('username');
 
-    this.loggedIn.next(false); // Notifica logout
+    this.loggedIn.next(false);
+    this.currentUserSubject.next(null);
   }
 
   isLoggedIn(): boolean {
@@ -68,8 +96,21 @@ export class AuthService {
   private hasValidToken(): boolean {
     const token = localStorage.getItem('token');
     if (!token) return false;
-    // Eventuale controllo di validità del token qui
-    return true;
+
+    // Facoltativo: verifica scadenza token con jwtDecode e controllo data scadenza
+    try {
+      const decoded: any = jwtDecode(token);
+      if (decoded.exp) {
+        const now = Date.now().valueOf() / 1000;
+        if (decoded.exp < now) {
+          // token scaduto
+          return false;
+        }
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   getUserId(): number | null {
