@@ -81,8 +81,10 @@ export class KaraokeService {
   }
 
    // Metodo per inviare o aggiornare un voto emoji
-  votaEmoji(esibizione_id: number, voter_id: number, emoji: string): Observable<any> {
-    const body = { esibizione_id, voter_id, emoji };
-    return this.http.post(this.votiUrl, body);
-  } 
+  votaEmoji(canzoneId: number, voterId: number, emoji: string): Observable<any> {
+    const body = { canzone_id: canzoneId, voter_id: voterId, emoji };
+    return this.http.post('http://localhost:3000/api/voti', body);
+  }
+
+
 }

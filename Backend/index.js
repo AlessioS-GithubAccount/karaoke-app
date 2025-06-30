@@ -29,36 +29,29 @@ function verifyToken(req, res, next) {
   }
 }
 
+
 app.post('/api/voti', async (req, res) => {
-  /*
-    Body atteso:
-    {
-      esibizione_id: number,
-      voter_id: number, // obbligatorio, utente loggato
-      emoji: string
-    }
-  */
   const { canzone_id, voter_id, emoji } = req.body;
-  const esibizione_id = canzone_id; // per retrocompatibilità, se vuoi
+  const esibizione_id = canzone_id;
 
   if (!esibizione_id || !voter_id || !emoji) {
     return res.status(400).json({ message: 'Parametri mancanti o errati' });
   }
 
   try {
-    // Verifica se l'utente ha già votato questa esibizione
     const [existingVote] = await db.query(
       'SELECT * FROM voti_emoji WHERE esibizione_id = ? AND voter_id = ?',
       [esibizione_id, voter_id]
     );
 
     if (existingVote.length > 0) {
-      // Aggiorna voto esistente
       const votoId = existingVote[0].id;
-      await db.query('UPDATE voti_emoji SET emoji = ?, data_voto = CURRENT_TIMESTAMP WHERE id = ?', [emoji, votoId]);
+      await db.query(
+        'UPDATE voti_emoji SET emoji = ?, data_esibizione = CURRENT_TIMESTAMP WHERE id = ?',
+        [emoji, votoId]
+      );
       return res.json({ message: 'Voto aggiornato' });
     } else {
-      // Inserisci nuovo voto
       await db.query(
         'INSERT INTO voti_emoji (esibizione_id, voter_id, emoji) VALUES (?, ?, ?)',
         [esibizione_id, voter_id, emoji]
@@ -66,10 +59,11 @@ app.post('/api/voti', async (req, res) => {
       return res.json({ message: 'Voto registrato' });
     }
   } catch (err) {
-    console.error('Errore API voti:', err);
+    console.error('Errore API voti:', err.sqlMessage || err.message || err);
     return res.status(500).json({ message: 'Errore interno del server' });
   }
 });
+
 
 
 
@@ -381,8 +375,6 @@ app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Errore durante la rimozione' });
   }
 });
-
-
 
 
 

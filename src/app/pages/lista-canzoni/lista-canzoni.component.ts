@@ -195,15 +195,16 @@ export class ListaCanzoniComponent implements OnInit {
 
   // --- Nuova funzione per votare ---
 votaCanzone(index: number, emoji: string): void {
-  const canzone = this.canzoni[index];
   if (!this.userId) {
     alert('Devi essere loggato per votare!');
     return;
   }
-  this.karaokeService.votaEmoji(canzone.id, this.userId, emoji).subscribe({
+
+  const canzone = this.canzoni[index];
+  this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
     next: () => {
       canzone.votoEmoji = emoji;
-      alert(`Hai votato ${emoji} per "${canzone.nome}"`);
+      console.log(`Hai votato ${emoji} per "${canzone.nome}"`);
     },
     error: (err) => {
       console.error('Errore nel salvataggio del voto emoji:', err);
@@ -211,5 +212,7 @@ votaCanzone(index: number, emoji: string): void {
     }
   });
 }
+
+
 
 }
