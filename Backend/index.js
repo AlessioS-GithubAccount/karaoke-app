@@ -278,10 +278,11 @@ app.post('/api/canzoni', async (req, res) => {
     );
 
     // 3. Inserisce in `user_storico_esibizioni` duplicando i dati (no join futura necessaria)
-    await db.query(
-      'INSERT INTO user_storico_esibizioni (user_id, canzone_id, tonalita, nome, artista, canzone) VALUES (?, ?, ?, ?, ?, ?)',
-      [user_id, canzoneId, tonalita || null, nome, artista, canzone]
-    );
+  await db.query(
+    'INSERT INTO user_storico_esibizioni (user_id, canzone_id, tonalita, nome, artista, canzone, data_esibizione) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+    [user_id, canzoneId, tonalita || null, nome, artista, canzone]
+  );
+
 
     res.json({ message: 'Canzone aggiunta e storico aggiornato con successo' });
   } catch (err) {
