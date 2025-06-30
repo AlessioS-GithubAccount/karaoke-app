@@ -49,12 +49,31 @@
         <td><input class="form-control" [(ngModel)]="song.artista" /></td>
         <td><input class="form-control" [(ngModel)]="song.tonalita" /></td>
         <td>
-          <button class="btn btn-success btn-sm" (click)="salvaWishlist(song)">💾</button>
-          <button class="btn btn-danger btn-sm" (click)="rimuoviWishlist(song.id)">🗑</button>
-        </td>
+  <div class="d-flex gap-2">
+    <button 
+      class="btn btn-success btn-sm"
+      (click)="salvaWishlist(song)"
+      [disabled]="!song.canzone || !song.artista"
+      title="Compila almeno canzone e artista per salvare">
+      💾 Salva
+    </button>
+
+    <button 
+      class="btn btn-danger btn-sm"
+      (click)="rimuoviWishlist(song.id)"
+      title="Elimina questa canzone dalla lista desideri">
+      🗑 Elimina
+    </button>
+  </div>
+</td>
+
       </tr>
     </tbody>
   </table>
+
+  <a routerLink="/prenota-canzoni" class="btn btn-outline-primary mt-4 me-4">
+  🎶 Vai a Prenota Canzoni
+</a>
 
   <ng-template #noWishlist>
     <p>La tua lista dei desideri è vuota.</p>

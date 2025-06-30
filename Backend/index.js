@@ -335,6 +335,56 @@ app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
 });
 
 
+// Ottieni tutta la wishlist (potresti aggiungere filtro per userId se vuoi)
+app.get('/api/wishlist', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [rows] = await db.query('SELECT * FROM wishlist WHERE user_id = ?', [userId]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Errore nel recupero wishlist' });
+  }
+});
+
+// Aggiungi una canzone alla wishlist
+app.post('/api/wishlist', verifyToken, async (req, res) => {
+  const { canzone, artista, tonalita } = req.body;
+  const userId = req.user.id;
+
+  if (!canzone || !artista) {
+    return res.status(400).json({ message: 'Canzone e artista sono obbligatori' });
+  }
+
+  try {
+    await db.query('INSERT INTO wishlist (canzone, artista, tonalita, user_id) VALUES (?, ?, ?, ?)', [canzone, artista, tonalita || null, userId]);
+    res.json({ message: 'Canzone aggiunta alla wishlist' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Errore durante l\'aggiunta alla wishlist' });
+  }
+});
+
+// Elimina una canzone dalla wishlist
+app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const [rows] = await db.query('DELETE FROM wishlist WHERE id = ? AND user_id = ?', [id, userId]);
+    if (rows.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata o non autorizzato' });
+    }
+    res.json({ message: 'Canzone rimossa dalla wishlist' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Errore durante la rimozione' });
+  }
+});
+
+
+
+
 
 app.put('/api/canzoni/:id/cantata', async (req, res) => {
   const { id } = req.params;

@@ -134,4 +134,9 @@ export class AuthService {
     const refresh = localStorage.getItem('refresh_token');
     return this.http.post<{ token: string }>(this.refreshUrl, { refreshToken: refresh });
   }
+
+  getToken(): string | null {
+  return localStorage.getItem('token');
+}
+
 }
