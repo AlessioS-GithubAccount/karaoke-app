@@ -29,7 +29,7 @@ function verifyToken(req, res, next) {
   }
 }
 
-
+// salva in tabella voti_emoji i like
 app.post('/api/voti', async (req, res) => {
   const { canzone_id, voter_id, emoji } = req.body;
   const esibizione_id = canzone_id;
@@ -247,65 +247,96 @@ app.get('/api/canzoni', async (req, res) => {
 });
 
 app.post('/api/canzoni', async (req, res) => {
-  const { nome, artista, canzone, tonalita, note, user_id, accetta_partecipanti } = req.body;
+  const { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
-  if (!user_id) {
-    return res.status(400).json({ message: 'user_id obbligatorio' });
-  }
+if (!user_id && !guest_id) {
+  return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
+}
 
-  try {
-    // 1. Inserisce nella tabella `canzoni`
-    const [result] = await db.query(
-      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, NULL, ?)',
-      [nome, artista, canzone, tonalita, note, user_id, accetta_partecipanti ? 1 : 0]
-    );
+try {
+  // Insert canzone
+const [result] = await db.query(
+  'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+  [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0]
+);
 
-    const canzoneId = result.insertId;
+const canzoneId = result.insertId;
 
-    // 2. Inserisce nella `raccolta_canzoni` solo se non già presente
-    await db.query(
-      `INSERT INTO raccolta_canzoni (artista, canzone, user_id)
-       SELECT * FROM (SELECT ? AS artista, ? AS canzone, ? AS user_id) AS tmp
-       WHERE NOT EXISTS (
-         SELECT 1 FROM raccolta_canzoni WHERE artista = ? AND canzone = ?
-       )`, [artista, canzone, user_id, artista, canzone]
-    );
-
-    // 3. Inserisce in `user_storico_esibizioni` duplicando i dati (no join futura necessaria)
+// Inserisci in raccolta_canzoni solo se user_id non è null
+if (user_id) {
   await db.query(
-    'INSERT INTO user_storico_esibizioni (user_id, canzone_id, tonalita, nome, artista, canzone, data_esibizione) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+    `INSERT INTO raccolta_canzoni (artista, canzone, user_id)
+     SELECT ?, ?, ?
+     WHERE NOT EXISTS (
+       SELECT 1 FROM raccolta_canzoni WHERE artista = ? AND canzone = ?
+     )`,
+    [artista, canzone, user_id, artista, canzone]
+  );
+
+  await db.query(
+    'INSERT INTO user_storico_esibizioni (user_id, esibizione_id, tonalita, nome, artista, canzone, data_esibizione) VALUES (?, ?, ?, ?, ?, ?, NOW())',
     [user_id, canzoneId, tonalita || null, nome, artista, canzone]
   );
+}
+
 
 
     res.json({ message: 'Canzone aggiunta e storico aggiornato con successo' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Errore durante l\'aggiunta' });
-  }
+  console.error('Errore in POST /api/canzoni:', err.sqlMessage || err.message || err);
+  res.status(500).json({ message: 'Errore durante l\'aggiunta' });
+}
 });
 
 app.get('/api/esibizioni/user/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const [rows] = await db.query(
-      `SELECT id AS esibizione_id, nome, artista, canzone, tonalita, data_esibizione
+    const [esibizioni] = await db.query(
+      `SELECT id, esibizione_id, nome, artista, canzone, tonalita, data_esibizione
        FROM user_storico_esibizioni
        WHERE user_id = ?
        ORDER BY data_esibizione DESC`,
       [userId]
     );
 
-    /* Se vuoi aggiungere i voti emoji qui, puoi aggiungere un ciclo async (opzionale)
-       per ogni esibizione, ma attenzione alle performance */
+    if (esibizioni.length === 0) {
+      return res.json([]);
+    }
 
-    res.json(rows);
+    const esibizioneIds = esibizioni.map(e => e.esibizione_id);
+
+    if (esibizioneIds.length === 0) {
+      esibizioni.forEach(e => e.voti = []);
+      return res.json(esibizioni);
+    }
+
+    const [voti] = await db.query(
+      `SELECT esibizione_id, emoji, COUNT(*) AS count
+       FROM voti_emoji
+       WHERE esibizione_id IN (${esibizioneIds.map(() => '?').join(',')})
+       GROUP BY esibizione_id, emoji`,
+      esibizioneIds
+    );
+
+    const votiPerEsibizione = {};
+    voti.forEach(v => {
+      if (!votiPerEsibizione[v.esibizione_id]) votiPerEsibizione[v.esibizione_id] = [];
+      votiPerEsibizione[v.esibizione_id].push({ emoji: v.emoji, count: v.count });
+    });
+
+    esibizioni.forEach(e => {
+      e.voti = votiPerEsibizione[e.esibizione_id] || [];
+    });
+
+    res.json(esibizioni);
   } catch (err) {
-    console.error('❌ Errore nel recupero delle esibizioni:', err.message, err);
+    console.error('Errore recupero esibizioni:', err);
     res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
   }
 });
+
+
 
 
 app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {

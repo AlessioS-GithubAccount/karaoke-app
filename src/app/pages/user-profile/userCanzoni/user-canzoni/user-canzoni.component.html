@@ -19,7 +19,18 @@
         <td>{{ canzone.artista }}</td>
         <td>{{ canzone.tonalita || '—' }}</td>
         <td>—</td> <!-- Collaboratori non ancora implementati -->
-        <td>{{ formattaVoti(canzone.voti || []) }}</td>
+        <td>
+          <div *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
+            <div *ngFor="let voto of canzone.voti" style="display: inline-block; margin-right: 10px; text-align: center;">
+              <div style="font-size: 1.5em;">{{ voto.emoji }}</div>
+              <div>{{ voto.count }}</div>
+            </div>
+          </div>
+          <ng-template #noVoti>
+            <span>—</span>
+          </ng-template>
+      </td>
+
         <td>{{ canzone.data_esibizione | date:'dd/MM/yyyy HH:mm' }}</td>
         <td>
           <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(canzone.esibizione_id)">Elimina</button>

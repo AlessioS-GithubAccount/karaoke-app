@@ -2,13 +2,27 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../../services/auth.service';
 
+interface VotoEmoji {
+  emoji: string;
+  count: number;
+}
+
+interface Esibizione {
+  esibizione_id: number;
+  artista: string;
+  canzone: string;
+  tonalita: string;
+  data_esibizione: string;
+  voti: VotoEmoji[];
+}
+
 @Component({
   selector: 'app-user-canzoni',
   templateUrl: './user-canzoni.component.html',
   styleUrls: ['./user-canzoni.component.css']
 })
 export class UserCanzoniComponent implements OnInit {
-  esibizioni: any[] = [];
+  esibizioni: Esibizione[] = [];
   wishlist: any[] = [];
   userId!: number;
 
@@ -34,22 +48,40 @@ export class UserCanzoniComponent implements OnInit {
   }
 
   loadEsibizioni(id: number): void {
-    this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, { headers: this.getAuthHeaders() }).subscribe({
-      next: res => this.esibizioni = res,
-      error: err => console.error('Errore caricamento esibizioni:', err)
+    this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: res => {
+        this.esibizioni = res.map(e => ({
+          esibizione_id: e.id,       // rename id to esibizione_id
+          artista: e.artista,
+          canzone: e.canzone,
+          tonalita: e.tonalita,
+          data_esibizione: e.data_esibizione,
+          voti: e.voti || []
+        }));
+      },
+      error: err => {
+        console.error('Errore caricamento esibizioni:', err);
+      }
     });
   }
 
   loadWishlist(): void {
-    this.http.get<any[]>(`${this.backendUrl}/wishlist`, { headers: this.getAuthHeaders() }).subscribe({
+    this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
       next: res => this.wishlist = res,
       error: err => console.error('Errore caricamento wishlist:', err)
     });
   }
 
   eliminaCanzone(id: number): void {
+    console.log('Chiamata eliminaCanzone con id:', id);
     if (confirm('Sei sicuro di voler eliminare questa esibizione?')) {
-      this.http.delete(`${this.backendUrl}/esibizioni/${id}`, { headers: this.getAuthHeaders() }).subscribe({
+      this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
+        headers: this.getAuthHeaders()
+      }).subscribe({
         next: () => {
           alert('Esibizione eliminata con successo!');
           this.loadEsibizioni(this.userId);
@@ -63,32 +95,32 @@ export class UserCanzoniComponent implements OnInit {
   }
 
   salvaWishlist(song: any): void {
-    this.http.post(`${this.backendUrl}/wishlist`, song, { headers: this.getAuthHeaders() }).subscribe({
+    this.http.post(`${this.backendUrl}/wishlist`, song, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
       next: () => this.loadWishlist(),
       error: err => console.error('Errore salvataggio wishlist:', err)
     });
   }
 
-rimuoviWishlist(id: number): void {
-  const conferma = confirm('Sei sicuro di voler eliminare questa canzone dalla wishlist?');
-  if (!conferma) return;
+  rimuoviWishlist(id: number): void {
+    const conferma = confirm('Sei sicuro di voler eliminare questa canzone dalla wishlist?');
+    if (!conferma) return;
 
-  const token = this.auth.getToken();
-  this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  }).subscribe({
-    next: () => this.loadWishlist(),
-    error: err => console.error('Errore rimozione wishlist:', err)
-  });
-}
-
+    this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: () => this.loadWishlist(),
+      error: err => console.error('Errore rimozione wishlist:', err)
+    });
+  }
 
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
   }
 
   formattaVoti(voti: any[]): string {
-    if (!voti) return '';
+    if (!voti || voti.length === 0) return '—';
     return voti.map(v => `${v.emoji} (${v.count})`).join(', ');
   }
 }
