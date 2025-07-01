@@ -11,11 +11,11 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let c of top20; let i = index">
+      <tr *ngFor="let c of topCanzoni; let i = index">
         <td>{{ i + 1 }}</td>
         <td>{{ c.canzone }}</td>
         <td>{{ c.artista }}</td>
-        <td>{{ c.numero_richieste }}</td>
+        <td>{{ c.num_richieste }}</td>
       </tr>
     </tbody>
   </table>

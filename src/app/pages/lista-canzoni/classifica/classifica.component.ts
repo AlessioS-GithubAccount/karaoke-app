@@ -7,39 +7,48 @@ import { KaraokeService } from '../../../services/karaoke.service';
   styleUrls: ['./classifica.component.css']
 })
 export class ClassificaComponent implements OnInit {
-  top20: any[] = [];
+  topCanzoni: any[] = [];
+  topNum: number = 30; // Cambia qui per top20, top30, top50...
 
   constructor(private karaokeService: KaraokeService) {}
 
   ngOnInit(): void {
-    this.caricaTop20();
+    this.caricaClassifica();
   }
 
-  caricaTop20(): void {
-    this.karaokeService.getTop20().subscribe({
-      next: (data) => {
-        // Rimuovo duplicati basati su "artista" + "canzone"
-        const uniqueMap = new Map<string, any>();
-        data.forEach(item => {
-          const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
-          if (!uniqueMap.has(key)) {
-            // Capitalizzo artista e canzone con prima lettera maiuscola e resto minuscolo
-            uniqueMap.set(key, {
-              ...item,
-              artista: this.capitalizeWords(item.artista),
-              canzone: this.capitalizeWords(item.canzone)
-            });
-          }
-        });
-        this.top20 = Array.from(uniqueMap.values());
-      },
-      error: (err) => {
-        console.error('Errore nel caricamento della classifica:', err);
-      }
-    });
-  }
+caricaClassifica(): void {
+  this.karaokeService.getTopN(this.topNum).subscribe({
+    next: (data: any[]) => {
+      // Log per debug
+      console.log('Dati ricevuti:', data);
 
-  // Funzione helper per capitalizzare ogni parola (prima lettera maiuscola)
+      // Mappa per eliminare duplicati (se serve)
+      const uniqueMap = new Map<string, any>();
+      data.forEach((item: any) => {
+        const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, {
+            ...item,
+            artista: this.capitalizeWords(item.artista),
+            canzone: this.capitalizeWords(item.canzone)
+          });
+        }
+      });
+      // Trasformo in array
+      const uniqueArray = Array.from(uniqueMap.values());
+
+      // Ordino per num_richieste discendente
+      this.topCanzoni = uniqueArray.sort((a, b) => b.num_richieste - a.num_richieste);
+    },
+    error: (err: any) => {
+      console.error('Errore nel caricamento della classifica:', err);
+    }
+  });
+}
+
+
+
+
   private capitalizeWords(str: string): string {
     if (!str) return '';
     return str.replace(/\w\S*/g, (txt) =>

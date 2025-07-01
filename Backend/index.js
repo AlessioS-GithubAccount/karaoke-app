@@ -246,47 +246,70 @@ app.get('/api/canzoni', async (req, res) => {
   }
 });
 
+
+
+//genera lista classica topN
+app.get('/api/classifica/top', async (req, res) => {
+  const n = parseInt(req.query.n) || 30; // default top30
+  try {
+    const [rows] = await db.query(
+      `SELECT artista, canzone, num_richieste FROM classifica ORDER BY num_richieste DESC LIMIT ?`,
+      [n]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Errore nel recupero della classifica' });
+  }
+});
+
+
 app.post('/api/canzoni', async (req, res) => {
   const { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
-if (!user_id && !guest_id) {
-  return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
-}
+  if (!user_id && !guest_id) {
+    return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
+  }
 
-try {
-  // Insert canzone
-const [result] = await db.query(
-  'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-  [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0]
-);
+  try {
+    // Inserisci nella tabella canzoni
+    const [result] = await db.query(
+      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0]
+    );
 
-const canzoneId = result.insertId;
+    const canzoneId = result.insertId;
 
-// Inserisci in raccolta_canzoni solo se user_id non è null
-if (user_id) {
-  await db.query(
-    `INSERT INTO raccolta_canzoni (artista, canzone, user_id)
-     SELECT ?, ?, ?
-     WHERE NOT EXISTS (
-       SELECT 1 FROM raccolta_canzoni WHERE artista = ? AND canzone = ?
-     )`,
-    [artista, canzone, user_id, artista, canzone]
-  );
+    // Se user registrato, aggiorna user_storico_esibizioni
+    if (user_id) {
+      await db.query(
+        'INSERT INTO user_storico_esibizioni (user_id, esibizione_id, tonalita, nome, artista, canzone, data_esibizione) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+        [user_id, canzoneId, tonalita || null, nome, artista, canzone]
+      );
+    }
 
-  await db.query(
-    'INSERT INTO user_storico_esibizioni (user_id, esibizione_id, tonalita, nome, artista, canzone, data_esibizione) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-    [user_id, canzoneId, tonalita || null, nome, artista, canzone]
-  );
-}
+    // Aggiorna raccolta_canzoni (per tutti: user e guest)
+    await db.query(
+      `INSERT INTO raccolta_canzoni (artista, canzone, num_richieste)
+       VALUES (?, ?, 1)
+       ON DUPLICATE KEY UPDATE num_richieste = num_richieste + 1`,
+      [artista, canzone]
+    );
 
+    // Aggiorna classifica (per tutti: user e guest)
+    await db.query(
+      `INSERT INTO classifica (artista, canzone, num_richieste)
+       VALUES (?, ?, 1)
+       ON DUPLICATE KEY UPDATE num_richieste = num_richieste + 1`,
+      [artista, canzone]
+    );
 
-
-    res.json({ message: 'Canzone aggiunta e storico aggiornato con successo' });
+    res.json({ message: 'Canzone aggiunta e storico + classifica aggiornati con successo' });
   } catch (err) {
-  console.error('Errore in POST /api/canzoni:', err.sqlMessage || err.message || err);
-  res.status(500).json({ message: 'Errore durante l\'aggiunta' });
-}
+    console.error('Errore in POST /api/canzoni:', err.sqlMessage || err.message || err);
+    res.status(500).json({ message: 'Errore durante l\'aggiunta' });
+  }
 });
+
 
 app.get('/api/esibizioni/user/:id', async (req, res) => {
   const userId = req.params.id;
