@@ -1,0 +1,22 @@
+{
+  "Stato": "Status",
+  "#": "#",
+  "Nome": "Name",
+  "Artista": "Artist",
+  "Canzone": "Song",
+  "Tonalità": "Key",
+  "Note": "Notes",
+  "Partecipa": "Join",
+  "Vota": "Vote",
+  "Azioni": "Actions",
+  "Cantata": "Sung",
+  "Da cantare": "To sing",
+  "Raggiunto num microfoni max": "Max microphones reached",
+  "Partecipazione non disponibile": "Participation not available",
+  "Vota ": "Vote ",
+  "Modifica": "Edit",
+  "Salva": "Save",
+  "Annulla": "Cancel",
+  "Elimina": "Delete",
+  "Reset Lista Giornaliera": "Reset Daily List"
+}

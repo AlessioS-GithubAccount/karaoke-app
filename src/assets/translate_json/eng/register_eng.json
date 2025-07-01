@@ -1,0 +1,22 @@
+{
+  "📝 Registrazione Nuovo Utente": "📝 New User Registration",
+  "Username": "Username",
+  "Password": "Password",
+  "Seleziona una domanda e una risposta per il recupero password. \nQuesto sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.": 
+    "Select a question and an answer for password recovery. \nThis site does not handle emails, so this will be the only way to recover your password if lost.",
+  "Domanda di Recupero Password": "Password Recovery Question",
+  "Seleziona una domanda": "Select a question",
+  "Qual è il nome del tuo animale domestico?": "What is the name of your pet?",
+  "Qual è la tua città preferita?": "What is your favorite city?",
+  "Qual è il nome di tua madre/padre?": "What is your mother’s/father’s name?",
+  "Qual è il tuo animale preferito?": "What is your favorite animal?",
+  "Crea il tuo codice PIN di recupero": "Create your recovery PIN code",
+  "Risposta alla domanda": "Answer to the question",
+  "Inserisci la tua risposta segreta": "Enter your secret answer",
+  "Admin Mode Keypass (PIN)": "Admin Mode Keypass (PIN)",
+  "Campo compilabile solo dai gestori del karaoke": "Field to be filled only by karaoke managers",
+  "🆕 Crea Account": "🆕 Create Account",
+  "🔙 Torna al Login": "🔙 Back to Login",
+  "Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili.": 
+    "This site does not require or store emails, phone numbers, or sensitive personal data."
+}

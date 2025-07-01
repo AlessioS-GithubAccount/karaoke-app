@@ -1,0 +1,23 @@
+{
+  "Scegli la tua canzone!": "Choose your song!",
+  "Nome": "Name",
+  "Inserisci il tuo nome": "Enter your name",
+  "Artista / Band": "Artist / Band",
+  "Inserisci artista o band": "Enter artist or band",
+  "Canzone": "Song",
+  "Inserisci la canzone": "Enter the song",
+  "Cambia Tonalità": "Change Key",
+  "esempio -2, -1, +1, +2": "e.g. -2, -1, +1, +2",
+  "Microfoni (1-3)": "Microphones (1-3)",
+  "Inserisci un numero da 1 a 3": "Enter a number from 1 to 3",
+  "Inserisci un numero valido da 1 a 3.": "Please enter a valid number from 1 to 3.",
+  "Accetti partecipanti in sala?": "Allow participants in the room?",
+  "Note": "Notes",
+  "Inserisci note aggiuntive": "Enter additional notes",
+  "* Campi da compilare obbligatori": "* Required fields",
+  "Salva": "Save",
+  "Accesso richiesto": "Access required",
+  "Per prenotare una canzone devi essere <strong>loggato</strong> oppure entrare come <strong>ospite</strong>.": "To book a song you must be <strong>logged in</strong> or enter as a <strong>guest</strong>.",
+  "Vai al Login": "Go to Login",
+  "Entra come Ospite": "Enter as Guest"
+}
