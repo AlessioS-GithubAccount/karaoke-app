@@ -90,7 +90,4 @@ export class KaraokeService {
  getTopN(n: number): Observable<any[]> {
   return this.http.get<any[]>(`http://localhost:3000/api/classifica/top?n=${n}`);
 }
-
-
-
 }

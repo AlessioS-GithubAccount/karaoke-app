@@ -41,9 +41,8 @@ export class PrenotaCanzoniComponent implements OnInit {
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn();
     this.isAdmin = this.authService.getRole() === 'admin';
-    this.guestId = sessionStorage.getItem('guestId');
+    this.guestId = localStorage.getItem('guestId');  // <-- cambio qui da sessionStorage a localStorage
 
-  
     if (!this.isLoggedIn && !this.guestId) {
       this.showAccessPrompt = true;
       return;
@@ -51,7 +50,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
     if (!this.guestId) {
       this.guestId = uuidv4();
-      sessionStorage.setItem('guestId', this.guestId);
+      localStorage.setItem('guestId', this.guestId);  // <-- cambio qui da sessionStorage a localStorage
     }
 
     this.loadArchivio();
@@ -91,7 +90,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
     if (form.valid && !this.microfoniInvalid) {
       const userId = this.authService.getUserId();
-       console.log('DEBUG - userId:', userId, 'guestId:', this.guestId);
+      console.log('DEBUG - userId:', userId, 'guestId:', this.guestId);
       const canzonePayload = {
         ...this.formData,
         user_id: userId || null,
@@ -134,7 +133,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
   enterAsGuest(): void {
     this.guestId = uuidv4();
-    sessionStorage.setItem('guestId', this.guestId);
+    localStorage.setItem('guestId', this.guestId);  // <-- cambio qui da sessionStorage a localStorage
     this.showAccessPrompt = false;
     this.loadArchivio();
   }

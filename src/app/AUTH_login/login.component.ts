@@ -19,6 +19,13 @@ export class LoginComponent {
       return;
     }
 
+    //bugprevent si assicura che non rimangano guest_id residui 
+    if (localStorage.getItem('guest_id')) {
+      console.warn('Rimosso guest_id residuo');
+      localStorage.removeItem('guest_id');
+    }
+
+
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
         // Navigazione basata sul ruolo
