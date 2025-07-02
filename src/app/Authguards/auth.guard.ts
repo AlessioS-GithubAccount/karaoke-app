@@ -10,7 +10,7 @@ export class AuthGuard implements CanActivate {
   constructor(private authService: AuthService, private router: Router) {}
 
     canActivate(): boolean {
-    if (this.authService.isLoggedIn() || sessionStorage.getItem('guestId')) {
+    if (this.authService.isLoggedIn() || localStorage.getItem('guestId')) {
         // Sei loggato oppure sei guest, permetti accesso
         return true;
     } else {

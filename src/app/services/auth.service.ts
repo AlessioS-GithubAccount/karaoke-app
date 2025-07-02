@@ -80,6 +80,7 @@ export class AuthService {
       });
     }
 
+    localStorage.removeItem('guestId');
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('role');
