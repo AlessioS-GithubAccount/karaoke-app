@@ -29,6 +29,28 @@ function verifyToken(req, res, next) {
   }
 }
 
+
+/* funzione di formattazione dati. Normalizza stringhe nelle post per:
+    rimuovere la parola "the" isolata (case-insensitive)
+    rimuovere apostrofi e accenti
+    fare il trim degli spazi oltre ' '
+    capitalizza ogni parola con prima lettera maiuscola e resto minuscolo
+*/
+function normalizeSongName(name) {
+  if (!name) return name;
+
+  let result = name.replace(/\bthe\b/gi, '');
+  result = result.replace(/['’`"]/g, '');
+  result = result.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  result = result.replace(/\s+/g, ' ').trim();
+  result = result
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
+  return result;
+}
+
 // salva in tabella voti_emoji i like
 app.post('/api/voti', async (req, res) => {
   const { canzone_id, voter_id, emoji } = req.body;
@@ -143,7 +165,7 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
 });
 
 
-
+// invio dati e verifiche per login
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt for:', username);
@@ -171,6 +193,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// genera token per log con refresh
 app.post('/api/auth/token', (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken || !refreshTokens.includes(refreshToken)) {
@@ -186,6 +209,8 @@ app.post('/api/auth/token', (req, res) => {
   }
 });
 
+
+// genera logout
 app.post('/api/auth/logout', async (req, res) => {
   const { username, refreshToken } = req.body;
   try {
@@ -198,6 +223,7 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 
+// registra dati user creando un account
 app.post('/api/auth/register', async (req, res) => {
   const { username, password, domandaRecupero, rispostaRecupero, keypass } = req.body;
   if (!username || !password || !domandaRecupero || !rispostaRecupero) {
@@ -264,11 +290,16 @@ app.get('/api/classifica/top', async (req, res) => {
 
 
 app.post('/api/canzoni', async (req, res) => {
-  const { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
+  let { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
   if (!user_id && !guest_id) {
     return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
   }
+
+  // Normalizzo i dati prima di salvarli
+  nome = normalizeSongName(nome);
+  artista = normalizeSongName(artista);
+  canzone = normalizeSongName(canzone);
 
   try {
     // Inserisci nella tabella canzoni
