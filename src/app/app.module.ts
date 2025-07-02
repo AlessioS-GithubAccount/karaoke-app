@@ -23,6 +23,9 @@ import { HomepageComponent } from './pages/homepage/homepage.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canzoni/user-canzoni.component';
 
+// Import DragDropModule from Angular CDK
+import { DragDropModule } from '@angular/cdk/drag-drop';
+
 // Factory function per HttpLoader
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -49,6 +52,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    DragDropModule,
     // Aggiungi ngx-translate qui
     TranslateModule.forRoot({
       loader: {

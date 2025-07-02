@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router, ActivatedRoute } from '@angular/router';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 interface Canzone {
   id: number;
@@ -58,8 +59,30 @@ export class ListaCanzoniComponent implements OnInit {
     this.caricaTop20();
   }
 
+  onDrop(event: CdkDragDrop<Canzone[]>) {
+    moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
+    // puoi salvare subito, oppure mostrare un bottone "Salva ordine"
+    this.salvaOrdine(); // oppure metti un pulsante manuale
+  }
+
   generateGuestId(): string {
     return 'guest-' + Math.random().toString(36).substring(2, 15);
+  }
+
+  salvaOrdine(): void {
+    const nuovaLista = this.canzoni.map((c, index) => ({
+      id: c.id,
+      posizione: index + 1
+    }));
+
+    // permette modifica ordine canzoni tramite drag & drop
+    this.karaokeService.riordinaCanzoni(nuovaLista).subscribe({
+      next: () => alert('Ordine salvato con successo ✅'),
+      error: (err) => {
+        console.error('Errore salvataggio ordine:', err);
+        alert('Errore nel salvataggio del nuovo ordine');
+      }
+    });
   }
 
   caricaCanzoni(): void {

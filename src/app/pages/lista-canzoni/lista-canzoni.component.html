@@ -13,8 +13,8 @@
       <th>{{ 'song_list.labels.actions' | translate }}</th>
     </tr>
   </thead>
-  <tbody>
-    <tr *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
+  <tbody cdkDropList (cdkDropListDropped)="onDrop($event)">
+    <tr cdkDrag *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
       <!-- Stato cantata -->
       <td *ngIf="isAdmin">
         <button (click)="toggleCantata(i)" class="btn btn-sm"

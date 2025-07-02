@@ -272,6 +272,32 @@ app.get('/api/canzoni', async (req, res) => {
   }
 });
 
+//function per admin per modificare ordine canzoni in lista-canzoni component by drag
+app.post('/api/canzoni/riordina', async (req, res) => {
+  const nuovaLista = req.body; // [{ id: 1, posizione: 1 }, { id: 2, posizione: 2 }, ...]
+
+  if (!Array.isArray(nuovaLista)) {
+    return res.status(400).json({ message: 'Formato dati non valido' });
+  }
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    for (const canzone of nuovaLista) {
+      await conn.query('UPDATE canzoni SET posizione = ? WHERE id = ?', [canzone.posizione, canzone.id]);
+    }
+
+    await conn.commit();
+    res.json({ message: 'Riordinamento completato con successo' });
+  } catch (err) {
+    await conn.rollback();
+    console.error('Errore nel riordinamento:', err.message || err);
+    res.status(500).json({ message: 'Errore durante il riordinamento' });
+  } finally {
+    conn.release();
+  }
+});
 
 
 //genera lista classica topN
@@ -302,10 +328,15 @@ app.post('/api/canzoni', async (req, res) => {
   canzone = normalizeSongName(canzone);
 
   try {
-    // Inserisci nella tabella canzoni
+    // Calcolo la posizione massima attuale
+    const [maxPosResult] = await db.query('SELECT MAX(posizione) AS maxPos FROM canzoni');
+    const maxPos = maxPosResult[0].maxPos || 0;
+    const nuovaPosizione = maxPos + 1;
+
+    // Inserisci nella tabella canzoni con la nuova posizione
     const [result] = await db.query(
-      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0]
+      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti, posizione) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0, nuovaPosizione]
     );
 
     const canzoneId = result.insertId;
@@ -334,16 +365,17 @@ app.post('/api/canzoni', async (req, res) => {
       [artista, canzone]
     );
 
-    // Restituisco anche l'id della canzone inserita
     res.json({ 
       message: 'Canzone aggiunta e storico + classifica aggiornati con successo',
-      canzoneId
+      canzoneId,
+      posizione: nuovaPosizione
     });
   } catch (err) {
     console.error('Errore in POST /api/canzoni:', err.sqlMessage || err.message || err);
     res.status(500).json({ message: 'Errore durante l\'aggiunta' });
   }
 });
+
 
 
 

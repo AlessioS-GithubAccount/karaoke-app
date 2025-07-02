@@ -90,4 +90,9 @@ export class KaraokeService {
  getTopN(n: number): Observable<any[]> {
   return this.http.get<any[]>(`http://localhost:3000/api/classifica/top?n=${n}`);
 }
+
+riordinaCanzoni(listaOrdinata: { id: number; posizione: number }[]): Observable<any> {
+  return this.http.post('http://localhost:3000/api/canzoni/riordina', listaOrdinata);
+}
+
 }
