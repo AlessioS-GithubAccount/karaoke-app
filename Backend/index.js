@@ -334,12 +334,17 @@ app.post('/api/canzoni', async (req, res) => {
       [artista, canzone]
     );
 
-    res.json({ message: 'Canzone aggiunta e storico + classifica aggiornati con successo' });
+    // Restituisco anche l'id della canzone inserita
+    res.json({ 
+      message: 'Canzone aggiunta e storico + classifica aggiornati con successo',
+      canzoneId
+    });
   } catch (err) {
     console.error('Errore in POST /api/canzoni:', err.sqlMessage || err.message || err);
     res.status(500).json({ message: 'Errore durante l\'aggiunta' });
   }
 });
+
 
 
 app.get('/api/esibizioni/user/:id', async (req, res) => {

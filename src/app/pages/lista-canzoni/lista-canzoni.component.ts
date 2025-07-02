@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 interface Canzone {
   id: number;
@@ -36,22 +36,29 @@ export class ListaCanzoniComponent implements OnInit {
   editingIndex: number | null = null;
   editedCanzone: Canzone | null = null;
 
+  scrollToId: number | null = null;
+
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.isAdmin = this.authService.getRole() === 'admin';
     this.userId = this.authService.getUserId();
 
+    // Prendo il parametro query scrollToId se presente
+    this.route.queryParams.subscribe(params => {
+      this.scrollToId = params['scrollToId'] ? +params['scrollToId'] : null;
+    });
+
     this.caricaCanzoni();
     this.caricaTop20();
   }
 
   generateGuestId(): string {
-    // Semplice ID random
     return 'guest-' + Math.random().toString(36).substring(2, 15);
   }
 
@@ -59,6 +66,18 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.getCanzoni().subscribe({
       next: (data: Canzone[]) => {
         this.canzoni = data;
+
+        if (this.scrollToId !== null) {
+          // Aspetto rendering prima di scrollare
+          setTimeout(() => {
+            const el = document.getElementById('canzone-' + this.scrollToId);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('highlight');
+              setTimeout(() => el.classList.remove('highlight'), 3000);
+            }
+          }, 100);
+        }
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -193,26 +212,22 @@ export class ListaCanzoniComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  // --- Nuova funzione per votare ---
-votaCanzone(index: number, emoji: string): void {
-  if (!this.userId) {
-    alert('Devi essere loggato per votare!');
-    return;
-  }
-
-  const canzone = this.canzoni[index];
-  this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
-    next: () => {
-      canzone.votoEmoji = emoji;
-      console.log(`Hai votato ${emoji} per "${canzone.nome}"`);
-    },
-    error: (err) => {
-      console.error('Errore nel salvataggio del voto emoji:', err);
-      alert('Errore nel salvataggio del voto emoji');
+  votaCanzone(index: number, emoji: string): void {
+    if (!this.userId) {
+      alert('Devi essere loggato per votare!');
+      return;
     }
-  });
-}
 
-
-
+    const canzone = this.canzoni[index];
+    this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
+      next: () => {
+        canzone.votoEmoji = emoji;
+        console.log(`Hai votato ${emoji} per "${canzone.nome}"`);
+      },
+      error: (err) => {
+        console.error('Errore nel salvataggio del voto emoji:', err);
+        alert('Errore nel salvataggio del voto emoji');
+      }
+    });
+  }
 }

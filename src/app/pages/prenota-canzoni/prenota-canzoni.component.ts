@@ -41,7 +41,7 @@ export class PrenotaCanzoniComponent implements OnInit {
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn();
     this.isAdmin = this.authService.getRole() === 'admin';
-    this.guestId = localStorage.getItem('guestId');  // <-- cambio qui da sessionStorage a localStorage
+    this.guestId = localStorage.getItem('guestId');
 
     if (!this.isLoggedIn && !this.guestId) {
       this.showAccessPrompt = true;
@@ -50,7 +50,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
     if (!this.guestId) {
       this.guestId = uuidv4();
-      localStorage.setItem('guestId', this.guestId);  // <-- cambio qui da sessionStorage a localStorage
+      localStorage.setItem('guestId', this.guestId);
     }
 
     this.loadArchivio();
@@ -109,8 +109,9 @@ export class PrenotaCanzoniComponent implements OnInit {
           this.artistiFiltrati = [];
           this.canzoniFiltrate = [];
 
-          // Qui il redirect a lista-canzoni
-          this.router.navigate(['/lista-canzoni']);
+          // Redirect a lista-canzoni con scrollToId = id canzone inserita
+          const insertedId = response.canzoneId || response.insertId || response.id;
+          this.router.navigate(['/lista-canzoni'], { queryParams: { scrollToId: insertedId } });
         },
         error: (err) => {
           console.error('Errore durante l\'invio dei dati', err);
@@ -133,7 +134,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
   enterAsGuest(): void {
     this.guestId = uuidv4();
-    localStorage.setItem('guestId', this.guestId);  // <-- cambio qui da sessionStorage a localStorage
+    localStorage.setItem('guestId', this.guestId);
     this.showAccessPrompt = false;
     this.loadArchivio();
   }

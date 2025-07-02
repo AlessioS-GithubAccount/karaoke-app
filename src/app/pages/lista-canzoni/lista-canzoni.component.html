@@ -14,7 +14,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let canzone of canzoni; let i = index">
+    <tr *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
       <!-- Stato cantata -->
       <td *ngIf="isAdmin">
         <button (click)="toggleCantata(i)" class="btn btn-sm"
