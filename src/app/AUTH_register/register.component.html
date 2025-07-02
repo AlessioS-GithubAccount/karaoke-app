@@ -1,62 +1,115 @@
 <div class="container mt-5" style="max-width: 500px;">
-  <h2 class="text-center mb-4">📝 Registrazione Nuovo Utente</h2>
+  <h2 class="text-center mb-4">{{ 'registration.title' | translate }}</h2>
 
   <form (ngSubmit)="register()" #registerForm="ngForm">
     <!-- Username -->
     <div class="mb-3">
-      <label for="username" class="form-label">Username</label>
-      <input type="text" id="username" name="username" class="form-control" [(ngModel)]="username" required>
+      <label for="username" class="form-label">
+        {{ 'registration.username_label' | translate }}
+      </label>
+      <input 
+        type="text" 
+        id="username" 
+        name="username" 
+        class="form-control" 
+        [(ngModel)]="username" 
+        required>
     </div>
 
     <!-- Password -->
     <div class="mb-3">
-      <label for="password" class="form-label">Password</label>
-      <input type="password" id="password" name="password" class="form-control" [(ngModel)]="password" required>
+      <label for="password" class="form-label">
+        {{ 'registration.password_label' | translate }}
+      </label>
+      <input 
+        type="password" 
+        id="password" 
+        name="password" 
+        class="form-control" 
+        [(ngModel)]="password" 
+        required>
     </div>
 
-  
+    <!-- Info recupero password -->
     <div class="mb-2 text-muted small">
-      Seleziona una domanda e una risposta per il recupero password. 
-      <br>Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.
+      {{ 'registration.password_recovery_info' | translate }}
     </div>
 
-      <!-- Domanda recupero -->
+    <!-- Domanda recupero -->
     <div class="mb-3">
-      <label for="domandaRecupero" class="form-label">Domanda di Recupero Password</label>
-      <select id="domandaRecupero" name="domandaRecupero" class="form-select" [(ngModel)]="domandaRecupero" required>
-        <option value="" disabled selected>Seleziona una domanda</option>
-        <option value="nome_primo_amicizia">Qual è il nome del tuo animale domestico?</option>
-        <option value="città_preferita">Qual è la tua città preferita?</option>
-        <option value="nome_madre">Qual è il nome di tua madre/padre?</option>
-        <option value="animale_preferito">Qual è il tuo animale preferito?</option>
-        <option value="codicepin">Crea il tuo codice PIN di recupero</option>
+      <label for="domandaRecupero" class="form-label">
+        {{ 'registration.recovery_question_label' | translate }}
+      </label>
+      <select 
+        id="domandaRecupero" 
+        name="domandaRecupero" 
+        class="form-select" 
+        [(ngModel)]="domandaRecupero" 
+        required>
+        <option value="" disabled selected>
+          {{ 'registration.select_question_option' | translate }}
+        </option>
+        <option value="nome_primo_amicizia">
+          {{ 'registration.pet_name_option' | translate }}
+        </option>
+        <option value="città_preferita">
+          {{ 'registration.favorite_city_option' | translate }}
+        </option>
+        <option value="nome_madre">
+          {{ 'registration.mother_name_option' | translate }}
+        </option>
+        <option value="animale_preferito">
+          {{ 'registration.favorite_animal_option' | translate }}
+        </option>
+        <option value="codicepin">
+          {{ 'registration.pin_code_option' | translate }}
+        </option>
       </select>
     </div>
+
     <!-- Risposta alla domanda -->
     <div class="mb-3">
-      <label for="rispostaRecupero" class="form-label">Risposta alla domanda</label>
-      <input type="text" id="rispostaRecupero" name="rispostaRecupero" class="form-control"
-             [(ngModel)]="rispostaRecupero" required placeholder="Inserisci la tua risposta segreta">
+      <label for="rispostaRecupero" class="form-label">
+        {{ 'registration.recovery_answer_label' | translate }}
+      </label>
+      <input 
+        type="text" 
+        id="rispostaRecupero" 
+        name="rispostaRecupero" 
+        class="form-control"
+        [(ngModel)]="rispostaRecupero" 
+        required 
+        [placeholder]="'registration.recovery_answer_placeholder' | translate">
     </div>
 
     <!-- PIN admin opzionale -->
     <div class="mb-3">
-      <label for="keypass" class="form-label">Admin Mode Keypass (PIN)</label>
-      <input type="password" id="keypass" name="keypass" class="form-control"
-             [(ngModel)]="keypass" placeholder="Campo compilabile solo dai gestori del karaoke">
+      <label for="keypass" class="form-label">
+        {{ 'registration.admin_keypass_label' | translate }}
+      </label>
+      <input 
+        type="password" 
+        id="keypass" 
+        name="keypass" 
+        class="form-control"
+        [(ngModel)]="keypass" 
+        [placeholder]="'registration.admin_keypass_placeholder' | translate">
     </div>
 
-    
-    <button type="submit" class="btn btn-success w-100 mb-3" [disabled]="!registerForm.valid">
-      🆕 Crea Account
+    <!-- Pulsanti -->
+    <button 
+      type="submit" 
+      class="btn btn-success w-100 mb-3" 
+      [disabled]="!registerForm.valid">
+      {{ 'registration.create_account_button' | translate }}
     </button>
 
     <a routerLink="/login" class="btn btn-outline-primary w-100">
-      🔙 Torna al Login
+      {{ 'registration.back_to_login_button' | translate }}
     </a>
   </form>
 
   <div class="mt-4 text-center text-muted small">
-    <em>Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili.</em>
+    <em>{{ 'registration.privacy_info' | translate }}</em>
   </div>
 </div>

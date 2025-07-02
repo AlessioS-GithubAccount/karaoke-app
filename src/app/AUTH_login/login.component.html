@@ -1,11 +1,12 @@
-<!-- Form login -->
 <div class="container mt-5" style="max-width: 500px;">
-  <h2 class="text-center mb-4">🎤 Benvenuto al Karaoke Pub</h2>
+  <h2 class="text-center mb-4">{{ 'login.title' | translate }}</h2>
 
   <form (ngSubmit)="login('client')" #loginForm="ngForm">
 
     <div class="mb-3">
-      <label for="username" class="form-label">Username</label>
+      <label for="username" class="form-label">
+        {{ 'login.username_label' | translate }}
+      </label>
       <input 
         type="text" 
         id="username" 
@@ -16,7 +17,9 @@
     </div>
 
     <div class="mb-2">
-      <label for="password" class="form-label">Password</label>
+      <label for="password" class="form-label">
+        {{ 'login.password_label' | translate }}
+      </label>
       <input 
         type="password" 
         id="password" 
@@ -25,42 +28,46 @@
         [(ngModel)]="password" 
         required>
     </div>
+
     <div class="forgot-password-link text-center mb-2">
-      <a routerLink="/forgot-password">Hai dimenticato la password?</a>
+      <a routerLink="/forgot-password">{{ 'login.forgot_password_link' | translate }}</a>
     </div>
 
     <button 
       type="submit" 
       class="btn btn-primary w-100 mb-2" 
       [disabled]="!loginForm.valid">
-      🔐 Login 
+      {{ 'login.login_button' | translate }}
     </button>
 
     <button 
       type="button" 
       class="btn btn-outline-secondary w-100 mb-5" 
       (click)="loginOspite()">
-      🎟️ Entra come Ospite
+      {{ 'login.guest_button' | translate }}
     </button>
 
-    <label for="password" class="form-label text-center small">Non hai ancora un account? Registrati per avere un profilo personalizzato 
-      e accedere alle funzionalità avanzate. Oppure canta subito come ospite</label>
+    <label for="password" class="form-label text-center small">
+      {{ 'login.no_account_text' | translate }}
+    </label>
     <a 
       routerLink="/register" 
       class="btn btn-outline-success w-100 mb-3">
-      🆕 Registrati
+      {{ 'login.register_button' | translate }}
     </a>
 
-     <!-- <button 
-    type="button" 
-    class="btn btn-warning admin-login-btn w-100 "
-    (click)="login('admin')">
-    🔑 Admin
-  </button>  -->
-
+    <!-- Admin login disabilitato -->
+    <!--
+    <button 
+      type="button" 
+      class="btn btn-warning admin-login-btn w-100 "
+      (click)="login('admin')">
+      🔑 Admin
+    </button>
+    -->
   </form>
 
   <div class="mt-4 text-center text-muted small">
-    <em>Questo sito non tratta dati personali come email, numeri di telefono o informazioni sensibili.</em>
+    <em>{{ 'login.privacy_info' | translate }}</em>
   </div>
 </div>

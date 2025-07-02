@@ -1,0 +1,181 @@
+{
+  "navbar": {
+    "title": "Karaoke App",
+    "menu": "Menu",
+    "login": "Login",
+    "home": "Home",
+    "profile": "Your Profile",
+    "book_song": "Book Songs",
+    "queue": "Songs in Karaoke Queue",
+    "archive": "Music Archive",
+    "top_20": "Top 20 Chart",
+    "logout": "Logout",
+    "dark_mode": "Dark Mode",
+    "light_mode": "Light Mode"
+  },
+  "music_archive": {
+    "title": "📚 Music Archive",
+    "song": "🎵 Song",
+    "artist": "🎤 Artist"
+  },
+  "chart": {
+    "title": "🏆 Top 20 Most Requested Songs Ranking",
+    "position": "#",
+    "song": "Song",
+    "artist": "Artist",
+    "requests": "Requests",
+    "back_to_list": "🔙 Back to Song List"
+  },
+  "password_recovery": {
+    "title": "Recover Password with Security Question",
+    "username_label": "Enter your Username",
+    "continue_button": "Continue",
+    "security_question": "Security question:",
+    "answer_label": "Answer",
+    "verify_answer_button": "Verify Answer",
+    "new_password_label": "Enter new password",
+    "update_password_button": "Update Password",
+    "back_to_login": "Back to Login",
+    "error_message": "Error message",
+    "success_message": "Success message"
+  },
+  "homepage": {
+    "title": "Welcome to Karaoke WebApp",
+    "subtitle": "Discover songs, book your favorite, and have fun!",
+    "feature1_title": "🎤 Book Songs",
+    "feature1_text": "Choose your favorite songs and add them to the queue.",
+    "feature2_title": "📋 Song List",
+    "feature2_text": "View the list of queued karaoke songs.",
+    "feature3_title": "⭐ Top 20 Chart",
+    "feature3_text": "Discover the most loved songs of the week."
+  },
+"profile": {
+  "welcome": "Welcome",
+  "choose_action": "Choose what to explore in your profile",
+  "your_songs": "Your Songs",
+  "your_songs_desc": "View your performances or create your wishlist",
+  "statistics": "Statistics",
+  "statistics_desc": "Your performances in detail",
+  "badges": "Badges",
+  "badges_desc": "Achievements unlocked",
+  "collaborations": "Collaborations",
+  "collaborations_desc": "Who you've sung with most often",
+  "votes": "Emoji Votes",
+  "votes_desc": "Summary of votes received",
+  "edit_profile": "Edit Profile",
+  "edit_profile_desc": "Change your data",
+  "privacy": "Privacy",
+  "privacy_desc": "Manage your personal data",
+  "not_logged_in_title": "You are not logged in!",
+  "not_logged_in_text": "You must log in first to see your profile.",
+  "go_to_login": "Go to Login"
+},
+  "song_list": {
+    "labels": {
+      "status": "Status",
+      "number": "#",
+      "name": "Name",
+      "artist": "Artist",
+      "song": "Song",
+      "key": "Key",
+      "notes": "Notes",
+      "join": "Join",
+      "vote": "Votes", 
+      "actions": "Actions"
+    },
+    "status_values": {
+      "sung": "Sung",
+      "to_sing": "To sing"
+    },
+    "button": {
+      "join": "Join"
+    },
+    "participation": {
+      "full": "Max microphones reached",
+      "not_available": "Participation not available"
+    },
+    "actions": {
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete"
+    }
+  },
+  "login": {
+    "title": "🎤 Welcome to Karaoke Pub",
+    "username_label": "Username",
+    "password_label": "Password",
+    "forgot_password_link": "Forgot your password?",
+    "login_button": "🔐 Login",
+    "guest_button": "🎟️ Enter as Guest",
+    "no_account_text": "Don't have an account yet? Register to get a personalized profile and access advanced features. Or sing now as a guest",
+    "register_button": "🆕 Register",
+    "privacy_info": "This site does not process personal data such as emails, phone numbers, or sensitive information."
+  },
+  "booking": {
+    "title": "Choose your song!",
+    "name": "Name",
+    "name_placeholder": "Enter your name",
+    "artist": "Artist / Band",
+    "artist_placeholder": "Enter artist or band",
+    "song": "Song",
+    "song_placeholder": "Enter the song",
+    "key": "Change Key",
+    "key_placeholder": "e.g. -2, -1, +1, +2",
+    "microphones": "Microphones (1-3)",
+    "microphones_placeholder": "Enter a number from 1 to 3",
+    "microphones_error": "Enter a valid number from 1 to 3.",
+    "accept_participants": "Do you accept participants in the room?",
+    "notes": "Notes",
+    "notes_placeholder": "Enter additional notes",
+    "required_fields": "* Required fields",
+    "save_button": "Save",
+    "access_required": "Access required",
+    "access_text": "To book a song you must be",
+    "logged_in": "logged in",
+    "or": "or enter as",
+    "guest": "guest",
+    "go_to_login": "Go to Login",
+    "enter_guest": "Enter as Guest"
+  },
+  "registration": {
+    "title": "📝 New User Registration",
+    "username_label": "Username",
+    "password_label": "Password",
+    "password_recovery_info": "Select a question and an answer for password recovery. This site does not handle emails, so this will be the only way to recover your password if lost.",
+    "recovery_question_label": "Password Recovery Question",
+    "select_question_option": "Select a question",
+    "pet_name_option": "What is the name of your pet?",
+    "favorite_city_option": "What is your favorite city?",
+    "mother_name_option": "What is your mother’s/father’s name?",
+    "favorite_animal_option": "What is your favorite animal?",
+    "pin_code_option": "Create your recovery PIN code",
+    "recovery_answer_label": "Answer to the question",
+    "recovery_answer_placeholder": "Enter your secret answer",
+    "admin_keypass_label": "Admin Mode Keypass (PIN)",
+    "admin_keypass_placeholder": "Field to be filled only by karaoke managers",
+    "create_account_button": "🆕 Create Account",
+    "back_to_login_button": "🔙 Back to Login",
+    "privacy_info": "This site does not require or store emails, phone numbers, or sensitive personal data."
+  },
+  "performance_history": {
+    "title": "🎤 Your Performance History",
+    "song": "Song",
+    "artist": "Artist",
+    "key": "Key",
+    "sang_with": "Sang with",
+    "votes": "Votes",
+    "date": "Date",
+    "actions": "Actions",
+    "dash": "—",
+    "no_performances": "No performances found.",
+    "wishlist_title": "💭 Your Wishlist",
+    "save_button": "Save",
+    "delete_button": "Delete",
+    "fill_minimum_fields": "Fill at least song and artist to save",
+    "delete_from_wishlist": "Delete this song from wishlist",
+    "go_to_booking": "🎶 Go to Song Booking",
+    "wishlist_empty": "Your wishlist is empty.",
+    "add_song": "+ Add Song"
+  }
+}

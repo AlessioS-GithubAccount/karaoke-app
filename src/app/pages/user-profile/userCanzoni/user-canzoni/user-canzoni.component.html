@@ -1,24 +1,24 @@
 <div class="userCanzoni-container">
-  <h2>🎤 Storico delle tue esibizioni</h2>
+  <h2>🎤 {{ 'performance_history.title' | translate }}</h2>
 
   <table class="table table-bordered table-hover" *ngIf="esibizioni.length > 0; else noEsibizioni">
     <thead class="table-dark">
       <tr>
-        <th>Canzone</th>
-        <th>Artista</th>
-        <th>Tonalità</th>
-        <th>Hai cantato con</th>
-        <th>Voti</th>
-        <th>Data</th>
-        <th>Azioni</th>
+        <th>{{ 'performance_history.song' | translate }}</th>
+        <th>{{ 'performance_history.artist' | translate }}</th>
+        <th>{{ 'performance_history.key' | translate }}</th>
+        <th>{{ 'performance_history.sang_with' | translate }}</th>
+        <th>{{ 'performance_history.votes' | translate }}</th>
+        <th>{{ 'performance_history.date' | translate }}</th>
+        <th>{{ 'performance_history.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let canzone of esibizioni">
         <td>{{ canzone.canzone }}</td>
         <td>{{ canzone.artista }}</td>
-        <td>{{ canzone.tonalita || '—' }}</td>
-        <td>—</td> <!-- Collaboratori non ancora implementati -->
+        <td>{{ canzone.tonalita || ('performance_history.dash' | translate) }}</td>
+        <td>{{ 'performance_history.dash' | translate }}</td> <!-- Collaboratori non ancora implementati -->
         <td>
           <div *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
             <div *ngFor="let voto of canzone.voti" style="display: inline-block; margin-right: 10px; text-align: center;">
@@ -27,31 +27,34 @@
             </div>
           </div>
           <ng-template #noVoti>
-            <span>—</span>
+            <span>{{ 'performance_history.dash' | translate }}</span>
           </ng-template>
-      </td>
-
+        </td>
         <td>{{ canzone.data_esibizione | date:'dd/MM/yyyy HH:mm' }}</td>
         <td>
-          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(canzone.esibizione_id)">Elimina</button>
+          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(canzone.esibizione_id)">
+            {{ 'performance_history.delete_button' | translate }}
+          </button>
         </td>
       </tr>
     </tbody>
   </table>
 
   <ng-template #noEsibizioni>
-    <div class="alert alert-info mt-3">Nessuna esibizione trovata.</div>
+    <div class="alert alert-info mt-3">
+      {{ 'performance_history.no_performances' | translate }}
+    </div>
   </ng-template>
 
-  <h2 class="mt-5">💭 La tua lista desideri</h2>
+  <h2 class="mt-5">💭 {{ 'performance_history.wishlist_title' | translate }}</h2>
 
   <table class="table table-striped" *ngIf="wishlist.length > 0; else noWishlist">
     <thead>
       <tr>
-        <th>Canzone</th>
-        <th>Artista</th>
-        <th>Tonalità</th>
-        <th>Azioni</th>
+        <th>{{ 'performance_history.song' | translate }}</th>
+        <th>{{ 'performance_history.artist' | translate }}</th>
+        <th>{{ 'performance_history.key' | translate }}</th>
+        <th>{{ 'performance_history.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
@@ -60,35 +63,34 @@
         <td><input class="form-control" [(ngModel)]="song.artista" /></td>
         <td><input class="form-control" [(ngModel)]="song.tonalita" /></td>
         <td>
-  <div class="d-flex gap-2">
-    <button 
-      class="btn btn-success btn-sm"
-      (click)="salvaWishlist(song)"
-      [disabled]="!song.canzone || !song.artista"
-      title="Compila almeno canzone e artista per salvare">
-      💾 Salva
-    </button>
+          <div class="d-flex gap-2">
+            <button
+              class="btn btn-success btn-sm"
+              (click)="salvaWishlist(song)"
+              [disabled]="!song.canzone || !song.artista"
+              [title]="'performance_history.fill_minimum_fields' | translate">
+              💾 {{ 'performance_history.save_button' | translate }}
+            </button>
 
-    <button 
-      class="btn btn-danger btn-sm"
-      (click)="rimuoviWishlist(song.id)"
-      title="Elimina questa canzone dalla lista desideri">
-      🗑 Elimina
-    </button>
-  </div>
-</td>
-
+            <button
+              class="btn btn-danger btn-sm"
+              (click)="rimuoviWishlist(song.id)"
+              [title]="'performance_history.delete_from_wishlist' | translate">
+              🗑 {{ 'performance_history.delete_button' | translate }}
+            </button>
+          </div>
+        </td>
       </tr>
     </tbody>
   </table>
 
   <a routerLink="/prenota-canzoni" class="btn btn-outline-primary mt-4 me-4">
-  🎶 Vai a Prenota Canzoni
-</a>
+    🎶 {{ 'performance_history.go_to_booking' | translate }}
+  </a>
 
   <ng-template #noWishlist>
-    <p>La tua lista dei desideri è vuota.</p>
+    <p>{{ 'performance_history.wishlist_empty' | translate }}</p>
   </ng-template>
 
-  <button class="btn btn-primary mt-3" (click)="aggiungiRiga()">+ Aggiungi Canzone</button>
+  <button class="btn btn-primary mt-3" (click)="aggiungiRiga()">+ {{ 'performance_history.add_song' | translate }}</button>
 </div>

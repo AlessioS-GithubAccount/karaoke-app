@@ -1,0 +1,180 @@
+{
+  "navbar": {
+    "title": "Karaoke App",
+    "menu": "Menù",
+    "login": "Accedi",
+    "home": "Home",
+    "profile": "Il Tuo Profilo",
+    "book_song": "Prenota Canzoni",
+    "queue": "Brani in coda karaoke",
+    "archive": "Archivio Musicale",
+    "top_20": "Classifica Top 20",
+    "logout": "Logout",
+    "dark_mode": "Dark Mode",
+    "light_mode": "Light Mode"
+  },
+  "music_archive": {
+    "title": "📚 Archivio Musicale",
+    "song": "🎵 Canzone",
+    "artist": "🎤 Artista"
+  },
+  "chart": {
+    "title": "🏆 Classifica Top 20 Canzoni Più Richieste",
+    "position": "#",
+    "song": "Canzone",
+    "artist": "Artista",
+    "requests": "Richieste",
+    "back_to_list": "🔙 Torna alla Lista Canzoni"
+  },
+  "password_recovery": {
+    "title": "Recupera la Password con Domanda Segreta",
+    "username_label": "Inserisci il tuo Username",
+    "continue_button": "Prosegui",
+    "security_question": "Domanda segreta:",
+    "answer_label": "Risposta",
+    "verify_answer_button": "Verifica Risposta",
+    "new_password_label": "Inserisci nuova password",
+    "update_password_button": "Aggiorna Password",
+    "back_to_login": "Torna al Login",
+    "error_message": "Messaggio di errore",
+    "success_message": "Messaggio di successo"
+  },
+  "homepage": {
+    "title": "Benvenuto su WebApp Karaoke",
+    "subtitle": "Scopri i brani, prenota la tua canzone e divertiti!",
+    "feature1_title": "🎤 Prenota Canzoni",
+    "feature1_text": "Scegli le tue canzoni preferite e mettile in coda.",
+    "feature2_title": "📋 Lista Brani",
+    "feature2_text": "Visualizza la lista dei brani in coda per il karaoke.",
+    "feature3_title": "⭐ Classifica Top 20",
+    "feature3_text": "Scopri le canzoni più amate della settimana."
+  },
+  "profile": {
+  "welcome": "Benvenuto",
+  "choose_action": "Scegli cosa esplorare nel tuo profilo",
+  "your_songs": "Le tue canzoni",
+  "your_songs_desc": "Visualizza le tue esibizioni o crea la tua wishlist",
+  "statistics": "Statistiche",
+  "statistics_desc": "Le tue performance in dettaglio",
+  "badges": "Badge",
+  "badges_desc": "Obiettivi raggiunti",
+  "collaborations": "Collaborazioni",
+  "collaborations_desc": "Chi hai cantato con più spesso",
+  "votes": "Voti Emoji",
+  "votes_desc": "Riepilogo voti ricevuti",
+  "edit_profile": "Modifica Profilo",
+  "edit_profile_desc": "Cambia i tuoi dati",
+  "privacy": "Privacy",
+  "privacy_desc": "Gestisci i tuoi dati personali",
+  "not_logged_in_title": "Non sei loggato!",
+  "not_logged_in_text": "Per vedere il tuo profilo devi prima effettuare il login.",
+  "go_to_login": "Vai al Login"
+},
+  "song_list": {
+    "labels": {
+      "status": "Stato",
+      "number": "#",
+      "name": "Nome",
+      "artist": "Artista",
+      "song": "Canzone",
+      "key": "Tonalità",
+      "notes": "Note",
+      "join": "Partecipa",
+      "actions": "Azioni"
+    },
+    "status_values": {
+      "sung": "Cantata",
+      "to_sing": "Da cantare"
+    },
+    "button": {
+      "join": "Partecipa"
+    },
+    "participation": {
+      "full": "Raggiunto num microfoni max",
+      "not_available": "Partecipazione non disponibile"
+    },
+    "actions": {
+      "edit": "Modifica",
+      "save": "Salva",
+      "cancel": "Annulla",
+      "delete": "Elimina"
+    }
+  },
+  "login": {
+    "title": "🎤 Benvenuto al Karaoke Pub",
+    "username_label": "Username",
+    "password_label": "Password",
+    "forgot_password_link": "Hai dimenticato la password?",
+    "login_button": "🔐 Login",
+    "guest_button": "🎟️ Entra come Ospite",
+    "no_account_text": "Non hai ancora un account? Registrati per avere un profilo personalizzato e accedere alle funzionalità avanzate. Oppure canta subito come ospite",
+    "register_button": "🆕 Registrati",
+    "privacy_info": "Questo sito non tratta dati personali come email, numeri di telefono o informazioni sensibili."
+  },
+  "booking": {
+    "title": "Scegli la tua canzone!",
+    "name": "Nome",
+    "name_placeholder": "Inserisci il tuo nome",
+    "artist": "Artista / Band",
+    "artist_placeholder": "Inserisci artista o band",
+    "song": "Canzone",
+    "song_placeholder": "Inserisci la canzone",
+    "key": "Cambia Tonalità",
+    "key_placeholder": "esempio -2, -1, +1, +2",
+    "microphones": "Microfoni (1-3)",
+    "microphones_placeholder": "Inserisci un numero da 1 a 3",
+    "microphones_error": "Inserisci un numero valido da 1 a 3.",
+    "accept_participants": "Accetti partecipanti in sala?",
+    "notes": "Note",
+    "notes_placeholder": "Inserisci note aggiuntive",
+    "required_fields": "* Campi da compilare obbligatori",
+    "save_button": "Salva",
+    "access_required": "Accesso richiesto",
+    "access_text": "Per prenotare una canzone devi essere",
+    "logged_in": "loggato",
+    "or": "oppure entrare come",
+    "guest": "ospite",
+    "go_to_login": "Vai al Login",
+    "enter_guest": "Entra come Ospite"
+  },
+  "registration": {
+    "title": "📝 Registrazione Nuovo Utente",
+    "username_label": "Username",
+    "password_label": "Password",
+    "password_recovery_info": "Seleziona una domanda e una risposta per il recupero password. Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.",
+    "recovery_question_label": "Domanda di Recupero Password",
+    "select_question_option": "Seleziona una domanda",
+    "pet_name_option": "Qual è il nome del tuo animale domestico?",
+    "favorite_city_option": "Qual è la tua città preferita?",
+    "mother_name_option": "Qual è il nome di tua madre/padre?",
+    "favorite_animal_option": "Qual è il tuo animale preferito?",
+    "pin_code_option": "Crea il tuo codice PIN di recupero",
+    "recovery_answer_label": "Risposta alla domanda",
+    "recovery_answer_placeholder": "Inserisci la tua risposta segreta",
+    "admin_keypass_label": "Admin Mode Keypass (PIN)",
+    "admin_keypass_placeholder": "Campo compilabile solo dai gestori del karaoke",
+    "create_account_button": "🆕 Crea Account",
+    "back_to_login_button": "🔙 Torna al Login",
+    "privacy_info": "Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili."
+  },
+  "performance_history": {
+    "title": "🎤 Storico delle tue esibizioni",
+    "song": "Canzone",
+    "artist": "Artista",
+    "key": "Tonalità",
+    "sang_with": "Hai cantato con",
+    "votes": "Voti",
+    "date": "Data",
+    "actions": "Azioni",
+    "dash": "—",
+    "no_performances": "Non hai ancora esibizioni registrate.",
+    "wishlist_title": "💭 La tua lista desideri",
+    "save_button": "Salva",
+    "delete_button": "Elimina",
+    "fill_minimum_fields": "Compila almeno canzone e artista per salvare",
+    "delete_from_wishlist": "Elimina questa canzone dalla lista desideri",
+    "go_to_booking": "🎶 Vai a Prenota Canzoni",
+    "wishlist_empty": "La tua lista dei desideri è vuota.",
+    "add_song": "+ Aggiungi Canzone"
+  }
+}

@@ -1,13 +1,13 @@
 <div class="container mt-5">
-  <h2 class="text-center mb-4">🏆 Classifica Top 20 Canzoni Più Richieste</h2>
+  <h2 class="text-center mb-4">{{ 'chart.title' | translate }}</h2>
 
   <table class="table table-dark table-striped table-hover">
     <thead>
       <tr>
-        <th>#</th>
-        <th>Canzone</th>
-        <th>Artista</th>
-        <th>Richieste</th>
+        <th>{{ 'chart.position' | translate }}</th>
+        <th>{{ 'chart.song' | translate }}</th>
+        <th>{{ 'chart.artist' | translate }}</th>
+        <th>{{ 'chart.requests' | translate }}</th>
       </tr>
     </thead>
     <tbody>
@@ -22,7 +22,7 @@
 
   <div class="text-center mt-4">
     <a routerLink="/lista-canzoni" class="btn btn-outline-light">
-      🔙 Torna alla Lista Canzoni
+      {{ 'chart.back_to_list' | translate }}
     </a>
   </div>
 </div>

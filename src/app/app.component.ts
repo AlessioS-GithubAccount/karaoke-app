@@ -1,88 +1,90 @@
-import { Component, Renderer2, OnInit } from '@angular/core';
-import { NgForm } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, Renderer2 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
+  styleUrls: ['./app.component.scss']  // o .css se usi css
 })
 export class AppComponent implements OnInit {
-  formData = {
-    nome: '',
-    artista: '',
-    canzone: '',
-    tonalita: '',
-    note: '',
-  };
-
-  menuOpen = false; // Stato del burger menu
-  darkMode = false; // Stato tema dark/light
+  darkMode = false;
+  menuOpen = false;
+  currentLang = 'en';
 
   constructor(
-    private http: HttpClient,
+    private renderer: Renderer2,
+    private translate: TranslateService,
     private authService: AuthService,
-    private router: Router,
-    private renderer: Renderer2
+    private router: Router
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
+    // Dark mode da localStorage
     const savedMode = localStorage.getItem('darkMode');
     this.darkMode = savedMode === 'true';
     this.updateBodyClass();
+
+    // Configura lingue ngx-translate
+    this.translate.addLangs(['en', 'it']);
+    this.translate.setDefaultLang('en');
+
+    // Lingua salvata o browser
+    const savedLang = localStorage.getItem('lang');
+    const browserLang = this.translate.getBrowserLang();
+    if (savedLang) {
+      this.currentLang = savedLang;
+    } else if (browserLang && browserLang.match(/en|it/)) {
+      this.currentLang = browserLang;
+    } else {
+      this.currentLang = 'en';
+    }
+    this.translate.use(this.currentLang);
   }
 
-  toggleMenu() {
-    this.menuOpen = !this.menuOpen;
-  }
-
-  toggleDarkMode() {
+  toggleDarkMode(): void {
     this.darkMode = !this.darkMode;
-    localStorage.setItem('darkMode', String(this.darkMode));
+    localStorage.setItem('darkMode', this.darkMode.toString());
     this.updateBodyClass();
   }
 
-  private updateBodyClass() {
+  updateBodyClass(): void {
     if (this.darkMode) {
+      this.renderer.addClass(document.body, 'dark-mode');
       this.renderer.addClass(document.body, 'bg-dark');
       this.renderer.addClass(document.body, 'text-light');
     } else {
+      this.renderer.removeClass(document.body, 'dark-mode');
       this.renderer.removeClass(document.body, 'bg-dark');
       this.renderer.removeClass(document.body, 'text-light');
     }
   }
 
-  onSubmit(form: NgForm) {
-    if (form.valid) {
-      this.http.post('http://localhost:3000/api/canzoni', this.formData).subscribe({
-        next: (response) => {
-          console.log('Dati salvati nel backend:', response);
-          alert(`Ciao ${this.formData.nome}, la canzone è in coda! 🎤`);
-          form.resetForm();
-        },
-        error: (err) => {
-          console.error('Errore durante l\'invio dei dati', err);
-          alert('Errore durante il salvataggio. Riprova.');
-        }
-      });
-    }
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen;
   }
 
-  goToLogin(event: Event) {
-  event.preventDefault(); // ⛔ blocca comportamento predefinito
-  if (this.authService.isLoggedIn()) {
-    this.router.navigate(['/user-profile']);
-  } else {
-    this.router.navigate(['/login']);
-  }
-  this.menuOpen = false;
-}
-
-  logout() {
+  logout(): void {
     this.authService.logout();
-    sessionStorage.removeItem('guestId'); // ❗️ Rimozione esplicita dell'ospite
     this.router.navigate(['/login']);
+    this.menuOpen = false;
+  }
+
+  switchLanguage(lang: string): void {
+    this.currentLang = lang;
+    this.translate.use(lang);
+    localStorage.setItem('lang', lang);
+    this.menuOpen = false;
+  }
+
+  goToLogin(event: Event): void {
+    event.preventDefault();
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/user-profile']);
+    } else {
+      this.router.navigate(['/login']);
+    }
+    this.menuOpen = false;
   }
 }

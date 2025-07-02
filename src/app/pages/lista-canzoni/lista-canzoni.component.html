@@ -1,16 +1,16 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>Stato</th>
+      <th>{{ 'song_list.labels.status' | translate }}</th>
       <th>#</th>
-      <th>Nome</th>
-      <th>Artista</th>
-      <th>Canzone</th>
-      <th *ngIf="isAdmin">Tonalità</th>
-      <th *ngIf="isAdmin">Note</th>
-      <th>Partecipa</th>
-      <th>Vota</th>
-      <th>Azioni</th>
+      <th>{{ 'song_list.labels.name' | translate }}</th>
+      <th>{{ 'song_list.labels.artist' | translate }}</th>
+      <th>{{ 'song_list.labels.song' | translate }}</th>
+      <th *ngIf="isAdmin">{{ 'song_list.labels.key' | translate }}</th>
+      <th *ngIf="isAdmin">{{ 'song_list.labels.notes' | translate }}</th>
+      <th>{{ 'song_list.labels.join' | translate }}</th>
+      <th>{{ 'song_list.labels.vote' | translate }}</th>
+      <th>{{ 'song_list.labels.actions' | translate }}</th>
     </tr>
   </thead>
   <tbody>
@@ -19,14 +19,14 @@
       <td *ngIf="isAdmin">
         <button (click)="toggleCantata(i)" class="btn btn-sm"
                 [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'">
-          {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
+          {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
         </button>
       </td>
       <td *ngIf="!isAdmin">
         <button class="btn btn-sm"
                 [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'"
                 disabled [style.opacity]="'1'">
-          {{ canzoni[i].cantata ? 'Cantata' : 'Da cantare' }}
+          {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
         </button>
       </td>
 
@@ -72,13 +72,13 @@
         <button class="btn btn-primary"
                 [disabled]="canzone.partecipanti_add >= 3 || !canzone.accetta_partecipanti"
                 (click)="partecipaAllaCanzone(canzone)">
-          Partecipa
+          {{ 'song_list.button.join' | translate }}
         </button>
         <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
-          Raggiunto num microfoni max
+          {{ 'song_list.participation.full' | translate }}
         </div>
         <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
-          Partecipazione non disponibile
+          {{ 'song_list.participation.not_available' | translate }}
         </div>
       </td>
 
@@ -97,10 +97,18 @@
 
       <!-- Azioni -->
       <td *ngIf="canEditOrDelete(canzone)">
-        <button *ngIf="editingIndex !== i" class="btn btn-sm btn-warning me-1" (click)="modifica(i)">Modifica</button>
-        <button *ngIf="editingIndex === i" class="btn btn-sm btn-success me-1" (click)="salvaModifica(i)">Salva</button>
-        <button *ngIf="editingIndex === i" class="btn btn-sm btn-secondary me-1" (click)="annullaModifica()">Annulla</button>
-        <button class="btn btn-sm btn-danger" (click)="eliminaCanzone(canzone.id, i)">Elimina</button>
+        <button *ngIf="editingIndex !== i" class="btn btn-sm btn-warning me-1" (click)="modifica(i)">
+          {{ 'song_list.actions.edit' | translate }}
+        </button>
+        <button *ngIf="editingIndex === i" class="btn btn-sm btn-success me-1" (click)="salvaModifica(i)">
+          {{ 'song_list.actions.save' | translate }}
+        </button>
+        <button *ngIf="editingIndex === i" class="btn btn-sm btn-secondary me-1" (click)="annullaModifica()">
+          {{ 'song_list.actions.cancel' | translate }}
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="eliminaCanzone(canzone.id, i)">
+          {{ 'song_list.actions.delete' | translate }}
+        </button>
       </td>
       <td *ngIf="!canEditOrDelete(canzone)"></td>
     </tr>
@@ -109,6 +117,7 @@
 
 <!-- Reset lista giornaliera solo admin -->
 <div class="mt-3" *ngIf="isAdmin">
-  <button class="btn btn-danger" (click)="resetLista()">Reset Lista Giornaliera</button>
+  <button class="btn btn-danger" (click)="resetLista()">
+    {{ 'song_list.actions.reset_list' | translate }}
+  </button>
 </div>
-

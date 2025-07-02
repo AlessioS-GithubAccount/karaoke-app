@@ -1,36 +1,36 @@
 <ng-container *ngIf="isLoggedIn; else notLoggedIn">
   <div class="user-profile-grid-container">
-    <h1 class="titleH1">🎤 Benvenuto {{ username }}!</h1>
-    <p class="subtitle">Scegli cosa esplorare nel tuo profilo</p>
+    <h1 class="titleH1">🎤 {{ 'profile.welcome' | translate }} {{ username }}!</h1>
+    <p class="subtitle">{{ 'profile.choose_action' | translate }}</p>
 
     <div class="profile-grid">
       <div class="profile-card" routerLink="storico" routerLinkActive="active" tabindex="0" role="button">
-        <h3>📜<br>Le tue canzoni</h3>
-        <p>Visualizza le tue esibizioni o crea la tua wishlist</p>
+        <h3>📜<br>{{ 'profile.your_songs' | translate }}</h3>
+        <p>{{ 'profile.your_songs_desc' | translate }}</p>
       </div>
       <div class="profile-card" routerLink="statistiche" routerLinkActive="active" tabindex="0" role="button">
-        <h3>📊<br>Statistiche</h3>
-        <p>Le tue performance in dettaglio</p>
+        <h3>📊<br>{{ 'profile.statistics' | translate }}</h3>
+        <p>{{ 'profile.statistics_desc' | translate }}</p>
       </div>
       <div class="profile-card" routerLink="badge" routerLinkActive="active" tabindex="0" role="button">
-        <h3>🏅<br>Badge</h3>
-        <p>Obiettivi raggiunti</p>
+        <h3>🏅<br>{{ 'profile.badges' | translate }}</h3>
+        <p>{{ 'profile.badges_desc' | translate }}</p>
       </div>
       <div class="profile-card" routerLink="collaborazioni" routerLinkActive="active" tabindex="0" role="button">
-        <h3>🤝<br>Collaborazioni</h3>
-        <p>Chi hai cantato con più spesso</p>
+        <h3>🤝<br>{{ 'profile.collaborations' | translate }}</h3>
+        <p>{{ 'profile.collaborations_desc' | translate }}</p>
       </div>
       <div class="profile-card" routerLink="voti" routerLinkActive="active" tabindex="0" role="button">
-        <h3>📈<br>Voti Emoji</h3>
-        <p>Riepilogo voti ricevuti</p>
+        <h3>📈<br>{{ 'profile.votes' | translate }}</h3>
+        <p>{{ 'profile.votes_desc' | translate }}</p>
       </div>
       <div class="profile-card" routerLink="modifica-profilo" routerLinkActive="active" tabindex="0" role="button">
-        <h3>⚙️<br>Modifica Profilo</h3>
-        <p>Cambia i tuoi dati</p>
+        <h3>⚙️<br>{{ 'profile.edit_profile' | translate }}</h3>
+        <p>{{ 'profile.edit_profile_desc' | translate }}</p>
       </div>
       <div class="profile-card" routerLink="privacy" routerLinkActive="active" tabindex="0" role="button">
-        <h3>🔐<br>Privacy</h3>
-        <p>Gestisci i tuoi dati personali</p>
+        <h3>🔐<br>{{ 'profile.privacy' | translate }}</h3>
+        <p>{{ 'profile.privacy_desc' | translate }}</p>
       </div>
     </div>
 
@@ -40,8 +40,8 @@
 
 <ng-template #notLoggedIn>
   <div class="alert alert-warning text-center mt-4">
-    <h4>Non sei loggato!</h4>
-    <p>Per vedere il tuo profilo devi prima effettuare il login.</p>
-    <a routerLink="/login" class="btn btn-primary">Vai al Login</a>
+    <h4>{{ 'profile.not_logged_in_title' | translate }}</h4>
+    <p>{{ 'profile.not_logged_in_text' | translate }}</p>
+    <a routerLink="/login" class="btn btn-primary">{{ 'profile.go_to_login' | translate }}</a>
   </div>
 </ng-template>
