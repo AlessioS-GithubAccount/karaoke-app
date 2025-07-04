@@ -8,7 +8,7 @@
     "book_song": "Book Songs",
     "queue": "Songs in Karaoke Queue",
     "archive": "Music Archive",
-    "top_20": "Top 20 Chart",
+    "top_20": "Top 30 Chart",
     "logout": "Logout",
     "dark_mode": "Dark Mode",
     "light_mode": "Light Mode"
@@ -19,7 +19,7 @@
     "artist": "🎤 Artist"
   },
   "chart": {
-    "title": "🏆 Top 20 Most Requested Songs Ranking",
+    "title": "🏆 Top 30 Most Requested Songs Ranking",
     "position": "#",
     "song": "Song",
     "artist": "Artist",
@@ -46,7 +46,7 @@
     "feature1_text": "Choose your favorite songs and add them to the queue.",
     "feature2_title": "📋 Song List",
     "feature2_text": "View the list of queued karaoke songs.",
-    "feature3_title": "⭐ Top 20 Chart",
+    "feature3_title": "⭐ Top 30 Chart",
     "feature3_text": "Discover the most loved songs of the week."
   },
 "profile": {

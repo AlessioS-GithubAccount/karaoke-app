@@ -8,7 +8,7 @@
     "book_song": "Prenota Canzoni",
     "queue": "Brani in coda karaoke",
     "archive": "Archivio Musicale",
-    "top_20": "Classifica Top 20",
+    "top_20": "Classifica Top 30",
     "logout": "Logout",
     "dark_mode": "Dark Mode",
     "light_mode": "Light Mode"
@@ -19,7 +19,7 @@
     "artist": "🎤 Artista"
   },
   "chart": {
-    "title": "🏆 Classifica Top 20 Canzoni Più Richieste",
+    "title": "🏆 Classifica Top 30 Canzoni Più Richieste",
     "position": "#",
     "song": "Canzone",
     "artist": "Artista",
@@ -46,7 +46,7 @@
     "feature1_text": "Scegli le tue canzoni preferite e mettile in coda.",
     "feature2_title": "📋 Lista Brani",
     "feature2_text": "Visualizza la lista dei brani in coda per il karaoke.",
-    "feature3_title": "⭐ Classifica Top 20",
+    "feature3_title": "⭐ Classifica Top 30",
     "feature3_text": "Scopri le canzoni più amate della settimana."
   },
   "profile": {
@@ -80,7 +80,8 @@
       "key": "Tonalità",
       "notes": "Note",
       "join": "Partecipa",
-      "actions": "Azioni"
+      "actions": "Azioni",
+      "vote": "Vota"
     },
     "status_values": {
       "sung": "Cantata",
