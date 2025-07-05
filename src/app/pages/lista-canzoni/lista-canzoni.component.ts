@@ -30,7 +30,8 @@ export class ListaCanzoniComponent implements OnInit {
   top20: any[] = [];
   isAdmin: boolean = false;
   userId: number | null = null;
-  guestId: string | null = null; // identif guest anonimo
+  guestId: string | null = null;
+  puoPartecipare: boolean = false;
 
   emojisVoto: string[] = ['😐', '😂', '👍', '😎', '🤩', '❤', '🔥'];
 
@@ -49,8 +50,9 @@ export class ListaCanzoniComponent implements OnInit {
   ngOnInit(): void {
     this.isAdmin = this.authService.getRole() === 'admin';
     this.userId = this.authService.getUserId();
+    this.guestId = this.authService.getGuestId();
+    this.puoPartecipare = this.authService.canPartecipate();
 
-    // Prendo il parametro query scrollToId se presente
     this.route.queryParams.subscribe(params => {
       this.scrollToId = params['scrollToId'] ? +params['scrollToId'] : null;
     });
@@ -61,12 +63,7 @@ export class ListaCanzoniComponent implements OnInit {
 
   onDrop(event: CdkDragDrop<Canzone[]>) {
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
-    // puoi salvare subito, oppure mostrare un bottone "Salva ordine"
-    this.salvaOrdine(); // oppure metti un pulsante manuale
-  }
-
-  generateGuestId(): string {
-    return 'guest-' + Math.random().toString(36).substring(2, 15);
+    this.salvaOrdine();
   }
 
   salvaOrdine(): void {
@@ -75,7 +72,6 @@ export class ListaCanzoniComponent implements OnInit {
       posizione: index + 1
     }));
 
-    // permette modifica ordine canzoni tramite drag & drop
     this.karaokeService.riordinaCanzoni(nuovaLista).subscribe({
       next: () => alert('Ordine salvato con successo ✅'),
       error: (err) => {
@@ -91,7 +87,6 @@ export class ListaCanzoniComponent implements OnInit {
         this.canzoni = data;
 
         if (this.scrollToId !== null) {
-          // Aspetto rendering prima di scrollare
           setTimeout(() => {
             const el = document.getElementById('canzone-' + this.scrollToId);
             if (el) {
@@ -152,6 +147,17 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   partecipaAllaCanzone(canzone: Canzone): void {
+    if (!this.authService.canPartecipate()) {
+      alert('Devi essere loggato o registrato come ospite per partecipare!');
+      return;
+    }
+
+    // Se guest, può partecipare solo se è il guest che ha creato la canzone (facoltativo)
+    if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
+      alert('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
+      return;
+    }
+
     if (canzone.partecipanti_add < 3 && canzone.accetta_partecipanti) {
       this.karaokeService.aggiungiPartecipante(canzone.id).subscribe({
         next: (response) => {
@@ -209,7 +215,6 @@ export class ListaCanzoniComponent implements OnInit {
 
   salvaModifica(index: number): void {
     if (!this.canEditOrDelete(this.canzoni[index])) return;
-
     if (!this.editedCanzone) return;
 
     this.karaokeService.aggiornaCanzone(this.editedCanzone.id, this.editedCanzone).subscribe({

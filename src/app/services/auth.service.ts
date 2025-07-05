@@ -53,6 +53,7 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<LoginResponse> {
+    console.log('Invio richiesta login a backend', { username, password })
     return new Observable<LoginResponse>((observer) => {
       this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
         next: (res) => {
@@ -139,5 +140,22 @@ export class AuthService {
   getToken(): string | null {
   return localStorage.getItem('token');
 }
+
+isUser(): boolean {
+  return this.isLoggedIn(); // già fa verifica token valido
+}
+
+isGuest(): boolean {
+  return !this.isUser() && !!localStorage.getItem('guestId');
+}
+
+canPartecipate(): boolean {
+  return this.isUser() || this.isGuest();
+}
+
+getGuestId(): string | null {
+  return localStorage.getItem('guestId');
+}
+
 
 }
