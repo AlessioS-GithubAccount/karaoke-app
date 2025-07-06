@@ -1,30 +1,34 @@
-<body class="bg-dark text-light" style="min-height: 100vh; margin: 0;">
-  <nav class="p-3 text-center bg-dark d-flex justify-content-center gap-2" style="max-width: 600px; margin: auto;">
-  </nav>
+<div class="container mt-4">
+  <h2>📚 Archivio Musicale</h2>
 
-  <div class="container mt-4">
-    <h2>{{ 'music_archive.title' | translate }}</h2>
-
-<table class="table table-striped table-dark mt-3">
-  <thead>
-    <tr>
-      <th>{{ 'music_archive.song' | translate }}</th>
-      <th>{{ 'music_archive.artist' | translate }}</th>
-      <th *ngIf="isAdmin">Azioni</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let item of archivio">
-      <td>{{ item.canzone | capitalizeWords }}</td>
-      <td>{{ item.artista | capitalizeWords }}</td>
-      <td *ngIf="isAdmin">
-        <button class="btn btn-sm btn-danger" (click)="eliminaCanzone(item.id)">
-          🗑 Elimina
-        </button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
+  <!-- 🔍 Search bar -->
+  <div class="mb-3">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Cerca per artista o canzone..."
+      [(ngModel)]="searchText"
+    />
   </div>
-</body>
+
+  <table class="table table-bordered table-hover mt-2" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
+    <thead class="table-dark">
+      <tr>
+        <th>Artista</th>
+        <th>Canzone</th>
+        <th>Richieste totali</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of archivioFiltrato">
+        <td>{{ item.artista }}</td>
+        <td>{{ item.canzone }}</td>
+        <td>{{ item.num_richieste }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noCanzoni>
+    <div class="alert alert-info">Nessuna canzone trovata.</div>
+  </ng-template>
+</div>

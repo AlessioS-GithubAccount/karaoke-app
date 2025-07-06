@@ -12,6 +12,7 @@ export class ArchivioMusicaleComponent implements OnInit {
 
   archivio: any[] = [];
   isAdmin: boolean = false;
+  searchText: string = ''
 
   constructor(
     private karaokeService: KaraokeService,
@@ -33,6 +34,17 @@ ngOnInit(): void {
     error: (err) => console.error('Errore nel caricamento archivio:', err)
   });
 }
+
+get archivioFiltrato(): any[] {
+  const search = this.searchText.trim().toLowerCase();
+  if (!search) return this.archivio;
+
+  return this.archivio.filter(c => {
+    const parole = (c.artista + ' ' + c.canzone).toLowerCase().split(/\s+/);
+    return parole.some(parola => parola.startsWith(search));
+  });
+}
+
 
 eliminaCanzone(id: number): void {
   if (confirm('Sei sicuro di voler eliminare questa canzone?')) {
