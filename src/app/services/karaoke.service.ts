@@ -71,6 +71,16 @@ deleteFromArchivio(id: number): Observable<any> {
   });
 }
 
+deleteFromClassifica(id: number): Observable<any> {
+  const token = localStorage.getItem('token') || '';
+  return this.http.delete(`http://localhost:3000/api/classifica/${id}`, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    })
+  });
+}
+
+
 
 
   aggiornaCanzone(id: number, dati: { nome: string, artista: string, canzone: string, tonalita?: string, note?: string, accetta_partecipanti?: boolean }): Observable<any> {

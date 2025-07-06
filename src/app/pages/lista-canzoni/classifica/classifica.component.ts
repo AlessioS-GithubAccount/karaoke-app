@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { KaraokeService } from '../../../services/karaoke.service';
+import { AuthService } from '../../../services/auth.service'; // se ce l'hai
 
 @Component({
   selector: 'app-classifica',
@@ -8,45 +9,61 @@ import { KaraokeService } from '../../../services/karaoke.service';
 })
 export class ClassificaComponent implements OnInit {
   topCanzoni: any[] = [];
-  topNum: number = 30; // Cambia qui per top20, top30, top50...
+  topNum: number = 30;
+  isAdmin: boolean = false;
 
-  constructor(private karaokeService: KaraokeService) {}
+  constructor(
+    private karaokeService: KaraokeService,
+    private authService: AuthService  // supponendo ci sia
+  ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.getRole() === 'admin';  // o altro modo
     this.caricaClassifica();
   }
 
-caricaClassifica(): void {
-  this.karaokeService.getTopN(this.topNum).subscribe({
-    next: (data: any[]) => {
-      // Log per debug
-      console.log('Dati ricevuti:', data);
+  caricaClassifica(): void {
+    this.karaokeService.getTopN(this.topNum).subscribe({
+      next: (data: any[]) => {
+        console.log('Dati caricati da backend:', data);
+        const uniqueMap = new Map<string, any>();
+        data.forEach((item: any) => {
+          const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, {
+              ...item,
+              artista: this.capitalizeWords(item.artista),
+              canzone: this.capitalizeWords(item.canzone)
+            });
+          }
+        });
+        this.topCanzoni = Array.from(uniqueMap.values())
+          .sort((a, b) => b.num_richieste - a.num_richieste);
+      },
+      error: (err) => console.error('Errore nel caricamento della classifica:', err)
+    });
+  }
 
-      // Mappa per eliminare duplicati (se serve)
-      const uniqueMap = new Map<string, any>();
-      data.forEach((item: any) => {
-        const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
-        if (!uniqueMap.has(key)) {
-          uniqueMap.set(key, {
-            ...item,
-            artista: this.capitalizeWords(item.artista),
-            canzone: this.capitalizeWords(item.canzone)
-          });
+  eliminaCanzone(id: number): void {
+    if (!this.isAdmin) return; // sicurezza extra
+
+    if (confirm('Sei sicuro di voler eliminare questa canzone dalla classifica?')) {
+      this.karaokeService.deleteFromClassifica(id).subscribe({
+        next: () => {
+          this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
+        },
+        error: (err) => {
+          console.error('Errore durante eliminazione dalla classifica:', err);
+          alert('Errore durante l\'eliminazione');
         }
       });
-      // Trasformo in array
-      const uniqueArray = Array.from(uniqueMap.values());
-
-      // Ordino per num_richieste discendente
-      this.topCanzoni = uniqueArray.sort((a, b) => b.num_richieste - a.num_richieste);
-    },
-    error: (err: any) => {
-      console.error('Errore nel caricamento della classifica:', err);
     }
-  });
+  }
+
+  logId(id: any) {
+  console.log('ID della canzone:', id);
+  return '';
 }
-
-
 
 
   private capitalizeWords(str: string): string {

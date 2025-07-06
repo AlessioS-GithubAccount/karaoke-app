@@ -305,7 +305,7 @@ app.get('/api/classifica/top', async (req, res) => {
   const n = parseInt(req.query.n) || 30; // default top30
   try {
     const [rows] = await db.query(
-      `SELECT artista, canzone, num_richieste FROM classifica ORDER BY num_richieste DESC LIMIT ?`,
+      `SELECT id, artista, canzone, num_richieste FROM classifica ORDER BY num_richieste DESC LIMIT ?`,
       [n]
     );
     res.json(rows);
@@ -313,6 +313,27 @@ app.get('/api/classifica/top', async (req, res) => {
     res.status(500).json({ message: 'Errore nel recupero della classifica' });
   }
 });
+
+// DELETE canzone da classifica (solo admin)
+app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
+  if (req.user.ruolo !== 'admin') {
+    return res.status(403).json({ message: 'Accesso negato: solo admin può eliminare' });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const [result] = await db.query('DELETE FROM classifica WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata in classifica' });
+    }
+    res.json({ message: 'Canzone eliminata dalla classifica con successo' });
+  } catch (err) {
+    console.error('Errore durante DELETE classifica:', err);
+    res.status(500).json({ message: 'Errore interno server' });
+  }
+});
+
 
 
 app.post('/api/canzoni', async (req, res) => {
