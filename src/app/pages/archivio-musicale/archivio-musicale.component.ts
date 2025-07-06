@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 export class ArchivioMusicaleComponent implements OnInit {
 
   archivio: any[] = [];
+  isAdmin: boolean = false;
 
   constructor(
     private karaokeService: KaraokeService,
@@ -18,7 +19,9 @@ export class ArchivioMusicaleComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit(): void {
+ngOnInit(): void {
+  this.isAdmin = this.authService.getRole() === 'admin';
+
   this.karaokeService.getArchivioMusicale().subscribe({
     next: (data) => {
       this.archivio = data.filter((item, index, self) =>
@@ -30,6 +33,18 @@ export class ArchivioMusicaleComponent implements OnInit {
     error: (err) => console.error('Errore nel caricamento archivio:', err)
   });
 }
+
+eliminaCanzone(id: number): void {
+  if (confirm('Sei sicuro di voler eliminare questa canzone?')) {
+    this.karaokeService.deleteCanzone(id).subscribe({
+      next: () => {
+        this.archivio = this.archivio.filter(c => c.id !== id);
+      },
+      error: (err) => console.error('Errore durante l\'eliminazione:', err)
+    });
+  }
+}
+
 
   logout(): void {
     this.authService.logout();
