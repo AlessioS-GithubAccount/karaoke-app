@@ -47,15 +47,16 @@ get archivioFiltrato(): any[] {
 
 
 eliminaCanzone(id: number): void {
-  if (confirm('Sei sicuro di voler eliminare questa canzone?')) {
-    this.karaokeService.deleteCanzone(id).subscribe({
+  if (confirm('Sei sicuro di voler eliminare questa canzone dall\'archivio?')) {
+    this.karaokeService.deleteFromArchivio(id).subscribe({
       next: () => {
         this.archivio = this.archivio.filter(c => c.id !== id);
       },
-      error: (err) => console.error('Errore durante l\'eliminazione:', err)
+      error: (err) => console.error('Errore durante l\'eliminazione dall\'archivio:', err)
     });
   }
 }
+
 
 
   logout(): void {

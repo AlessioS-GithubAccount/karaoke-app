@@ -600,6 +600,29 @@ app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
   }
 });
 
+app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+
+  // Controllo ruolo admin
+  if (req.user.ruolo !== 'admin') {
+    return res.status(403).json({ message: 'Accesso negato: solo admin può eliminare' });
+  }
+
+  try {
+    const [result] = await db.query('DELETE FROM raccolta_canzoni WHERE id = ?', [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata nell\'archivio' });
+    }
+
+    res.json({ message: 'Canzone eliminata dall\'archivio con successo' });
+  } catch (err) {
+    console.error('Errore durante la DELETE da archivio musicale:', err);
+    res.status(500).json({ message: 'Errore durante l\'eliminazione' });
+  }
+});
+
+
 app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;

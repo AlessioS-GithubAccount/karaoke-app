@@ -17,6 +17,7 @@
         <th>Artista</th>
         <th>Canzone</th>
         <th>Richieste totali</th>
+        <th *ngIf="isAdmin">Azioni</th>
       </tr>
     </thead>
     <tbody>
@@ -24,6 +25,9 @@
         <td>{{ item.artista }}</td>
         <td>{{ item.canzone }}</td>
         <td>{{ item.num_richieste }}</td>
+        <td *ngIf="isAdmin">
+          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(item.id)">Elimina</button>
+        </td>
       </tr>
     </tbody>
   </table>

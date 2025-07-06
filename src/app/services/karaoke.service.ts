@@ -62,6 +62,17 @@ export class KaraokeService {
     });
   }
 
+deleteFromArchivio(id: number): Observable<any> {
+  const token = localStorage.getItem('token') || '';
+  return this.http.delete(`${this.archivioUrl}/${id}`, {
+    headers: new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    })
+  });
+}
+
+
+
   aggiornaCanzone(id: number, dati: { nome: string, artista: string, canzone: string, tonalita?: string, note?: string, accetta_partecipanti?: boolean }): Observable<any> {
     const token = localStorage.getItem('token');
     return this.http.put(`${this.apiUrl}/${id}`, dati, {
