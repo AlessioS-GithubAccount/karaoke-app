@@ -32,6 +32,9 @@ export class ListaCanzoniComponent implements OnInit {
   userId: number | null = null;
   guestId: string | null = null;
   puoPartecipare: boolean = false;
+  nomePartecipanteMap: { [id: number]: string } = {};
+  mostraInputPartecipazione: { [id: number]: boolean } = {};
+
 
   emojisVoto: string[] = ['😐', '😂', '👍', '😎', '🤩', '❤', '🔥'];
 
@@ -146,45 +149,60 @@ export class ListaCanzoniComponent implements OnInit {
     }
   }
 
-  partecipaAllaCanzone(canzone: Canzone): void {
-    if (!this.authService.canPartecipate()) {
-      alert('Devi essere loggato o registrato come ospite per partecipare!');
-      return;
-    }
-
-    // Se guest, può partecipare solo se è il guest che ha creato la canzone (facoltativo)
-    if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
-      alert('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
-      return;
-    }
-
-    if (canzone.partecipanti_add < 3 && canzone.accetta_partecipanti) {
-      this.karaokeService.aggiungiPartecipante(canzone.id).subscribe({
-        next: (response) => {
-          canzone.partecipanti_add = response.partecipanti_add;
-          this.karaokeService.getNomePartecipante(canzone.id).subscribe({
-            next: (data) => {
-              alert(`Canterai insieme a ${data.nome}`);
-            },
-            error: (err) => {
-              console.error('Errore recupero nome partecipante:', err);
-              alert('Partecipazione avvenuta, ma non è stato possibile recuperare il nome.');
-            }
-          });
-        },
-        error: (err) => {
-          console.error('Errore nella partecipazione:', err);
-          alert(err.error?.message || 'Errore durante la partecipazione ❌');
-        }
-      });
-    } else {
-      alert('Non è possibile partecipare a questa canzone.');
-    }
+ partecipaAllaCanzone(canzone: Canzone): void {
+  if (!this.authService.canPartecipate()) {
+    alert('Devi essere loggato o registrato come ospite per partecipare!');
+    return;
   }
 
-  partecipazioneCompleta(canzone: Canzone): boolean {
-    return canzone.partecipanti_add >= 3;
+  // Se guest, può partecipare solo se è il guest che ha creato la canzone
+  if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
+    alert('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
+    return;
   }
+
+  // Se input non ancora mostrato → lo mostro e aspetto clic su "Invia"
+  if (!this.mostraInputPartecipazione[canzone.id]) {
+    this.mostraInputPartecipazione[canzone.id] = true;
+    return;
+  }
+
+  const nome = this.nomePartecipanteMap[canzone.id]?.trim();
+
+  if (!nome || nome.length === 0) {
+    alert('Nome non valido.');
+    return;
+  }
+
+  // Controllo difensivo anche lato invio (non solo disabilitazione del bottone)
+  if (canzone.partecipanti_add >= 3) {
+    alert('Questa canzone ha già 3 partecipanti.');
+    return;
+  }
+
+  if (!canzone.accetta_partecipanti) {
+    alert('Questa canzone non accetta altri partecipanti.');
+    return;
+  }
+
+  this.karaokeService.aggiungiPartecipanteCompleto(canzone.id, nome).subscribe({
+    next: () => {
+      alert(`Partecipazione registrata con successo!`);
+      this.mostraInputPartecipazione[canzone.id] = false;
+      this.nomePartecipanteMap[canzone.id] = '';
+      this.caricaCanzoni();
+    },
+    error: (err) => {
+      console.error('Errore nella partecipazione:', err);
+      alert(err.error?.message || 'Errore durante la partecipazione ❌');
+    }
+  });
+}
+
+partecipazioneCompleta(canzone: Canzone): boolean {
+  return canzone.partecipanti_add >= 3;
+}
+
 
   eliminaCanzone(id: number, index: number): void {
     if (!this.canEditOrDelete(this.canzoni[index])) return;

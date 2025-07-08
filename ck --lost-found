@@ -1,0 +1,65 @@
+[33m0641be1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mcollegato[m[33m)[m HEAD@{0}: commit: implementato button in archivio canzoni aggiungi a wishlist
+[33m48d7422[m[33m ([m[1;31morigin/collegato[m[33m)[m HEAD@{1}: commit: implemento button delete in classifica component
+[33m88b3b70[m HEAD@{2}: commit: creato endpoint in server per button elimina archivio canzoni
+[33m48adb1a[m HEAD@{3}: commit: implemento searchbar in archivio canzoni component
+[33m7afef8e[m HEAD@{4}: commit: aggiunto delete button in archivio canzoni component (solo admin)
+[33ma940c56[m HEAD@{5}: commit: implemento controlli di verifica presenza token login in localStorage
+[33m93112e1[m HEAD@{6}: commit: correzione testuale ngx translate
+[33m0cc365f[m HEAD@{7}: commit: implementato drag and drop in lista canzoni per admin (modifica ordine coda canzone byDrag)
+[33m2769078[m HEAD@{8}: commit: implemento autoscoll frontend in lista canzoni su canzone prenotata da client
+[33mfa70195[m HEAD@{9}: commit: formattazione delle stringhe passate in backend per evitare peusoduplicati in DB.
+[33mc4c977e[m HEAD@{10}: commit: corretto bug authguard-authservice remove guestId from localStorage
+[33m1968a0b[m HEAD@{11}: commit: implementato con ngx translate frontend it-en
+[33m92c8ff8[m HEAD@{12}: commit: implemento json translate eng e installo @ngx-translate/core
+[33m4fc615a[m HEAD@{13}: commit: generato file di formatazione dati backend anti pesudoduplicati in DB
+[33me2995a8[m HEAD@{14}: commit: implemento frontend formattazione font standard antiduplicati parole-dati
+[33ma139908[m HEAD@{15}: commit: switch guest_id da sessionStorage a localStorage , implento bug_prevent autodelete di eventuale id in storage durante login
+[33m9e27b93[m HEAD@{16}: commit: riorganizzato DB e tabs per classificaComponent / implementato backend e frontend
+[33m572b0e7[m HEAD@{17}: commit: risolto bug get emojiVoti in user-canzoni
+[33m7d8e010[m HEAD@{18}: commit: connesso backend a sistema voti emoji in lista-canzoni
+[33m052176d[m HEAD@{19}: commit: implemento funzionalità user-canzoni
+[33m6fc9898[m HEAD@{20}: commit: corretto get timestamp in user-canzoni
+[33mf430574[m HEAD@{21}: commit: implemento storico canzoni user
+[33mf4d641d[m HEAD@{22}: commit: risolti bug di accesso/authguard
+[33md80560e[m HEAD@{23}: commit: corretto bug con rxjs in userprofile
+[33m0cdb77b[m HEAD@{24}: commit: implementato frontend voto emoji
+[33mfc51b62[m HEAD@{25}: commit: aggiunti json to translate ita
+[33m44b62b6[m HEAD@{26}: commit: implemento il recupero password
+[33m8e6f29a[m HEAD@{27}: commit: risolto bug visualizzazione il mio profilo component se no loggati
+[33md3141b6[m HEAD@{28}: commit: aggiungo logout ospite
+[33m52e88c5[m HEAD@{29}: commit: implemento token refresh con interceptor
+[33m3839e70[m HEAD@{30}: commit: aggiornato crud di modica o elimina per admin e users
+[33m197c6fc[m HEAD@{31}: commit: risolto bug decodifica id_user in auth.service
+[33m10904c0[m HEAD@{32}: commit: corretti bug funzionali in lista-canzoni
+[33m7180a58[m HEAD@{33}: commit: router link button salva in prenotacanzoni component
+[33mdda49cc[m HEAD@{34}: commit: corretto funzioni mancanti in index.js server
+[33m188cebc[m HEAD@{35}: commit: white label design
+[33m862af4b[m HEAD@{36}: commit: CRUD funzionalita modifica dati lista-canzoni aggiornato
+[33mbe6a9f6[m HEAD@{37}: commit: implementato CRUD admin - modifica lista-canzoni component (nome, artista, titolo canzone)
+[33m9732159[m HEAD@{38}: commit: correzione bug top20 component (duplicati e uppercase)
+[33mfb1351f[m HEAD@{39}: commit: correzione bugs post implementazioni
+[33mdc96674[m HEAD@{40}: commit: ng generate homepage component
+[33m508a98b[m HEAD@{41}: commit: aggiornata UX-UI e corretto bug autocomplete in prenota-canzoni component
+[33md3c31b0[m HEAD@{42}: commit: installato npm install jsonwebtoken in backend
+[33m562e5b6[m HEAD@{43}: commit: connesso backend e dati personali User loggato ai vari component
+[33m096fa1b[m HEAD@{44}: commit: generate component user-profile + connesse routes
+[33me8cd09f[m HEAD@{45}: commit: implementato autocomplete nel form di prenota-canzoniComponent
+[33m4b37fd5[m HEAD@{46}: commit: corretto bug in query raccolta_canzoni tab (salva canzone senza duplicati)
+[33md0594a3[m HEAD@{47}: commit: implementato register per ruolo admin
+[33m17432b2[m HEAD@{48}: commit: aggiungo flag in tab db per utente login - logout status
+[33m87e07eb[m HEAD@{49}: commit: aggiunti button logout
+[33m3e08c18[m HEAD@{50}: commit: corretto bug in get canzoni
+[33m421f1bf[m HEAD@{51}: commit: scritto codice per login e register
+[33m361c582[m HEAD@{52}: commit: implementato con Login e Register
+[33mcccda87[m HEAD@{53}: commit: implementato con Login e Register
+[33mac4a730[m HEAD@{54}: commit: aggiunto disclaimer su variazioni in ordine successione canzoni
+[33mec40526[m HEAD@{55}: commit: creato component archivio-musicale
+[33m868e4af[m HEAD@{56}: commit: risolto bug allert al button partecipa (formdata.nome)
+[33m567904d[m HEAD@{57}: commit: risolto bug in button eGiaCantata : daCantare
+[33m90c81fa[m HEAD@{58}: commit: scritta logica button cantata : daCantare
+[33m9c90dec[m HEAD@{59}: reset: moving to 9c90dec
+[33m9c90dec[m HEAD@{60}: checkout: moving from collegato to collegato
+[33m9c90dec[m HEAD@{61}: checkout: moving from main to collegato
+[33m54ebbf7[m[33m ([m[1;32mmain[m[33m)[m HEAD@{62}: commit: collegato backend e frontend a listacanzoni component
+[33meeb5511[m HEAD@{63}: Branch: renamed refs/heads/master to refs/heads/main
+[33meeb5511[m HEAD@{65}: commit (initial): karaoke-app fase creazione database

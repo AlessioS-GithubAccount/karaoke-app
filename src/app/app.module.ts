@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HttpClient } from '@angular/common/http';  // importa HttpClient
+import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';  // importa anche HTTP_INTERCEPTORS
 import { AppRoutingModule } from './app-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
@@ -25,6 +25,9 @@ import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canz
 
 // Import DragDropModule from Angular CDK
 import { DragDropModule } from '@angular/cdk/drag-drop';
+
+// Import dell'interceptor
+import { TokenInterceptor  } from './Authguards/Interceptor';  // <<-- aggiorna il path corretto
 
 // Factory function per HttpLoader
 export function HttpLoaderFactory(http: HttpClient) {
@@ -53,7 +56,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     ReactiveFormsModule,
     HttpClientModule,
     DragDropModule,
-    // Aggiungi ngx-translate qui
+    // ngx-translate module
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -62,7 +65,14 @@ export function HttpLoaderFactory(http: HttpClient) {
       }
     }),
   ],
-  providers: [KaraokeService],
+  providers: [
+    KaraokeService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: TokenInterceptor ,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

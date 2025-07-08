@@ -124,4 +124,18 @@ riordinaCanzoni(listaOrdinata: { id: number; posizione: number }[]): Observable<
   return this.http.post('http://localhost:3000/api/canzoni/riordina', listaOrdinata);
 }
 
+aggiungiPartecipanteCompleto(idCanzone: number, nomePartecipante: string): Observable<any> {
+  const token = localStorage.getItem('token') || '';
+  return this.http.post(`http://localhost:3000/api/canzoni/${idCanzone}/aggiungi-partecipante`, 
+    { nomePartecipante },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+
+
+
 }

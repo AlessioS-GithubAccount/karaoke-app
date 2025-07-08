@@ -51,6 +51,115 @@ function normalizeSongName(name) {
   return result;
 }
 
+
+//middleware per permettere partecipazione solo a user, admin, guest
+
+function optionalVerifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+    return next();  // guest
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) return next();
+
+  jwt.verify(token, SECRET_KEY, (err, user) => {
+    if (err) {
+      return next();
+    }
+    req.user = user;
+    next();
+  });
+}
+
+
+
+app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (req, res) => {
+  console.log('=== Debug POST aggiungi partecipante ===');
+  console.log('Authorization header:', req.headers.authorization);
+  console.log('Decoded user from token:', req.user);
+
+  const canzoneId = req.params.id;
+  const { nomePartecipante, guestId } = req.body;
+
+  if (!nomePartecipante) {
+    return res.status(400).json({ message: 'Nome partecipante obbligatorio.' });
+  }
+
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Devi essere loggato per partecipare.' });
+  }
+
+  const userId = req.user.id;
+  const now = new Date();
+
+  try {
+    // Prendo la canzone e l'esibizione associata con JOIN
+    const [result] = await db.query(
+  `SELECT c.*, e.id AS esibizione_id
+   FROM canzoni c
+   LEFT JOIN user_storico_esibizioni e ON c.id = e.esibizione_id
+   WHERE c.id = ?`,
+  [canzoneId]
+);
+
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata' });
+    }
+
+    const canzone = result[0];
+    console.log('[DEBUG] Canzone trovata con esibizione:', canzone);
+
+    let partecipante2 = canzone.partecipante_2;
+    let partecipante3 = canzone.partecipante_3;
+
+    if (!partecipante2) {
+      partecipante2 = nomePartecipante;
+      await db.query('UPDATE canzoni SET partecipante_2 = ? WHERE id = ?', [nomePartecipante, canzoneId]);
+    } else if (!partecipante3) {
+      partecipante3 = nomePartecipante;
+      await db.query('UPDATE canzoni SET partecipante_3 = ? WHERE id = ?', [nomePartecipante, canzoneId]);
+    } else {
+      return res.status(400).json({ message: 'Numero massimo di partecipanti raggiunto per questa canzone.' });
+    }
+
+    await db.query(
+      `INSERT INTO user_storico_esibizioni (
+        user_id, canzone_id, esibizione_id, data_esibizione, tonalita,
+        nome, artista, canzone, partecipante_2, partecipante_3
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId,
+        canzoneId,
+        canzone.esibizione_id, // qui ora hai l'id corretto preso con la JOIN
+        now,
+        canzone.tonalita || null,
+        canzone.nome,
+        canzone.artista,
+        canzone.canzone,
+        partecipante2,
+        partecipante3
+      ]
+    );
+
+    console.log('[DEBUG] Partecipazione registrata con successo.');
+    return res.json({ message: 'Partecipazione registrata con successo.' });
+
+  } catch (error) {
+    console.error('[ERRORE] POST partecipazione:', error);
+    return res.status(500).json({ message: 'Errore interno del server.' });
+  }
+});
+
+
+
+
+
+
+
+
+
 // salva in tabella voti_emoji i like
 app.post('/api/voti', async (req, res) => {
   const { canzone_id, voter_id, emoji } = req.body;
@@ -343,7 +452,7 @@ app.post('/api/canzoni', async (req, res) => {
     return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
   }
 
-  // Normalizzo i dati prima di salvarli
+  // Normalizzo i dati
   nome = normalizeSongName(nome);
   artista = normalizeSongName(artista);
   canzone = normalizeSongName(canzone);
@@ -354,9 +463,11 @@ app.post('/api/canzoni', async (req, res) => {
     const maxPos = maxPosResult[0].maxPos || 0;
     const nuovaPosizione = maxPos + 1;
 
-    // Inserisci nella tabella canzoni con la nuova posizione
+    // Inserisci nella tabella canzoni
     const [result] = await db.query(
-      'INSERT INTO canzoni (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti, posizione) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      `INSERT INTO canzoni 
+       (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti, posizione) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0, nuovaPosizione]
     );
 
@@ -365,12 +476,14 @@ app.post('/api/canzoni', async (req, res) => {
     // Se user registrato, aggiorna user_storico_esibizioni
     if (user_id) {
       await db.query(
-        'INSERT INTO user_storico_esibizioni (user_id, esibizione_id, tonalita, nome, artista, canzone, data_esibizione) VALUES (?, ?, ?, ?, ?, ?, NOW())',
-        [user_id, canzoneId, tonalita || null, nome, artista, canzone]
+        `INSERT INTO user_storico_esibizioni 
+         (user_id, esibizione_id, canzone_id, tonalita, nome, artista, canzone, data_esibizione) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [user_id, canzoneId, canzoneId, tonalita || null, nome, artista, canzone]
       );
     }
 
-    // Aggiorna raccolta_canzoni (per tutti: user e guest)
+    // Aggiorna raccolta_canzoni
     await db.query(
       `INSERT INTO raccolta_canzoni (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -378,7 +491,7 @@ app.post('/api/canzoni', async (req, res) => {
       [artista, canzone]
     );
 
-    // Aggiorna classifica (per tutti: user e guest)
+    // Aggiorna classifica
     await db.query(
       `INSERT INTO classifica (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -392,7 +505,7 @@ app.post('/api/canzoni', async (req, res) => {
       posizione: nuovaPosizione
     });
   } catch (err) {
-    console.error('Errore in POST /api/canzoni:', err.sqlMessage || err.message || err);
+    console.error('Errore in POST /api/canzoni:', err);
     res.status(500).json({ message: 'Errore durante l\'aggiunta' });
   }
 });
