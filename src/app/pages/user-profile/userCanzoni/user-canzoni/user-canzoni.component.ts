@@ -14,7 +14,10 @@ interface Esibizione {
   tonalita: string;
   data_esibizione: string;
   voti: VotoEmoji[];
+  partecipante_2?: string;
+  partecipante_3?: string;
 }
+
 
 @Component({
   selector: 'app-user-canzoni',
@@ -47,25 +50,28 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
-  loadEsibizioni(id: number): void {
-    this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: res => {
-        this.esibizioni = res.map(e => ({
-          esibizione_id: e.id,       // rename id to esibizione_id
-          artista: e.artista,
-          canzone: e.canzone,
-          tonalita: e.tonalita,
-          data_esibizione: e.data_esibizione,
-          voti: e.voti || []
-        }));
-      },
-      error: err => {
-        console.error('Errore caricamento esibizioni:', err);
-      }
-    });
-  }
+loadEsibizioni(id: number): void {
+  this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, {
+    headers: this.getAuthHeaders()
+  }).subscribe({
+    next: res => {
+      this.esibizioni = res.map(e => ({
+        esibizione_id: e.id,
+        artista: e.artista,
+        canzone: e.canzone,
+        tonalita: e.tonalita,
+        data_esibizione: e.data_esibizione,
+        partecipante_2: e.partecipante_2,
+        partecipante_3: e.partecipante_3,
+        voti: e.voti || []
+      }));
+    },
+    error: err => {
+      console.error('Errore caricamento esibizioni:', err);
+    }
+  });
+}
+
 
   loadWishlist(): void {
     this.http.get<any[]>(`${this.backendUrl}/wishlist`, {

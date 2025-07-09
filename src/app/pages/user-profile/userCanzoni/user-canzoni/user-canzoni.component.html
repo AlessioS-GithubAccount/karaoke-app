@@ -18,7 +18,14 @@
         <td>{{ canzone.canzone }}</td>
         <td>{{ canzone.artista }}</td>
         <td>{{ canzone.tonalita || ('performance_history.dash' | translate) }}</td>
-        <td>{{ 'performance_history.dash' | translate }}</td> <!-- Collaboratori non ancora implementati -->
+        <td>
+          <span *ngIf="canzone.partecipante_2 || canzone.partecipante_3; else noCollab">
+            {{ canzone.partecipante_2 || '' }}<span *ngIf="canzone.partecipante_2 && canzone.partecipante_3">, </span>{{ canzone.partecipante_3 || '' }}
+          </span>
+          <ng-template #noCollab>
+            <span>{{ 'performance_history.dash' | translate }}</span>
+          </ng-template>
+        </td>
         <td>
           <div *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
             <div *ngFor="let voto of canzone.voti" style="display: inline-block; margin-right: 10px; text-align: center;">

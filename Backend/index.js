@@ -152,10 +152,70 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
   }
 });
 
+// get nomi partecipanti per user-canzoni component
+app.get('/api/esibizioni/user/:id', async (req, res) => {
+  const userId = req.params.id;
 
+  try {
+    // Recupera tutte le esibizioni di quell'utente
+    const [esibizioni] = await db.query(
+      `SELECT 
+         id, 
+         esibizione_id, 
+         nome, 
+         artista, 
+         canzone, 
+         tonalita, 
+         data_esibizione, 
+         partecipante_2, 
+         partecipante_3
+       FROM user_storico_esibizioni
+       WHERE user_id = ?
+       ORDER BY data_esibizione DESC`,
+      [userId]
+    );
 
+    if (esibizioni.length === 0) {
+      return res.json([]);
+    }
 
+    // Estrai gli id esibizione per la query successiva sui voti
+    const esibizioneIds = esibizioni.map(e => e.esibizione_id).filter(id => id != null);
 
+    if (esibizioneIds.length === 0) {
+      // Nessun esibizione con id valido, aggiungi voti vuoti e ritorna
+      esibizioni.forEach(e => e.voti = []);
+      return res.json(esibizioni);
+    }
+
+    // Recupera i voti per tutte le esibizioni dell'utente
+    const [voti] = await db.query(
+      `SELECT esibizione_id, emoji, COUNT(*) AS count
+       FROM voti_emoji
+       WHERE esibizione_id IN (${esibizioneIds.map(() => '?').join(',')})
+       GROUP BY esibizione_id, emoji`,
+      esibizioneIds
+    );
+
+    // Mappa i voti per ogni esibizione
+    const votiPerEsibizione = {};
+    voti.forEach(v => {
+      if (!votiPerEsibizione[v.esibizione_id]) votiPerEsibizione[v.esibizione_id] = [];
+      votiPerEsibizione[v.esibizione_id].push({ emoji: v.emoji, count: v.count });
+    });
+
+    // Aggiungi i voti a ogni esibizione
+    esibizioni.forEach(e => {
+      e.voti = votiPerEsibizione[e.esibizione_id] || [];
+    });
+
+    res.json(esibizioni);
+
+  } catch (err) {
+    console.error('Errore recupero esibizioni:', err);
+    res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
+  }
+});
 
 
 
@@ -509,58 +569,6 @@ app.post('/api/canzoni', async (req, res) => {
     res.status(500).json({ message: 'Errore durante l\'aggiunta' });
   }
 });
-
-
-
-
-app.get('/api/esibizioni/user/:id', async (req, res) => {
-  const userId = req.params.id;
-
-  try {
-    const [esibizioni] = await db.query(
-      `SELECT id, esibizione_id, nome, artista, canzone, tonalita, data_esibizione
-       FROM user_storico_esibizioni
-       WHERE user_id = ?
-       ORDER BY data_esibizione DESC`,
-      [userId]
-    );
-
-    if (esibizioni.length === 0) {
-      return res.json([]);
-    }
-
-    const esibizioneIds = esibizioni.map(e => e.esibizione_id);
-
-    if (esibizioneIds.length === 0) {
-      esibizioni.forEach(e => e.voti = []);
-      return res.json(esibizioni);
-    }
-
-    const [voti] = await db.query(
-      `SELECT esibizione_id, emoji, COUNT(*) AS count
-       FROM voti_emoji
-       WHERE esibizione_id IN (${esibizioneIds.map(() => '?').join(',')})
-       GROUP BY esibizione_id, emoji`,
-      esibizioneIds
-    );
-
-    const votiPerEsibizione = {};
-    voti.forEach(v => {
-      if (!votiPerEsibizione[v.esibizione_id]) votiPerEsibizione[v.esibizione_id] = [];
-      votiPerEsibizione[v.esibizione_id].push({ emoji: v.emoji, count: v.count });
-    });
-
-    esibizioni.forEach(e => {
-      e.voti = votiPerEsibizione[e.esibizione_id] || [];
-    });
-
-    res.json(esibizioni);
-  } catch (err) {
-    console.error('Errore recupero esibizioni:', err);
-    res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
-  }
-});
-
 
 
 

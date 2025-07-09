@@ -53,7 +53,7 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<LoginResponse> {
-    console.log('Invio richiesta login a backend', { username, password })
+    console.log('Invio richiesta login a backend', { username, password })// log da eliminare per sicurezza privacy frontend
     return new Observable<LoginResponse>((observer) => {
       this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
         next: (res) => {
