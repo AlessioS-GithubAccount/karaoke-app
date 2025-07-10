@@ -74,6 +74,77 @@ function optionalVerifyToken(req, res, next) {
 }
 
 
+// chiamate per privacy component
+app.get('/api/user/profile', verifyToken, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const [rows] = await db.query(
+      'SELECT username, ruolo, domanda_recupero FROM users WHERE id = ?',
+      [userId]
+    );
+    if (rows.length === 0) return res.status(404).json({ message: 'Utente non trovato' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Errore in GET /api/user/profile:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+//cambio password by vecchia password
+app.post('/api/user/change-password/by-old', verifyToken, async (req, res) => {
+  const userId = req.user.id;
+  const { vecchiaPassword, nuovaPassword } = req.body;
+
+  if (!vecchiaPassword || !nuovaPassword) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
+  }
+
+  try {
+    const [rows] = await db.query('SELECT password_hash FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Utente non trovato' });
+
+    const passwordOk = await bcrypt.compare(vecchiaPassword, rows[0].password_hash);
+    if (!passwordOk) return res.status(401).json({ message: 'Vecchia password errata' });
+
+    const nuovaPasswordHash = await bcrypt.hash(nuovaPassword, 10);
+    await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [nuovaPasswordHash, userId]);
+
+    res.json({ message: 'Password cambiata con successo' });
+  } catch (err) {
+    console.error('Errore in POST /api/user/change-password/by-old:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
+//cambio password by risposta segreta
+app.post('/api/user/change-password/by-secret', verifyToken, async (req, res) => {
+  const userId = req.user.id;
+  const { risposta, nuovaPassword } = req.body;
+
+  if (!risposta || !nuovaPassword) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
+  }
+
+  try {
+    const [rows] = await db.query('SELECT risposta_recupero_hash FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Utente non trovato' });
+
+    const rispostaOk = await bcrypt.compare(risposta, rows[0].risposta_recupero_hash);
+    if (!rispostaOk) return res.status(401).json({ message: 'Risposta segreta errata' });
+
+    const nuovaPasswordHash = await bcrypt.hash(nuovaPassword, 10);
+    await db.query('UPDATE users SET password_hash = ? WHERE id = ?', [nuovaPasswordHash, userId]);
+
+    res.json({ message: 'Password cambiata con successo' });
+  } catch (err) {
+    console.error('Errore in POST /api/user/change-password/by-secret:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
+
 const leoProfanity = require('leo-profanity');
 leoProfanity.add(leoProfanity.getDictionary('en'));
 leoProfanity.add(leoProfanity.getDictionary('it'));
@@ -269,7 +340,7 @@ app.post('/api/voti', async (req, res) => {
 
 
 const mapDomande = {
-  nome_primo_amicizia: "Qual è il nome del tuo animale domestico?",
+  nome_animale_domestico: "Qual è il nome del tuo animale domestico?",
   "città_preferita": "Qual è la tua città preferita?",
   nome_madre: "Qual è il nome di tua madre/padre?",
   animale_preferito: "Qual è il tuo animale preferito?",

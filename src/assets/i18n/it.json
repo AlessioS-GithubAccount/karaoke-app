@@ -50,26 +50,26 @@
     "feature3_text": "Scopri le canzoni più amate della settimana."
   },
   "profile": {
-  "welcome": "Benvenuto",
-  "choose_action": "Scegli cosa esplorare nel tuo profilo",
-  "your_songs": "Le tue canzoni",
-  "your_songs_desc": "Visualizza le tue esibizioni o crea la tua wishlist",
-  "statistics": "Statistiche",
-  "statistics_desc": "Le tue performance in dettaglio",
-  "badges": "Badge",
-  "badges_desc": "Obiettivi raggiunti",
-  "collaborations": "Collaborazioni",
-  "collaborations_desc": "Chi hai cantato con più spesso",
-  "votes": "Voti Emoji",
-  "votes_desc": "Riepilogo voti ricevuti",
-  "edit_profile": "Modifica Profilo",
-  "edit_profile_desc": "Cambia i tuoi dati",
-  "privacy": "Privacy",
-  "privacy_desc": "Gestisci i tuoi dati personali",
-  "not_logged_in_title": "Non sei loggato!",
-  "not_logged_in_text": "Per vedere il tuo profilo devi prima effettuare il login.",
-  "go_to_login": "Vai al Login"
-},
+    "welcome": "Benvenuto",
+    "choose_action": "Scegli cosa esplorare nel tuo profilo",
+    "your_songs": "Le tue canzoni",
+    "your_songs_desc": "Visualizza le tue esibizioni o crea la tua wishlist",
+    "statistics": "Statistiche",
+    "statistics_desc": "Le tue performance in dettaglio",
+    "badges": "Badge",
+    "badges_desc": "Obiettivi raggiunti",
+    "collaborations": "Collaborazioni",
+    "collaborations_desc": "Chi hai cantato con più spesso",
+    "votes": "Voti Emoji",
+    "votes_desc": "Riepilogo voti ricevuti",
+    "edit_profile": "Modifica Profilo",
+    "edit_profile_desc": "Cambia i tuoi dati",
+    "privacy": "Privacy",
+    "privacy_desc": "Gestisci i tuoi dati personali",
+    "not_logged_in_title": "Non sei loggato!",
+    "not_logged_in_text": "Per vedere il tuo profilo devi prima effettuare il login.",
+    "go_to_login": "Vai al Login"
+  },
   "song_list": {
     "labels": {
       "status": "Stato",
@@ -177,5 +177,27 @@
     "go_to_booking": "🎶 Vai a Prenota Canzoni",
     "wishlist_empty": "La tua lista dei desideri è vuota.",
     "add_song": "+ Aggiungi Canzone"
+  },
+  "privacy": {
+    "title": "Impostazioni Privacy",
+    "username": "Username",
+    "role": "Ruolo",
+    "secret_question_label": "Domanda segreta",
+    "secret_questions": {
+      "nome_animale_domestico": "Qual è il nome del tuo animale domestico?",
+      "città_preferita": "Qual è la tua città preferita?",
+      "nome_madre": "Qual è il nome di tua madre?",
+      "animale_preferito": "Qual è il tuo animale preferito?",
+      "codicepin": "Qual è il tuo codice PIN?"
+    },
+    "change_password_old": "Cambia Password con Vecchia Password",
+    "old_password": "Vecchia Password",
+    "new_password": "Nuova Password",
+    "change_password_secret": "Cambia Password con Risposta Domanda Segreta",
+    "secret_answer": "Risposta alla domanda segreta",
+    "submit": "Cambia Password",
+    "loading_user_data": "Caricamento dati utente...",
+    "error_message": "Errore",
+    "success_message": "Operazione completata con successo"
   }
 }

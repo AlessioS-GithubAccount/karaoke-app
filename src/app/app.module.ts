@@ -27,7 +27,8 @@ import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canz
 import { DragDropModule } from '@angular/cdk/drag-drop';
 
 // Import dell'interceptor
-import { TokenInterceptor  } from './Authguards/Interceptor';  // <<-- aggiorna il path corretto
+import { TokenInterceptor  } from './Authguards/Interceptor';
+import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';  
 
 // Factory function per HttpLoader
 export function HttpLoaderFactory(http: HttpClient) {
@@ -47,7 +48,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     UserProfileComponent,
     HomepageComponent,
     ForgotPasswordComponent,
-    UserCanzoniComponent  
+    UserCanzoniComponent,
+    PrivacyComponent  
   ],
   imports: [
     BrowserModule,

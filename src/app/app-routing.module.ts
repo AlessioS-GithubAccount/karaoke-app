@@ -11,6 +11,7 @@ import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-mu
 import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canzoni/user-canzoni.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
+import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';
 
 import { AuthGuard } from './Authguards/auth.guard';  // Importa la guardia di autenticazione
 
@@ -30,6 +31,8 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: 'storico', component: UserCanzoniComponent },
+      { path: 'privacy', component: PrivacyComponent }, 
+      { path: '', redirectTo: 'user-profile', pathMatch: 'full' } 
       // Aggiungerai qui gli altri componenti come "statistiche", "badge", ecc.
     ]
   },
