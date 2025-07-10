@@ -10,6 +10,7 @@ const SECRET_KEY = 'karaoke_super_segreto';
 const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';
 
+
 let refreshTokens = [];
 
 app.use(cors());
@@ -73,6 +74,12 @@ function optionalVerifyToken(req, res, next) {
 }
 
 
+const leoProfanity = require('leo-profanity');
+leoProfanity.add(leoProfanity.getDictionary('en'));
+leoProfanity.add(leoProfanity.getDictionary('it'));
+const customBadWords = require('./utils/profanityList');
+// Aggiungo le parole personalizzate dalla lista esterna
+leoProfanity.add(customBadWords);
 
 app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (req, res) => {
   console.log('=== Debug POST aggiungi partecipante ===');
@@ -80,7 +87,7 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
   console.log('Decoded user from token:', req.user);
 
   const canzoneId = req.params.id;
-  const { nomePartecipante, guestId } = req.body;
+  let { nomePartecipante, guestId } = req.body;
 
   if (!nomePartecipante) {
     return res.status(400).json({ message: 'Nome partecipante obbligatorio.' });
@@ -90,19 +97,21 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
     return res.status(401).json({ message: 'Devi essere loggato per partecipare.' });
   }
 
+  // Censura eventuali parolacce nel nome partecipante
+  nomePartecipante = leoProfanity.clean(nomePartecipante);
+
   const userId = req.user.id;
   const now = new Date();
 
   try {
     // Prendo la canzone e l'esibizione associata con JOIN
     const [result] = await db.query(
-  `SELECT c.*, e.id AS esibizione_id
-   FROM canzoni c
-   LEFT JOIN user_storico_esibizioni e ON c.id = e.esibizione_id
-   WHERE c.id = ?`,
-  [canzoneId]
-);
-
+      `SELECT c.*, e.id AS esibizione_id
+       FROM canzoni c
+       LEFT JOIN user_storico_esibizioni e ON c.id = e.esibizione_id
+       WHERE c.id = ?`,
+      [canzoneId]
+    );
 
     if (result.length === 0) {
       return res.status(404).json({ message: 'Canzone non trovata' });
@@ -132,7 +141,7 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
       [
         userId,
         canzoneId,
-        canzone.esibizione_id, // qui ora hai l'id corretto preso con la JOIN
+        canzone.esibizione_id,
         now,
         canzone.tonalita || null,
         canzone.nome,
@@ -151,6 +160,7 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
     return res.status(500).json({ message: 'Errore interno del server.' });
   }
 });
+
 
 // get nomi partecipanti per user-canzoni component
 app.get('/api/esibizioni/user/:id', async (req, res) => {
@@ -504,7 +514,6 @@ app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
 });
 
 
-
 app.post('/api/canzoni', async (req, res) => {
   let { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
@@ -512,8 +521,10 @@ app.post('/api/canzoni', async (req, res) => {
     return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
   }
 
-  // Normalizzo i dati
-  nome = normalizeSongName(nome);
+  // Censuro il campo 'nome'
+  nome = leoProfanity.clean(nome);
+
+  // Normalizzo i dati (puoi decidere se fare anche su artista e canzone)
   artista = normalizeSongName(artista);
   canzone = normalizeSongName(canzone);
 
@@ -523,7 +534,7 @@ app.post('/api/canzoni', async (req, res) => {
     const maxPos = maxPosResult[0].maxPos || 0;
     const nuovaPosizione = maxPos + 1;
 
-    // Inserisci nella tabella canzoni
+    // Inserisco nella tabella canzoni
     const [result] = await db.query(
       `INSERT INTO canzoni 
        (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti, posizione) 
@@ -533,7 +544,7 @@ app.post('/api/canzoni', async (req, res) => {
 
     const canzoneId = result.insertId;
 
-    // Se user registrato, aggiorna user_storico_esibizioni
+    // Se utente registrato, aggiorno user_storico_esibizioni
     if (user_id) {
       await db.query(
         `INSERT INTO user_storico_esibizioni 
@@ -543,7 +554,7 @@ app.post('/api/canzoni', async (req, res) => {
       );
     }
 
-    // Aggiorna raccolta_canzoni
+    // Aggiorno raccolta_canzoni
     await db.query(
       `INSERT INTO raccolta_canzoni (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -551,7 +562,7 @@ app.post('/api/canzoni', async (req, res) => {
       [artista, canzone]
     );
 
-    // Aggiorna classifica
+    // Aggiorno classifica
     await db.query(
       `INSERT INTO classifica (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -569,6 +580,7 @@ app.post('/api/canzoni', async (req, res) => {
     res.status(500).json({ message: 'Errore durante l\'aggiunta' });
   }
 });
+
 
 
 

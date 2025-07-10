@@ -1,4 +1,4 @@
-[
+module.exports = [
   
   "cazzo",
   "stronzo",
@@ -66,6 +66,11 @@
   "figa secca",
   "fottiti",
   "fottutamente",
+  "israel",
+  "israele",
+  "hitler",
+  "duce",
+  "mussolini",
 
 
   "porco dio",
@@ -91,4 +96,4 @@
   "dio porco mardd",
   "dio porco cazzo",
   "dio porco minchia"
-]
+];
