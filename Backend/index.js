@@ -646,6 +646,10 @@ app.post('/api/canzoni', async (req, res) => {
   // Censuro il campo 'nome'
   nome = leoProfanity.clean(nome);
 
+   if (note) {
+    note = leoProfanity.clean(note);
+  }
+  
   // Normalizzo i dati (puoi decidere se fare anche su artista e canzone)
   artista = normalizeSongName(artista);
   canzone = normalizeSongName(canzone);
