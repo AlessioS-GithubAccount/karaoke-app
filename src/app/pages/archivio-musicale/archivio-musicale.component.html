@@ -1,10 +1,12 @@
+<h2>{{ 'song_archive.title' | translate }}</h2>
+
 <table class="table table-bordered table-hover mt-2" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
   <thead class="table-dark">
     <tr>
-      <th>Artista</th>
-      <th>Canzone</th>
-      <th>Richieste totali</th>
-      <th *ngIf="canUseActions">Azioni</th>
+      <th>{{ 'song_archive.columns.artist' | translate }}</th>
+      <th>{{ 'song_archive.columns.song' | translate }}</th>
+      <th>{{ 'song_archive.columns.total_requests' | translate }}</th>
+      <th *ngIf="canUseActions">{{ 'song_archive.columns.actions' | translate }}</th>
     </tr>
   </thead>
   <tbody>
@@ -14,11 +16,11 @@
       <td>{{ item.num_richieste }}</td>
       <td *ngIf="canUseActions">
         <button class="btn btn-warning btn-sm me-2" (click)="aggiungiAWishlist(item)">
-          ⭐ Aggiungi a wishlist
+          {{ 'song_archive.buttons.add_to_wishlist' | translate }}
         </button>
 
         <button class="btn btn-danger btn-sm" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
-          Elimina
+          {{ 'song_archive.buttons.delete' | translate }}
         </button>
       </td>
     </tr>
@@ -27,6 +29,6 @@
 
 <ng-template #noCanzoni>
   <div class="alert alert-info mt-3">
-    Nessuna canzone trovata.
+    {{ 'song_archive.messages.no_songs_found' | translate }}
   </div>
 </ng-template>
