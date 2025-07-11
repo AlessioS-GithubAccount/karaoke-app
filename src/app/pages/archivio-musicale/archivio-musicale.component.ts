@@ -23,11 +23,13 @@ export class ArchivioMusicaleComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const ruolo = this.authService.getRole(); // es. 'admin', 'user', 'guest', o altro
+    const ruolo = this.authService.getRole();
+    console.log('Ruolo utente:', ruolo); // DEBUG
+
     this.isAdmin = ruolo === 'admin';
-    this.isUser = ruolo === 'user';
+    this.isUser = ruolo === 'user' || ruolo === 'client';  // client = user
     this.isGuest = ruolo === 'guest';
-    this.canUseActions = this.isAdmin || this.isUser || this.isGuest;
+    this.canUseActions = this.isAdmin || this.isUser;
 
     this.karaokeService.getArchivioMusicale().subscribe({
       next: (data) => {
@@ -42,36 +44,32 @@ export class ArchivioMusicaleComponent implements OnInit {
   }
 
   aggiungiAWishlist(item: any): void {
-    // Chiama il servizio o emetti evento per aggiungere a wishlist
-    this.karaokeService.aggiungiAWishlist({ artista: item.artista, canzone: item.canzone }).subscribe({
+    this.karaokeService.aggiungiAWishlist({ user_id: item.id, artista: item.artista, canzone: item.canzone }).subscribe({
       next: () => alert(`"${item.canzone}" di ${item.artista} aggiunta alla wishlist!`),
       error: (err) => console.error('Errore aggiungendo alla wishlist:', err)
     });
   }
 
-get archivioFiltrato(): any[] {
-  const search = this.searchText.trim().toLowerCase();
-  if (!search) return this.archivio;
+  get archivioFiltrato(): any[] {
+    const search = this.searchText.trim().toLowerCase();
+    if (!search) return this.archivio;
 
-  return this.archivio.filter(c => {
-    const parole = (c.artista + ' ' + c.canzone).toLowerCase().split(/\s+/);
-    return parole.some(parola => parola.startsWith(search));
-  });
-}
-
-
-eliminaCanzone(id: number): void {
-  if (confirm('Sei sicuro di voler eliminare questa canzone dall\'archivio?')) {
-    this.karaokeService.deleteFromArchivio(id).subscribe({
-      next: () => {
-        this.archivio = this.archivio.filter(c => c.id !== id);
-      },
-      error: (err) => console.error('Errore durante l\'eliminazione dall\'archivio:', err)
+    return this.archivio.filter(c => {
+      const parole = (c.artista + ' ' + c.canzone).toLowerCase().split(/\s+/);
+      return parole.some(parola => parola.startsWith(search));
     });
   }
-}
 
-
+  eliminaCanzone(id: number): void {
+    if (confirm('Sei sicuro di voler eliminare questa canzone dall\'archivio?')) {
+      this.karaokeService.deleteFromArchivio(id).subscribe({
+        next: () => {
+          this.archivio = this.archivio.filter(c => c.id !== id);
+        },
+        error: (err) => console.error('Errore durante l\'eliminazione dall\'archivio:', err)
+      });
+    }
+  }
 
   logout(): void {
     this.authService.logout();

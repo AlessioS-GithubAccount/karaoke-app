@@ -81,16 +81,6 @@ deleteFromClassifica(id: number): Observable<any> {
 }
 
 
-aggiungiAWishlist(canzone: { artista: string; canzone: string }): Observable<any> {
-  const token = localStorage.getItem('token') || '';
-  return this.http.post('http://localhost:3000/api/wishlist', canzone, {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    })
-  });
-}
-
-
   aggiornaCanzone(id: number, dati: { nome: string, artista: string, canzone: string, tonalita?: string, note?: string, accetta_partecipanti?: boolean }): Observable<any> {
     const token = localStorage.getItem('token');
     return this.http.put(`${this.apiUrl}/${id}`, dati, {
@@ -136,6 +126,13 @@ aggiungiPartecipanteCompleto(idCanzone: number, nomePartecipante: string): Obser
   );
 }
 
+aggiungiAWishlist(data: {
+  user_id: number;
+  artista: string;
+  canzone: string;
+}): Observable<any> {
+  return this.http.post('http://localhost:3000/api/wishlist', data);
+}
 
 
 }

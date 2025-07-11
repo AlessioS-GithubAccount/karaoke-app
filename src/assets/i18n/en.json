@@ -81,6 +81,7 @@
       "notes": "Notes",
       "join": "Join",
       "vote": "Votes",
+      "wishlist": "Wishlist",
       "actions": "Actions"
     },
     "status_values": {
@@ -99,6 +100,9 @@
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete"
+    },
+    "wishlist": {
+      "add": "Add to Wishlist"
     }
   },
   "login": {

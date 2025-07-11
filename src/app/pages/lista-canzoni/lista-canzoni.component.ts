@@ -276,4 +276,24 @@ partecipazioneCompleta(canzone: Canzone): boolean {
       }
     });
   }
+
+  aggiungiAWishlist(canzone: Canzone): void {
+  if (!this.userId) {
+    alert('Devi essere loggato per aggiungere alla wishlist.');
+    return;
+  }
+
+  this.karaokeService.aggiungiAWishlist({
+    user_id: this.userId,
+    artista: canzone.artista,
+    canzone: canzone.canzone
+  }).subscribe({
+    next: () => alert('Canzone aggiunta alla wishlist! ✅'),
+    error: (err) => {
+      console.error('Errore wishlist:', err);
+      alert('Errore durante l\'aggiunta alla wishlist ❌');
+    }
+  });
+}
+
 }

@@ -80,6 +80,7 @@
       "key": "Tonalità",
       "notes": "Note",
       "join": "Partecipa",
+      "wishlist": "Wishlist",
       "actions": "Azioni",
       "vote": "Vota"
     },
@@ -93,6 +94,9 @@
     "participation": {
       "full": "Raggiunto num microfoni max",
       "not_available": "Partecipazione non disponibile"
+    },
+    "wishlist": {
+      "add": "Aggiungi alla Wishlist"
     },
     "actions": {
       "edit": "Modifica",

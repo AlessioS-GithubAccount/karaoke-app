@@ -54,7 +54,6 @@ function normalizeSongName(name) {
 
 
 //middleware per permettere partecipazione solo a user, admin, guest
-
 function optionalVerifyToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader) {
@@ -72,6 +71,58 @@ function optionalVerifyToken(req, res, next) {
     next();
   });
 }
+
+function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: 'Non autenticato' });
+    if (!allowedRoles.includes(req.user.ruolo)) {
+      return res.status(403).json({ message: 'Accesso negato: ruolo non autorizzato' });
+    }
+    next();
+  };
+}
+
+app.post('/api/admin/aggiungi-canzone', verifyToken, authorizeRoles('admin'), async (req, res) => {
+  const { nome, artista, canzone, tonalita } = req.body;
+
+  if (!nome || !artista || !canzone) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `INSERT INTO canzoni (nome, artista, canzone, tonalita, posizione) 
+       VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(posizione), 0) + 1 FROM canzoni))`,
+      [nome, artista, canzone, tonalita || null]
+    );
+
+    res.status(201).json({ message: 'Canzone aggiunta con successo', id: result.insertId });
+  } catch (err) {
+    console.error('Errore aggiunta canzone:', err);
+    res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
+/*app.post('/wishlist', async (req, res) => {
+  const { user_id, artista, canzone, tonalita } = req.body;
+  if (!user_id || !artista || !canzone) {
+    return res.status(400).json({ message: 'Dati mancanti' });
+  }
+
+  try {
+    await db.query(`
+      INSERT INTO wishlist (user_id, artista, canzone, tonalita)
+      VALUES (?, ?, ?, ?)
+    `, [user_id, artista, canzone, tonalita]);
+
+    res.status(201).json({ message: 'Canzone aggiunta alla wishlist ✅' });
+  } catch (err) {
+    console.error('Errore salvataggio wishlist:', err);
+    res.status(500).json({ message: 'Errore interno' });
+  }
+});*/
+
 
 
 // chiamate per privacy component

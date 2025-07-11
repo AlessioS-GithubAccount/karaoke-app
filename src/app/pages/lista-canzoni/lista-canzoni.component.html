@@ -10,11 +10,13 @@
       <th *ngIf="isAdmin">{{ 'song_list.labels.notes' | translate }}</th>
       <th>{{ 'song_list.labels.join' | translate }}</th>
       <th>{{ 'song_list.labels.vote' | translate }}</th>
+      <th>{{ 'song_list.labels.wishlist' | translate }}</th>
       <th>{{ 'song_list.labels.actions' | translate }}</th>
     </tr>
   </thead>
   <tbody cdkDropList (cdkDropListDropped)="onDrop($event)">
     <tr cdkDrag *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
+      
       <!-- Stato cantata -->
       <td *ngIf="isAdmin">
         <button (click)="toggleCantata(i)" class="btn btn-sm"
@@ -69,14 +71,12 @@
 
       <!-- Partecipa -->
       <td>
-        <!-- Bottone -->
         <button class="btn btn-success mb-1"
           [disabled]="!puoPartecipare || partecipazioneCompleta(canzone) || !canzone.accetta_partecipanti"
           (click)="partecipaAllaCanzone(canzone)">
           {{ 'song_list.labels.join' | translate }}
         </button>
 
-        <!-- Input nome -->
         <div *ngIf="mostraInputPartecipazione[canzone.id]" class="mt-1">
           <input type="text"
             [(ngModel)]="nomePartecipanteMap[canzone.id]"
@@ -94,7 +94,6 @@
           </button>
         </div>
 
-        <!-- Messaggi -->
         <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
           {{ 'song_list.participation.full' | translate }}
         </div>
@@ -103,7 +102,7 @@
         </div>
       </td>
 
-      <!-- Colonna Voto con emoji -->
+      <!-- Emoji voto -->
       <td>
         <span *ngFor="let emoji of emojisVoto"
               (click)="votaCanzone(i, emoji)"
@@ -114,6 +113,15 @@
               style="margin-right: 6px;">
           {{ emoji }}
         </span>
+      </td>
+
+      <!-- Wishlist -->
+      <td>
+        <button class="btn btn-outline-warning btn-sm"
+                title="Aggiungi a Wishlist"
+                (click)="aggiungiAWishlist(canzone)">
+          ⭐
+        </button>
       </td>
 
       <!-- Azioni -->
@@ -135,10 +143,3 @@
     </tr>
   </tbody>
 </table>
-
-<!-- Reset lista giornaliera solo admin -->
-<div class="mt-3" *ngIf="isAdmin">
-  <button class="btn btn-danger" (click)="resetLista()">
-    {{ 'song_list.actions.reset_list' | translate }}
-  </button>
-</div>
