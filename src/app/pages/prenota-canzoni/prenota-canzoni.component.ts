@@ -39,16 +39,22 @@ export class PrenotaCanzoniComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-    this.isAdmin = this.authService.getRole() === 'admin';
-    this.guestId = localStorage.getItem('guestId');
+    const isUser = this.authService.isUser();
+    const isGuest = this.authService.isGuest();
 
-    if (!this.isLoggedIn && !this.guestId) {
+    if (!isUser && !isGuest) {
       this.showAccessPrompt = true;
       return;
     }
 
-    if (!this.guestId) {
+    this.showAccessPrompt = false;
+    this.isLoggedIn = isUser;
+    this.isAdmin = this.authService.getRole() === 'admin';
+
+    if (isGuest) {
+      this.guestId = this.authService.getGuestId();
+    } else {
+      // crea un nuovo guestId se necessario
       this.guestId = uuidv4();
       localStorage.setItem('guestId', this.guestId);
     }
@@ -90,7 +96,6 @@ export class PrenotaCanzoniComponent implements OnInit {
 
     if (form.valid && !this.microfoniInvalid) {
       const userId = this.authService.getUserId();
-      console.log('DEBUG - userId:', userId, 'guestId:', this.guestId);
       const canzonePayload = {
         ...this.formData,
         user_id: userId || null,
@@ -99,7 +104,6 @@ export class PrenotaCanzoniComponent implements OnInit {
 
       this.karaokeService.addCanzone(canzonePayload).subscribe({
         next: (response) => {
-          console.log('Dati salvati nel backend:', response);
           alert(`Ciao ${this.formData.nome}, la canzone è in coda! 🎤`);
           form.resetForm({
             num_microfoni: 1,
@@ -109,7 +113,6 @@ export class PrenotaCanzoniComponent implements OnInit {
           this.artistiFiltrati = [];
           this.canzoniFiltrate = [];
 
-          // Redirect a lista-canzoni con scrollToId = id canzone inserita
           const insertedId = response.canzoneId || response.insertId || response.id;
           this.router.navigate(['/lista-canzoni'], { queryParams: { scrollToId: insertedId } });
         },

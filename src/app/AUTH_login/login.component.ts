@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,10 @@ export class LoginComponent {
   username: string = '';
   password: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   login(tipo: 'admin' | 'client' = 'client') {
     if (!this.username || !this.password) {
@@ -19,20 +23,18 @@ export class LoginComponent {
       return;
     }
 
-    //bugprevent si assicura che non rimangano guest_id residui 
-    if (localStorage.getItem('guest_id')) {
-      console.warn('Rimosso guest_id residuo');
-      localStorage.removeItem('guest_id');
+    // Rimuove eventuali guest ID precedenti
+    if (localStorage.getItem('guestId')) {
+      console.warn('Rimosso guestId residuo');
+      localStorage.removeItem('guestId');
     }
-
 
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
-        // Navigazione basata sul ruolo
+        // Reindirizza in base al ruolo
         if (tipo === 'admin' || res.ruolo === 'admin') {
           this.router.navigate(['/admin']);
         } else {
-          // Reindirizza l'utente client alla pagina profilo
           this.router.navigate(['/user-profile']);
         }
       },
@@ -43,7 +45,8 @@ export class LoginComponent {
   }
 
   loginOspite() {
-    // Puoi modificare anche questa rotta se vuoi
+    const guestId = uuidv4();
+    localStorage.setItem('guestId', guestId);
     this.router.navigate(['/prenota-canzoni']);
   }
 }
