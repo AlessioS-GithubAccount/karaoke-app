@@ -1,13 +1,15 @@
-<nav class="navbar">
+<nav class="navbar" [class.animate-in]="true">
   <div class="navbar-container">
     <!-- Logo -->
     <div class="logo">
       <img src="assets/images/logo.jpg" alt="Logo Pub" class="logo-img" />
     </div>
 
-    <!-- Titolo -->
+    <!-- Titolo come link alla home -->
     <div class="navbar-title">
-      <h2>{{ 'navbar.title' | translate }}</h2>
+      <a routerLink="/" class="navbar-title-link">
+        {{ 'navbar.title' | translate }}
+      </a>
     </div>
 
     <!-- Burger menu -->
@@ -48,20 +50,8 @@
       </button>
     </li>
     <li class="language-switch">
-      <button
-        (click)="switchLanguage('en')"
-        [disabled]="currentLang === 'en'"
-        [class.light]="!darkMode"
-      >
-        EN
-      </button>
-      <button
-        (click)="switchLanguage('it')"
-        [disabled]="currentLang === 'it'"
-        [class.light]="!darkMode"
-      >
-        IT
-      </button>
+      <button (click)="switchLanguage('en')" [disabled]="currentLang === 'en'">EN</button>
+      <button (click)="switchLanguage('it')" [disabled]="currentLang === 'it'">IT</button>
     </li>
   </ul>
 </nav>
