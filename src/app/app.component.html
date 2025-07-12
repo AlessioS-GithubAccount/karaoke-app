@@ -1,35 +1,32 @@
 <nav class="navbar">
   <div class="navbar-container">
-    <!-- Sinistra: Logo -->
+    <!-- Logo -->
     <div class="logo">
       <img src="assets/images/logo.jpg" alt="Logo Pub" class="logo-img" />
     </div>
 
-    <!-- Centro: Titolo -->
+    <!-- Titolo -->
     <div class="navbar-title">
       <h2>{{ 'navbar.title' | translate }}</h2>
     </div>
 
-    <!-- Destra: Burger -->
+    <!-- Burger menu -->
     <div class="navbar-right right-controls">
       <button
         class="burger"
         (click)="toggleMenu()"
         aria-label="Toggle menu"
-        [attr.aria-expanded]="menuOpen"
+        [class.open]="menuOpen"
       >
-        <span>{{ 'navbar.menu' | translate }}</span>
-        <span>&#9776;</span>
+        <div class="burger-line top"></div>
+        <div class="burger-line middle"></div>
+        <div class="burger-line bottom"></div>
       </button>
     </div>
   </div>
 
   <!-- Menù mobile -->
-  <ul
-    class="nav-links"
-    [class.open]="menuOpen"
-    (click)="toggleMenu()"
-  >
+  <ul class="nav-links" [class.open]="menuOpen" (click)="toggleMenu()">
     <li><a href="#" (click)="goToLogin($event)">{{ 'navbar.login' | translate }}</a></li>
     <li><a routerLink="/">{{ 'navbar.home' | translate }}</a></li>
     <li><a routerLink="/user-profile">{{ 'navbar.profile' | translate }}</a></li>
@@ -45,7 +42,9 @@
         (click)="toggleDarkMode()"
       >
         <span>{{ darkMode ? '🌙' : '☀️' }}</span>
-        <span>{{ darkMode ? ('navbar.dark_mode' | translate) : ('navbar.light_mode' | translate) }}</span>
+        <span>
+          {{ darkMode ? ('navbar.dark_mode' | translate) : ('navbar.light_mode' | translate) }}
+        </span>
       </button>
     </li>
     <li>

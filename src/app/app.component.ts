@@ -33,11 +33,9 @@ export class AppComponent implements OnInit {
     this.currentLang = savedLang || (browserLang?.match(/en|it/) ? browserLang : 'en');
     this.translate.use(this.currentLang);
 
-    // 👉 Animazione all'avvio
     setTimeout(() => this.triggerNavbarAnimation(), 100);
   }
 
-  // 👂 Ascolta scroll
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     if (window.scrollY === 0) {
@@ -45,12 +43,11 @@ export class AppComponent implements OnInit {
     }
   }
 
-  // 👇 Applica l'effetto
   triggerNavbarAnimation(): void {
     const navbar = document.querySelector('.navbar');
     if (navbar) {
-      navbar.classList.remove('animate-in'); // reset per riapplicare
-      void (navbar as HTMLElement).offsetWidth; // forza il reflow
+      navbar.classList.remove('animate-in');
+      void (navbar as HTMLElement).offsetWidth;
       navbar.classList.add('animate-in');
     }
   }

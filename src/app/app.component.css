@@ -13,7 +13,6 @@
   animation: slideDownFade 0.6s ease-out forwards;
 }
 
-
 .navbar {
   background-color: #222;
   color: white;
@@ -51,51 +50,70 @@
   text-align: center;
 }
 
-/* Container burger */
 .right-controls {
   display: flex;
   align-items: center;
   justify-content: flex-end;
 }
 
-/* Burger button */
+/* Burger animato */
 .burger {
-  background: none;
+  width: 40px;
+  height: 30px;
+  position: relative;
   border: none;
-  color: white;
+  background: none;
   cursor: pointer;
   display: flex;
-  align-items: center;
-  font-size: 1.1rem;
-  gap: 12px;
-  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
   z-index: 1100;
-  left: 6rem;
 }
 
-.burger span:last-child {
-  font-size: 1.5rem;
+.burger-line {
+  height: 4px;
+  width: 100%;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
 }
 
-/* Mobile Menu */
+.burger.open .top {
+  transform: translateY(13px) rotate(45deg);
+}
+.burger.open .middle {
+  opacity: 0;
+}
+.burger.open .bottom {
+  transform: translateY(-13px) rotate(-45deg);
+}
+
+/* Menu mobile animato */
 .nav-links {
   position: absolute;
   top: 60px;
-  right: 1rem; /* posizionamento sotto al burger */
+  right: 1rem;
   background-color: #333;
   list-style: none;
   padding: 1rem;
   margin: 0;
-  display: none;
+  display: flex;
   flex-direction: column;
   width: 220px;
   border-radius: 0 0 5px 5px;
   box-sizing: border-box;
   z-index: 1050;
+  transform: translateY(-10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .nav-links.open {
-  display: flex;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .nav-links li {
@@ -112,7 +130,6 @@
   text-decoration: underline;
 }
 
-/* Dark mode button */
 .toggle-darkmode {
   border: 1px solid white;
   background-color: transparent;
