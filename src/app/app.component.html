@@ -47,9 +47,21 @@
         </span>
       </button>
     </li>
-    <li>
-      <button (click)="switchLanguage('en')" [disabled]="currentLang === 'en'">EN</button>
-      <button (click)="switchLanguage('it')" [disabled]="currentLang === 'it'">IT</button>
+    <li class="language-switch">
+      <button
+        (click)="switchLanguage('en')"
+        [disabled]="currentLang === 'en'"
+        [class.light]="!darkMode"
+      >
+        EN
+      </button>
+      <button
+        (click)="switchLanguage('it')"
+        [disabled]="currentLang === 'it'"
+        [class.light]="!darkMode"
+      >
+        IT
+      </button>
     </li>
   </ul>
 </nav>

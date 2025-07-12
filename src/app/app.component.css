@@ -122,6 +122,7 @@ body, html {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
+/* Show menu */
 .nav-links.open {
   transform: translateY(0);
   opacity: 1;
@@ -143,7 +144,6 @@ body, html {
 .nav-links.open li {
   animation: fadeSlideIn 0.4s ease forwards;
   opacity: 0;
-  /* pointer-events for safety, to avoid clicking before animation */
   pointer-events: none;
 }
 
@@ -159,7 +159,7 @@ body, html {
 .nav-links.open li:nth-child(10) { animation-delay: 0.50s; }
 
 .nav-links.open li {
-  pointer-events: auto; /* abilita click dopo animazione */
+  pointer-events: auto;
 }
 
 .nav-links li {
@@ -222,38 +222,64 @@ body, html {
   background: linear-gradient(135deg, #a3b18a, #4a6fa5);
 }
 
-/* Language switch buttons */
+/* Language switch buttons styled like toggle darkmode */
 .language-switch button {
-  background: transparent;
-  border: 2px solid #a47148;
-  color: #a47148;
+  border: none;
+  background: linear-gradient(135deg, #a47148, #6b9080);
+  color: white;
   font-weight: 700;
   font-size: 0.9rem;
-  padding: 0.35rem 0.9rem;
-  border-radius: 25px;
-  margin-right: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(164, 113, 72, 0.6);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
   transition: all 0.3s ease;
+  margin-right: 0.5rem;
   user-select: none;
-  min-width: 50px;
-  text-align: center;
-  box-shadow: 0 0 8px transparent;
+  min-width: 60px;
   transform-origin: center;
+  outline: none;
 }
 
-.language-switch button:hover:not(:disabled) {
-  background: #a47148;
+.language-switch button:hover:not(:disabled),
+.language-switch button:focus:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(164, 113, 72, 0.9);
+  background: linear-gradient(135deg, #6b9080, #a47148);
+  transform: scale(1.08) translateY(-2px);
   color: white;
-  box-shadow: 0 0 8px #a47148;
-  transform: scale(1.12);
+  animation: none;
+}
+
+.language-switch button:active:not(:disabled) {
+  transform: scale(1.05) translateY(0);
+  box-shadow: 0 0 12px rgba(164, 113, 72, 0.8);
+  animation: none;
 }
 
 .language-switch button:disabled {
   opacity: 0.5;
   cursor: default;
-  border-color: #888;
-  color: #888;
-  background: transparent;
+  background: #555;
+  color: #ccc;
   box-shadow: none;
   transform: none;
+}
+
+/* Variante light mode per i bottoni lingua */
+.language-switch button.light {
+  background: linear-gradient(135deg, #4a6fa5, #a3b18a);
+  box-shadow: 0 4px 15px rgba(74, 111, 165, 0.6);
+  color: #fff;
+}
+
+.language-switch button.light:hover:not(:disabled),
+.language-switch button.light:focus:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(74, 111, 165, 0.9);
+  background: linear-gradient(135deg, #a3b18a, #4a6fa5);
+  transform: scale(1.08) translateY(-2px);
+  color: white;
 }

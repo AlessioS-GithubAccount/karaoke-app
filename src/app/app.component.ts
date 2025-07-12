@@ -88,4 +88,9 @@ export class AppComponent implements OnInit {
     this.router.navigate([this.authService.isLoggedIn() ? '/user-profile' : '/login']);
     this.menuOpen = false;
   }
+
+  get isLightMode(): boolean {
+  return !this.darkMode;
+}
+
 }
