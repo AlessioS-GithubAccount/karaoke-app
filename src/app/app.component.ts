@@ -1,4 +1,4 @@
-import { Component, OnInit, Renderer2 } from '@angular/core';
+import { Component, OnInit, Renderer2, HostListener } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']  // o .css se usi css
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   darkMode = false;
@@ -21,26 +21,38 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Dark mode da localStorage
     const savedMode = localStorage.getItem('darkMode');
     this.darkMode = savedMode === 'true';
     this.updateBodyClass();
 
-    // Configura lingue ngx-translate
     this.translate.addLangs(['en', 'it']);
     this.translate.setDefaultLang('en');
 
-    // Lingua salvata o browser
     const savedLang = localStorage.getItem('lang');
     const browserLang = this.translate.getBrowserLang();
-    if (savedLang) {
-      this.currentLang = savedLang;
-    } else if (browserLang && browserLang.match(/en|it/)) {
-      this.currentLang = browserLang;
-    } else {
-      this.currentLang = 'en';
-    }
+    this.currentLang = savedLang || (browserLang?.match(/en|it/) ? browserLang : 'en');
     this.translate.use(this.currentLang);
+
+    // 👉 Animazione all'avvio
+    setTimeout(() => this.triggerNavbarAnimation(), 100);
+  }
+
+  // 👂 Ascolta scroll
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    if (window.scrollY === 0) {
+      this.triggerNavbarAnimation();
+    }
+  }
+
+  // 👇 Applica l'effetto
+  triggerNavbarAnimation(): void {
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+      navbar.classList.remove('animate-in'); // reset per riapplicare
+      void (navbar as HTMLElement).offsetWidth; // forza il reflow
+      navbar.classList.add('animate-in');
+    }
   }
 
   toggleDarkMode(): void {
@@ -51,13 +63,9 @@ export class AppComponent implements OnInit {
 
   updateBodyClass(): void {
     if (this.darkMode) {
-      this.renderer.addClass(document.body, 'dark-mode');
-      this.renderer.addClass(document.body, 'bg-dark');
-      this.renderer.addClass(document.body, 'text-light');
+      this.renderer.removeClass(document.body, 'light-mode');
     } else {
-      this.renderer.removeClass(document.body, 'dark-mode');
-      this.renderer.removeClass(document.body, 'bg-dark');
-      this.renderer.removeClass(document.body, 'text-light');
+      this.renderer.addClass(document.body, 'light-mode');
     }
   }
 
@@ -80,11 +88,7 @@ export class AppComponent implements OnInit {
 
   goToLogin(event: Event): void {
     event.preventDefault();
-    if (this.authService.isLoggedIn()) {
-      this.router.navigate(['/user-profile']);
-    } else {
-      this.router.navigate(['/login']);
-    }
+    this.router.navigate([this.authService.isLoggedIn() ? '/user-profile' : '/login']);
     this.menuOpen = false;
   }
 }
