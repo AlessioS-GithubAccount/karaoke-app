@@ -1,9 +1,26 @@
+.home-background {
+  min-height: 100vh;
+  background-image: url('/assets/images/karaoke-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px; /* per dare un po' di spazio */
+  box-sizing: border-box;
+}
+
 .home-container {
   max-width: 900px;
-  margin: 80px auto 40px; /* margine superiore per navbar */
-  padding: 20px;
+  width: 100%;
+  padding: 40px 30px;
+  background-color: rgba(0, 0, 0, 0.5); /* overlay scuro */
+  border-radius: 12px;
   text-align: center;
-  color: var(--text-color, #222);
+  color: #d5d5d5;
+  box-sizing: border-box;
 }
 
 .features {
@@ -21,6 +38,8 @@
   width: 250px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   transition: box-shadow 0.3s ease;
+  cursor: pointer;
+  color: #222;
 }
 
 .feature:hover {
@@ -31,7 +50,6 @@
   margin-bottom: 12px;
 }
 
-  .titleH1 {
-    color: rgb(213, 213, 213);
-  }
-
+.titleH1 {
+  color: #d5d5d5;
+}
