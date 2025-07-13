@@ -42,11 +42,11 @@
   "homepage": {
     "title": "Benvenuto su Karaoke App",
     "subtitle": "Scopri i brani, prenota la tua canzone e divertiti!",
-    "feature1_title": "🎤 Prenota Canzoni",
+    "feature1_title": "Prenota Canzoni",
     "feature1_text": "Scegli le tue canzoni preferite e mettile in coda.",
-    "feature2_title": "📋 Lista Brani",
+    "feature2_title": "Lista Brani",
     "feature2_text": "Visualizza la lista dei brani in coda per il karaoke.",
-    "feature3_title": "⭐ Classifica Top 30",
+    "feature3_title": "Classifica Top 30",
     "feature3_text": "Scopri le canzoni più amate della settimana."
   },
   "profile": {

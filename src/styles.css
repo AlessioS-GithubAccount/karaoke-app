@@ -13,6 +13,8 @@
 
   --button-gradient-1: #39ff14; /* Neon green */
   --button-gradient-2: #ff00ff; /* Neon pink */
+
+    --feature-bg-gradient: linear-gradient(135deg, rgba(20, 30, 60, 0.7), rgba(50, 70, 100, 0.7));
 }
 
 /* 🌞 LIGHT MODE OVERRIDE */
@@ -28,6 +30,8 @@ body.light-mode {
 
   --button-gradient-1: #00ffff; /* neon light cyan */
   --button-gradient-2: #ff66cc; /* neon pink pastel */
+
+   --feature-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(163, 177, 138, 0.7));
 }
 
 body {
