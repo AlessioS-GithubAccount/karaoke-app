@@ -97,6 +97,16 @@ body, html {
   justify-content: space-between;
   padding: 0;
   z-index: 1100;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.burger:hover,
+.burger:focus {
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important; /* se ci fosse un’ombra di focus */
 }
 
 .burger-line {
@@ -175,8 +185,22 @@ body, html {
   border-radius: 8px;
   transition: opacity 0.3s ease;
   z-index: -1;
-  box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--accent-hover);
+  box-shadow: 0 0 20px var(--glow-color), 0 0 20px var(--accent-hover);
 }
+
+.nav-links a i {
+  margin-right: 8px;
+  font-size: 1.1rem;
+  vertical-align: middle;
+  color: var(--accent-color);
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover i,
+.nav-links a:focus i {
+  color: var(--accent-hover);
+}
+
 
 
 .nav-links a:hover::before,
@@ -244,6 +268,8 @@ body, html {
   justify-content: center;
   user-select: none;
   transform-origin: center;
+  margin-top: 3rem;
+  margin-left: -1rem;
 }
 
 .toggle-darkmode:hover {
