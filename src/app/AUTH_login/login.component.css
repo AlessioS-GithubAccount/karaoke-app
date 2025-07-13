@@ -1,6 +1,124 @@
-.admin-login-btn {
-  font-size: 0.85rem;      /* riduce dimensione testo */
-  padding: px 12px;       /* riduce spazi interni */
-  border-radius: 0.25rem;  /* leggermente stondato */
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2); /* ombra leggera */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+.login-background {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  background: radial-gradient(circle at top left, #1e1e1e, #0d0d0d);
+}
+
+.login-container {
+  max-width: 400px;
+  width: 100%;
+  background-color: rgba(20, 20, 20, 0.85);
+  border-radius: 12px;
+  padding: 40px 30px;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
+}
+
+.login-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 24px;
+  color: #00f0ff;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #ccc;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: none;
+  background-color: #222;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.form-links {
+  text-align: right;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+.form-links a {
+  color: #00f0ff;
+  text-decoration: none;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn.primary {
+  background-color: #00f0ff;
+  color: #000;
+}
+
+.btn.primary:hover {
+  background-color: #0ff;
+}
+
+.btn.secondary {
+  background-color: transparent;
+  border: 2px solid #00f0ff;
+  color: #00f0ff;
+}
+
+.btn.secondary:hover {
+  background-color: rgba(0, 240, 255, 0.1);
+}
+
+.btn.success {
+  background-color: #00c972;
+  color: #000;
+}
+
+.btn.success:hover {
+  background-color: #00e688;
+}
+
+.signup-section {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.signup-section p {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.privacy-info {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #777;
+  margin-top: 20px;
 }

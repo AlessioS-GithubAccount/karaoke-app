@@ -4,11 +4,11 @@ body, html {
   font-family: 'Montserrat', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #121212;
-  color: white;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
-/* Navbar animation */
+/* Animazione navbar */
 @keyframes slideDownFade {
   0% {
     opacity: 0;
@@ -26,14 +26,15 @@ body, html {
 
 /* Navbar base */
 .navbar {
-  background-color: #222;
-  color: white;
+  background-color: var(--navbar-color);
+  color: var(--text-color);
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 1000;
   padding: 0.5rem 0;
   height: 60px;
+  transition: background-color 0.3s ease;
 }
 
 .navbar-container {
@@ -57,16 +58,25 @@ body, html {
 .navbar-title-link {
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-color);
   text-decoration: none;
   text-align: center;
   display: inline-block;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.navbar-title-link:hover {
-  color: #a47148;
+.navbar-title-link:hover,
+.navbar-title-link:focus {
+  color: var(--accent-color);
+  text-shadow:
+    0 0 8px var(--accent-color),
+    0 0 16px var(--glow-color),
+    0 0 32px var(--glow-color),
+    0 0 48px var(--glow-color);
+  transform: scale(1.05);
+  outline: none;
 }
+
 
 .right-controls {
   display: flex;
@@ -92,7 +102,7 @@ body, html {
 .burger-line {
   height: 4px;
   width: 100%;
-  background-color: white;
+  background-color: var(--text-color);
   border-radius: 2px;
   transition: all 0.3s ease;
 }
@@ -112,14 +122,14 @@ body, html {
   position: absolute;
   top: 60px;
   right: 1rem;
-  background-color: #333;
+  background-color: var(--menu-bg-color);
   list-style: none;
   padding: 1rem;
   margin: 0;
   display: flex;
   flex-direction: column;
   width: 220px;
-  border-radius: 0 0 5px 5px;
+  border-radius: 0 0 10px 10px;
   box-sizing: border-box;
   z-index: 1050;
   transform: translateY(-10px);
@@ -134,6 +144,55 @@ body, html {
   pointer-events: auto;
 }
 
+.nav-links li {
+  margin: 0.5rem 0;
+  margin-left: 1.5rem;
+}
+
+.nav-links a {
+  position: relative; /* necessario per posizionare il ::before */
+  color: var(--text-color);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.3s ease, transform 0.2s ease;
+  display: inline-block;
+  user-select: none;
+  background-color: transparent;
+  z-index: 0; /* per gestire layering */
+}
+
+.nav-links a::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 110%;
+  height: 130%;
+  background: radial-gradient(circle, var(--glow-color) 40%, transparent 80%);
+  filter: blur(8px);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--accent-hover);
+}
+
+
+.nav-links a:hover::before,
+.nav-links a:focus::before {
+  opacity: 1;
+}
+
+.nav-links a:hover,
+.nav-links a:focus {
+  color: var(--accent-color);
+  transform: scale(1.05);
+  cursor: pointer;
+  outline: none;
+}
+
+/* Animazioni menu mobile */
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
@@ -166,36 +225,16 @@ body, html {
   pointer-events: auto;
 }
 
-.nav-links li {
-  margin: 0.5rem 0;
-}
-
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  font-size: 1rem;
-  transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.2s ease;
-  display: inline-block;
-  user-select: none;
-}
-
-.nav-links a:hover {
-  color: #a47148;
-  text-shadow: 0 0 6px rgba(164, 113, 72, 0.7);
-  transform: scale(1.05);
-  cursor: pointer;
-}
-
 /* Toggle Dark Mode Button */
 .toggle-darkmode {
   border: none;
-  background: linear-gradient(135deg, #a47148, #6b9080);
-  color: white;
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
   font-weight: 700;
   font-size: 1rem;
   padding: 0.5rem 1.2rem;
   border-radius: 30px;
-  box-shadow: 0 4px 15px rgba(164, 113, 72, 0.6);
+  box-shadow: 0 0 12px var(--glow-color);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -208,33 +247,21 @@ body, html {
 }
 
 .toggle-darkmode:hover {
-  box-shadow: 0 6px 20px rgba(164, 113, 72, 0.9);
+  box-shadow: 0 0 20px var(--glow-color), 0 0 30px var(--accent-hover);
   transform: scale(1.08);
-  background: linear-gradient(135deg, #6b9080, #a47148);
-}
-
-.toggle-darkmode.light {
-  background: linear-gradient(135deg, #4a6fa5, #a3b18a);
-  box-shadow: 0 4px 15px rgba(74, 111, 165, 0.6);
-  color: #fff;
-}
-
-.toggle-darkmode.light:hover {
-  box-shadow: 0 6px 20px rgba(74, 111, 165, 0.9);
-  transform: scale(1.08);
-  background: linear-gradient(135deg, #a3b18a, #4a6fa5);
+  background: linear-gradient(135deg, var(--button-gradient-2), var(--button-gradient-1));
 }
 
 /* Language switch buttons */
 .language-switch button {
   border: none;
-  background: linear-gradient(135deg, #a47148, #6b9080);
-  color: white;
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
   font-weight: 700;
   font-size: 1rem;
   padding: 0.5rem 1.2rem;
   border-radius: 30px;
-  box-shadow: 0 4px 15px rgba(164, 113, 72, 0.6);
+  box-shadow: 0 0 10px var(--glow-color);
   cursor: pointer;
   display: inline-block;
   margin: 0.3rem 0.2rem;
@@ -243,9 +270,9 @@ body, html {
 }
 
 .language-switch button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6b9080, #a47148);
+  background: linear-gradient(135deg, var(--button-gradient-2), var(--button-gradient-1));
   transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(164, 113, 72, 0.9);
+  box-shadow: 0 0 20px var(--accent-hover);
 }
 
 .language-switch button:disabled {

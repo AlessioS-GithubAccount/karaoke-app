@@ -23,7 +23,6 @@ export class LoginComponent {
       return;
     }
 
-    // Rimuove eventuali guest ID precedenti
     if (localStorage.getItem('guestId')) {
       console.warn('Rimosso guestId residuo');
       localStorage.removeItem('guestId');
@@ -31,7 +30,6 @@ export class LoginComponent {
 
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
-        // Reindirizza in base al ruolo
         if (tipo === 'admin' || res.ruolo === 'admin') {
           this.router.navigate(['/admin']);
         } else {

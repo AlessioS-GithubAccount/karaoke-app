@@ -1,9 +1,84 @@
-/* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
+/* 🌑 DARK MODE (default) */
+:root {
+  --background-color: #0d0d0d;
+  --navbar-color: #1a1a1a;
+  --menu-bg-color: #141414;
+  --text-color: #e0e0e0;
 
-body {
-  padding-top: 60px; /* uguale o maggiore dell'altezza navbar */
-  font-family: 'Montserrat', sans-serif;
+  --accent-color: #ff00ff; /* Neon fucsia */
+  --accent-hover: #00ffff; /* Neon cyan */
+  --glow-color: rgba(255, 0, 255, 0.4);
+
+  --button-gradient-1: #39ff14; /* Neon green */
+  --button-gradient-2: #ff00ff; /* Neon pink */
 }
 
+/* 🌞 LIGHT MODE OVERRIDE */
+body.light-mode {
+  --background-color: #f2f2f2;
+  --navbar-color: #ffffff;
+  --menu-bg-color: #e0e0e0;
+  --text-color: #111111;
+
+  --accent-color: #d100d1; /* più tenue fucsia neon */
+  --accent-hover: #00cfff; /* neon azzurrino */
+  --glow-color: rgba(0, 200, 255, 0.3);
+
+  --button-gradient-1: #00ffff; /* neon light cyan */
+  --button-gradient-2: #ff66cc; /* neon pink pastel */
+}
+
+body {
+  padding-top: 60px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-shadow: 0 0 8px var(--glow-color);
+}
+
+.navbar {
+  background-color: var(--navbar-color);
+  transition: background-color 0.3s ease;
+}
+
+.nav-links {
+  background-color: var(--menu-bg-color);
+  transition: background-color 0.3s ease;
+}
+
+button, .btn {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  border: none;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+.language-switch button:disabled {
+  background: #555;
+  color: #aaa;
+  box-shadow: none;
+  cursor: default;
+}
