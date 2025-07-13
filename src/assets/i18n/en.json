@@ -106,14 +106,14 @@
     }
   },
   "login": {
-    "title": "🎤 Welcome to Karaoke Pub",
+    "title": "Welcome to Karaoke Pub",
     "username_label": "Username",
     "password_label": "Password",
     "forgot_password_link": "Forgot your password?",
-    "login_button": "🔐 Login",
-    "guest_button": "🎟️ Enter as Guest",
+    "login_button": "Login",
+    "guest_button": "Enter as Guest",
     "no_account_text": "Don't have an account yet? Register to get a personalized profile and access advanced features. Or sing now as a guest",
-    "register_button": "🆕 Register",
+    "register_button": "Register",
     "privacy_info": "This site does not process personal data such as emails, phone numbers, or sensitive information."
   },
   "booking": {

@@ -1,4 +1,4 @@
-<table class="table table-striped">
+<table class="table table-dark table-striped">
   <thead>
     <tr>
       <th>{{ 'song_list.labels.status' | translate }}</th>
@@ -16,7 +16,7 @@
   </thead>
   <tbody cdkDropList (cdkDropListDropped)="onDrop($event)">
     <tr cdkDrag *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
-      
+
       <!-- Stato cantata -->
       <td *ngIf="isAdmin">
         <button (click)="toggleCantata(i)" class="btn btn-sm"
@@ -117,10 +117,8 @@
 
       <!-- Wishlist -->
       <td>
-        <button class="btn btn-outline-warning btn-sm"
-                title="Aggiungi a Wishlist"
-                (click)="aggiungiAWishlist(canzone)">
-          ⭐
+        <button class="btn wishlist-btn" title="Aggiungi a Wishlist" (click)="aggiungiAWishlist(canzone)">
+          <i [ngClass]="canzone.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
         </button>
       </td>
 

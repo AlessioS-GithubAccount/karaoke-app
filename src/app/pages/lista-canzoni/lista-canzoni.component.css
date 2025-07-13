@@ -74,4 +74,50 @@ p {
   transition: background-color 0.5s ease;
 }
 
+/* Bottone stellina wishlist */
+.wishlist-btn {
+  background: none;
+  border: none;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+  color: var(--accent-color); /* rosa neon di base */
+  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+}
 
+.wishlist-btn i {
+  font-size: 1.3rem;
+  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+  color: inherit;
+}
+
+/* Glow al passaggio del mouse */
+.wishlist-btn:hover i {
+  color: var(--accent-hover);
+  filter:
+    drop-shadow(0 0 8px var(--glow-color))
+    drop-shadow(0 0 16px var(--glow-color))
+    drop-shadow(0 0 24px var(--accent-hover));
+  transform: scale(1.15);
+}
+
+/* Quando la stellina è attiva (inWishlist = true), colore e glow più forti */
+.wishlist-btn i.active {
+  color: var(--accent-hover);
+  filter:
+    drop-shadow(0 0 6px var(--glow-color))
+    drop-shadow(0 0 14px var(--glow-color))
+    drop-shadow(0 0 22px var(--accent-hover));
+  transform: scale(1.2);
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+th, td {
+  min-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

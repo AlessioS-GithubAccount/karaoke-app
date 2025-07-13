@@ -40,5 +40,121 @@ body.bg-dark, .bg-dark {
   padding-bottom: 2rem;
 }
 
+.alert-warning-custom {
+  background-color: #2a2a2a; /* grigio scuro */
+  color: #eee;               /* testo chiaro */
+  border: 1px solid #444;    /* bordo soft */
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1); /* leggero glow ciano */
+  margin-top: 3rem;
+}
 
-/* eventuali altri tuoi stili */
+@keyframes alertPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  80% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.alert-animated {
+  animation: alertPopIn 0.5s ease forwards;
+}
+
+.alert-warning-custom.alert-animated {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+}
+
+/* Animazione fade + slide dal basso per il form */
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-animate {
+  animation: fadeSlideUp 0.6s ease forwards;
+}
+
+/* --- Animazione sequenziale scritte (label, h2) --- */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Applichiamo animazione con delay diverso a titoli e label */
+
+.form-animate h2,
+.form-animate label,
+.form-animate .required-asterisk {
+  opacity: 0;
+  animation-name: fadeInUp;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease;
+}
+
+/* Delay per farle apparire in sequenza */
+.form-animate h2 {
+  animation-delay: 0.1s;
+}
+.form-animate label:nth-of-type(1) {
+  animation-delay: 0.3s;
+}
+.form-animate label:nth-of-type(2) {
+  animation-delay: 0.5s;
+}
+.form-animate label:nth-of-type(3) {
+  animation-delay: 0.7s;
+}
+/* ... puoi continuare ad aggiungere nth-of-type o meglio applicare con JS se vuoi più controllo */
+
+.table-dark {
+  background-color: #1e1e1e; /* sfondo scuro per la tabella */
+  color: #eee;
+}
+
+.table-dark thead th {
+  background-color: #2a2a2a;
+  color: #ffc107; /* ad esempio giallo bootstrap */
+  border-color: #444;
+}
+
+.table-dark tbody tr:nth-of-type(odd) {
+  background-color: #222; /* riga dispari più scura */
+}
+
+.table-dark tbody tr:nth-of-type(even) {
+  background-color: #2c2c2c; /* riga pari leggermente meno scura */
+}
+
+.table-dark tbody tr:hover {
+  background-color: #333; /* effetto hover */
+}
+
+/* Per i bordi */
+.table-dark th,
+.table-dark td {
+  border-color: #444;
+}
+
+/* Pulsanti, etc. li hai già abbastanza coperti */

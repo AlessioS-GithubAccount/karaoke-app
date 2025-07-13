@@ -2,7 +2,7 @@
   <div class="navbar-container">
     <!-- Logo -->
     <div class="logo">
-      <!--<img src="assets/images/logo.jpg" alt="Logo Pub" class="logo-img" /-->
+      <!-- inserisci logo se vuoi -->
     </div>
 
     <!-- Titolo come link alla home -->
@@ -28,67 +28,72 @@
   </div>
 
   <!-- Menù mobile -->
-  <ul class="nav-links" [class.open]="menuOpen" (click)="toggleMenu()">
-  <li>
-    <a href="#" (click)="goToLogin($event)">
-      <i class="fas fa-sign-in-alt"></i> {{ 'navbar.login' | translate }}
-    </a>
-  </li>
-  <li>
-    <a routerLink="/">
-      <i class="fas fa-home"></i> {{ 'navbar.home' | translate }}
-    </a>
-  </li>
-  <li>
-    <a routerLink="/user-profile">
-      <i class="fas fa-user-circle"></i> {{ 'navbar.profile' | translate }}
-    </a>
-  </li>
-  <li>
-    <a routerLink="/prenota-canzoni">
-      <i class="fas fa-microphone-alt"></i> {{ 'navbar.book_song' | translate }}
-    </a>
-  </li>
-  <li>
-    <a routerLink="/lista-canzoni">
-      <i class="fas fa-music"></i>
- {{ 'navbar.queue' | translate }}
-    </a>
-  </li>
-  <li>
-    <a routerLink="/archivio-musicale">
-      <i class="fas fa-archive"></i> {{ 'navbar.archive' | translate }}
-    </a>
-  </li>
-  <li>
-    <a routerLink="/classifica-top20">
-      <i class="fas fa-trophy"></i> {{ 'navbar.top_20' | translate }}
-    </a>
-  </li>
-  <li>
-    <a href="#" (click)="logout()">
-      <i class="fas fa-sign-out-alt"></i> {{ 'navbar.logout' | translate }}
-    </a>
-  </li>
-  <li>
-    <button
-  class="toggle-darkmode"
-  [ngClass]="{ light: !darkMode }"
-  (click)="toggleDarkMode()"
->
-  <i class="{{ darkMode ? 'fas fa-moon' : 'fas fa-sun' }}"></i>
-  <span>
-    {{ darkMode ? ('navbar.dark_mode' | translate) : ('navbar.light_mode' | translate) }}
-  </span>
-</button>
-
-  </li>
-  <li class="language-switch">
-    <button (click)="switchLanguage('en')" [disabled]="currentLang === 'en'">EN</button>
-    <button (click)="switchLanguage('it')" [disabled]="currentLang === 'it'">IT</button>
-  </li>
-</ul>
-
+  <ul class="nav-links" [class.open]="menuOpen">
+    <li>
+      <a href="#" (click)="closeMenu(); goToLogin($event)">
+        <i class="fas fa-sign-in-alt"></i> {{ 'navbar.login' | translate }}
+      </a>
+    </li>
+    <li>
+      <a routerLink="/" (click)="closeMenu()">
+        <i class="fas fa-home"></i> {{ 'navbar.home' | translate }}
+      </a>
+    </li>
+    <li>
+      <a routerLink="/user-profile" (click)="closeMenu()">
+        <i class="fas fa-user-circle"></i> {{ 'navbar.profile' | translate }}
+      </a>
+    </li>
+    <li>
+      <a routerLink="/prenota-canzoni" (click)="closeMenu()">
+        <i class="fas fa-microphone-alt"></i> {{ 'navbar.book_song' | translate }}
+      </a>
+    </li>
+    <li>
+      <a routerLink="/lista-canzoni" (click)="closeMenu()">
+        <i class="fas fa-music"></i> {{ 'navbar.queue' | translate }}
+      </a>
+    </li>
+    <li>
+      <a routerLink="/archivio-musicale" (click)="closeMenu()">
+        <i class="fas fa-archive"></i> {{ 'navbar.archive' | translate }}
+      </a>
+    </li>
+    <li>
+      <a routerLink="/classifica-top20" (click)="closeMenu()">
+        <i class="fas fa-trophy"></i> {{ 'navbar.top_20' | translate }}
+      </a>
+    </li>
+    <li>
+      <a href="#" (click)="closeMenu(); logout()">
+        <i class="fas fa-sign-out-alt"></i> {{ 'navbar.logout' | translate }}
+      </a>
+    </li>
+    <li>
+      <button
+        class="toggle-darkmode"
+        [ngClass]="{ light: !darkMode }"
+        (click)="toggleDarkMode()"
+      >
+        <i class="{{ darkMode ? 'fas fa-moon' : 'fas fa-sun' }}"></i>
+        <span>
+          {{
+            darkMode
+              ? ('navbar.dark_mode' | translate)
+              : ('navbar.light_mode' | translate)
+          }}
+        </span>
+      </button>
+    </li>
+    <li class="language-switch">
+      <button (click)="switchLanguage('en')" [disabled]="currentLang === 'en'">
+        EN
+      </button>
+      <button (click)="switchLanguage('it')" [disabled]="currentLang === 'it'">
+        IT
+      </button>
+    </li>
+  </ul>
 </nav>
 
 <router-outlet></router-outlet>

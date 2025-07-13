@@ -1,4 +1,4 @@
-import { Component, OnInit, Renderer2, HostListener } from '@angular/core';
+import { Component, OnInit, Renderer2, HostListener, ElementRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
@@ -17,7 +17,8 @@ export class AppComponent implements OnInit {
     private renderer: Renderer2,
     private translate: TranslateService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private eRef: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -40,6 +41,14 @@ export class AppComponent implements OnInit {
   onWindowScroll(): void {
     if (window.scrollY === 0) {
       this.triggerNavbarAnimation();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onClickOutside(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (this.menuOpen && !this.eRef.nativeElement.querySelector('.navbar')?.contains(target)) {
+      this.menuOpen = false;
     }
   }
 
@@ -70,6 +79,10 @@ export class AppComponent implements OnInit {
     this.menuOpen = !this.menuOpen;
   }
 
+  closeMenu(): void {
+    this.menuOpen = false;
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
@@ -90,7 +103,6 @@ export class AppComponent implements OnInit {
   }
 
   get isLightMode(): boolean {
-  return !this.darkMode;
-}
-
+    return !this.darkMode;
+  }
 }

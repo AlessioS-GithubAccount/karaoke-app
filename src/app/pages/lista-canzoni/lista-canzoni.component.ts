@@ -18,6 +18,8 @@ interface Canzone {
   guest_id?: number | null;
   numero_richieste?: number;
   votoEmoji?: string;
+
+  inWishlist?: boolean;  //vedi html
 }
 
 @Component({
@@ -277,23 +279,29 @@ partecipazioneCompleta(canzone: Canzone): boolean {
     });
   }
 
-  aggiungiAWishlist(canzone: Canzone): void {
+aggiungiAWishlist(canzone: Canzone): void {
   if (!this.userId) {
     alert('Devi essere loggato per aggiungere alla wishlist.');
     return;
   }
+
+  // Toggle locale per cambio colore immediato
+  canzone.inWishlist = !canzone.inWishlist;
 
   this.karaokeService.aggiungiAWishlist({
     user_id: this.userId,
     artista: canzone.artista,
     canzone: canzone.canzone
   }).subscribe({
-    next: () => alert('Canzone aggiunta alla wishlist! ✅'),
+    next: () => alert(canzone.inWishlist ? 'Canzone aggiunta alla wishlist! ✅' : 'Canzone rimossa dalla wishlist! ❌'),
     error: (err) => {
       console.error('Errore wishlist:', err);
       alert('Errore durante l\'aggiunta alla wishlist ❌');
+      // In caso di errore, revert toggle
+      canzone.inWishlist = !canzone.inWishlist;
     }
   });
 }
+
 
 }

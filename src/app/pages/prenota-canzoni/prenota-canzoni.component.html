@@ -1,146 +1,148 @@
 <body class="bg-dark text-light">
   <nav class="p-3 text-center bg-dark d-flex justify-content-center gap-2" style="max-width: 600px; margin: auto;">
-    <!-- Potresti mettere qui testi tradotti se vuoi -->
+    <!-- eventuale testo tradotto -->
   </nav>
 
   <div class="d-flex justify-content-center align-items-start fullscreen-wrapper">
     <div class="container mt-4" style="max-width: 600px;">
 
       <ng-container *ngIf="!showAccessPrompt; else accessPromptTemplate">
-        <h2 class="mb-4 text-center">{{ 'booking.title' | translate }}</h2>
+        <div class="form-animate">
+          <h2 class="mb-4 text-center">{{ 'booking.title' | translate }}</h2>
 
-        <form #karaokeForm="ngForm" (ngSubmit)="onSubmit(karaokeForm)" novalidate>
+          <form #karaokeForm="ngForm" (ngSubmit)="onSubmit(karaokeForm)" novalidate>
 
-          <div class="form-columns">
-            <div class="form-col">
-              <div class="mb-3">
-                <label for="nome" class="form-label">
-                  {{ 'booking.name' | translate }} <span class="required-asterisk">*</span>
-                </label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="nome"
-                  name="nome"
-                  [(ngModel)]="formData.nome"
-                  [placeholder]="'booking.name_placeholder' | translate"
-                  required>
-              </div>
+            <div class="form-columns">
+              <div class="form-col">
+                <div class="mb-3">
+                  <label for="nome" class="form-label">
+                    {{ 'booking.name' | translate }} <span class="required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="nome"
+                    name="nome"
+                    [(ngModel)]="formData.nome"
+                    [placeholder]="'booking.name_placeholder' | translate"
+                    required>
+                </div>
 
-              <div class="mb-3">
-                <label for="artista" class="form-label">
-                  {{ 'booking.artist' | translate }} <span class="required-asterisk">*</span>
-                </label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="artista"
-                  name="artista"
-                  list="artisti-list"
-                  [(ngModel)]="formData.artista"
-                  (input)="filterArtisti()"
-                  [placeholder]="'booking.artist_placeholder' | translate"
-                  required>
-                <datalist id="artisti-list">
-                  <option *ngFor="let artista of artistiFiltrati" [value]="artista"></option>
-                </datalist>
-              </div>
+                <div class="mb-3">
+                  <label for="artista" class="form-label">
+                    {{ 'booking.artist' | translate }} <span class="required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="artista"
+                    name="artista"
+                    list="artisti-list"
+                    [(ngModel)]="formData.artista"
+                    (input)="filterArtisti()"
+                    [placeholder]="'booking.artist_placeholder' | translate"
+                    required>
+                  <datalist id="artisti-list">
+                    <option *ngFor="let artista of artistiFiltrati" [value]="artista"></option>
+                  </datalist>
+                </div>
 
-              <div class="mb-3">
-                <label for="canzone" class="form-label">
-                  {{ 'booking.song' | translate }} <span class="required-asterisk">*</span>
-                </label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="canzone"
-                  name="canzone"
-                  list="canzoni-list"
-                  [(ngModel)]="formData.canzone"
-                  (input)="filterCanzoni()"
-                  [placeholder]="'booking.song_placeholder' | translate"
-                  required>
-                <datalist id="canzoni-list">
-                  <option *ngFor="let canzone of canzoniFiltrate" [value]="canzone"></option>
-                </datalist>
-              </div>
+                <div class="mb-3">
+                  <label for="canzone" class="form-label">
+                    {{ 'booking.song' | translate }} <span class="required-asterisk">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="canzone"
+                    name="canzone"
+                    list="canzoni-list"
+                    [(ngModel)]="formData.canzone"
+                    (input)="filterCanzoni()"
+                    [placeholder]="'booking.song_placeholder' | translate"
+                    required>
+                  <datalist id="canzoni-list">
+                    <option *ngFor="let canzone of canzoniFiltrate" [value]="canzone"></option>
+                  </datalist>
+                </div>
 
-              <div class="mb-3">
-                <label for="tonalita" class="form-label">{{ 'booking.key' | translate }}</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="tonalita"
-                  name="tonalita"
-                  [(ngModel)]="formData.tonalita"
-                  [placeholder]="'booking.key_placeholder' | translate">
-              </div>
-            </div>
-
-            <div class="form-col">
-              <div class="mb-3">
-                <label for="num_microfoni" class="form-label">
-                  {{ 'booking.microphones' | translate }} <span class="required-asterisk"></span>
-                </label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="num_microfoni"
-                  name="num_microfoni"
-                  [(ngModel)]="formData.num_microfoni"
-                  #numMicrofoni="ngModel"
-                  min="1"
-                  max="3"
-                  required
-                  [placeholder]="'booking.microphones_placeholder' | translate"
-                  (blur)="validateMicrofoni()"
-                  [class.is-invalid]="numMicrofoni.invalid && (numMicrofoni.dirty || numMicrofoni.touched)">
-                <div *ngIf="numMicrofoni.invalid && (numMicrofoni.dirty || numMicrofoni.touched)" class="text-danger mt-1">
-                  {{ 'booking.microphones_error' | translate }}
+                <div class="mb-3">
+                  <label for="tonalita" class="form-label">{{ 'booking.key' | translate }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="tonalita"
+                    name="tonalita"
+                    [(ngModel)]="formData.tonalita"
+                    [placeholder]="'booking.key_placeholder' | translate">
                 </div>
               </div>
 
-              <div class="mb-3 form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="accetta_partecipanti"
-                  name="accetta_partecipanti"
-                  [(ngModel)]="formData.accetta_partecipanti">
-                <label class="form-check-label" for="accetta_partecipanti">{{ 'booking.accept_participants' | translate }}</label>
-              </div>
+              <div class="form-col">
+                <div class="mb-3">
+                  <label for="num_microfoni" class="form-label">
+                    {{ 'booking.microphones' | translate }} <span class="required-asterisk"></span>
+                  </label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="num_microfoni"
+                    name="num_microfoni"
+                    [(ngModel)]="formData.num_microfoni"
+                    #numMicrofoni="ngModel"
+                    min="1"
+                    max="3"
+                    required
+                    [placeholder]="'booking.microphones_placeholder' | translate"
+                    (blur)="validateMicrofoni()"
+                    [class.is-invalid]="numMicrofoni.invalid && (numMicrofoni.dirty || numMicrofoni.touched)">
+                  <div *ngIf="numMicrofoni.invalid && (numMicrofoni.dirty || numMicrofoni.touched)" class="text-danger mt-1">
+                    {{ 'booking.microphones_error' | translate }}
+                  </div>
+                </div>
 
-              <div class="mb-3">
-                <label for="note" class="form-label">{{ 'booking.notes' | translate }}</label>
-                <textarea
-                  class="form-control"
-                  id="note"
-                  name="note"
-                  [(ngModel)]="formData.note"
-                  rows="3"
-                  [placeholder]="'booking.notes_placeholder' | translate"></textarea>
+                <div class="mb-3 form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="accetta_partecipanti"
+                    name="accetta_partecipanti"
+                    [(ngModel)]="formData.accetta_partecipanti">
+                  <label class="form-check-label" for="accetta_partecipanti">{{ 'booking.accept_participants' | translate }}</label>
+                </div>
+
+                <div class="mb-3">
+                  <label for="note" class="form-label">{{ 'booking.notes' | translate }}</label>
+                  <textarea
+                    class="form-control"
+                    id="note"
+                    name="note"
+                    [(ngModel)]="formData.note"
+                    rows="3"
+                    [placeholder]="'booking.notes_placeholder' | translate"></textarea>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="text-danger small mb-2 mt-3 text-center">
-            <em>{{ 'booking.required_fields' | translate }}</em>
-          </div>
+            <div class="text-danger small mb-2 mt-3 text-center">
+              <em>{{ 'booking.required_fields' | translate }}</em>
+            </div>
 
-          <div class="text-center">
-            <button
-              type="submit"
-              class="btn btn-primary w-auto px-5"
-              [disabled]="!karaokeForm.valid || microfoniInvalid">
-              {{ 'booking.save_button' | translate }}
-            </button>
-          </div>
+            <div class="text-center">
+              <button
+                type="submit"
+                class="btn btn-primary w-auto px-5"
+                [disabled]="!karaokeForm.valid || microfoniInvalid">
+                {{ 'booking.save_button' | translate }}
+              </button>
+            </div>
 
-        </form>
+          </form>
+        </div>
       </ng-container>
 
       <ng-template #accessPromptTemplate>
-        <div class="alert alert-warning text-center">
+        <div class="alert alert-warning-custom alert-animated text-center">
           <h3>{{ 'booking.access_required' | translate }}</h3>
           <p>
             {{ 'booking.access_text' | translate }}
