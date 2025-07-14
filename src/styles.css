@@ -86,3 +86,15 @@ button:hover {
   box-shadow: none;
   cursor: default;
 }
+
+.cdk-drag-preview {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  color: #eee;
+  padding: 8px;
+  width: auto !important;
+  max-width: 300px;
+  pointer-events: none;
+  z-index: 1000 !important;
+}

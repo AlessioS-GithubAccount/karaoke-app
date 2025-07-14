@@ -70,7 +70,9 @@
     "not_logged_in_text": "Per vedere il tuo profilo devi prima effettuare il login.",
     "go_to_login": "Vai al Login"
   },
-  "song_list": {
+ "song_list": {
+    "title": "Lista Canzoni",
+    "description": "L'ordine delle canzoni potrebbe essere modificato per favorire la migliore esperienza possibile per tutti. Si prega di mantenere un atteggiamento amichevole ed educato.",
     "labels": {
       "status": "Stato",
       "number": "#",

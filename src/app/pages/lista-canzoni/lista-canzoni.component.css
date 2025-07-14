@@ -3,121 +3,223 @@ body {
   color: #eee;
   min-height: 100vh;
   margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .container {
   padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: auto;
 }
 
 h2 {
   color: #ffc107;
+  margin-bottom: 1rem;
 }
 
 p {
   color: #aaa;
+  margin-bottom: 2rem;
 }
 
-.table-dark th,
-.table-dark td {
+/* Tabella */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px; /* spazio verticale tra le righe */
+  font-size: 0.95rem;
+}
+
+/* Intestazione */
+thead tr {
+  background: linear-gradient(90deg, #343a40, #23272b);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
+
+thead th {
+  color: #ffc107;
+  font-weight: 600;
+  padding: 12px 15px;
+  text-align: left;
+  user-select: none;
+}
+
+/* Righe corpo tabella */
+tbody tr {
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: grab;
+}
+
+tbody tr:hover {
+  background-color: #272727; /* rimane scuro ma più chiaro */
+  box-shadow:
+    0 0 12px var(--glow-color),
+    0 0 24px var(--accent-hover),
+    0 0 36px var(--accent-hover);
+  transform: scale(1.02);
+  transition: transform 0.15s ease, box-shadow 0.3s ease;
+}
+
+
+tbody td {
+  padding: 14px 16px;
+  color: #ddd;
   vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
 }
 
-.table-dark th {
-  color: #f8f9fa;
+/* Arrotondare le celle per prima e ultima colonna in ogni riga */
+tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
 }
 
-.table-dark td {
-  color: #e2e6ea;
+tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Pulsanti */
+.btn {
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 6px 12px;
+  box-shadow: none !important;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .btn-danger {
   background-color: #dc3545 !important;
   border-color: #dc3545 !important;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #bd2c3c !important;
+  border-color: #bd2c3c !important;
+  box-shadow: 0 0 8px #bd2c3c;
 }
 
 .btn-success {
   background-color: #28a745 !important;
   border-color: #28a745 !important;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background-color: #238636 !important;
+  border-color: #238636 !important;
+  box-shadow: 0 0 8px #238636;
 }
 
 .btn-warning {
   background-color: #ffc107 !important;
-  color: #000;
   border-color: #ffc107 !important;
+  color: #000;
 }
 
-.text-muted {
-  color: #b0b0b0 !important;
+.btn-warning:hover {
+  background-color: #e0a800 !important;
+  border-color: #e0a800 !important;
+  box-shadow: 0 0 8px #e0a800;
 }
 
-.text-warning {
-  color: #ffc107 !important;
+.btn-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  color: #fff;
 }
 
-.cantata {
-  color: #ff4d4d !important;
-  font-weight: bold;
+.btn-secondary:hover {
+  background-color: #5a6268 !important;
+  border-color: #5a6268 !important;
+  box-shadow: 0 0 8px #5a6268;
 }
 
-.fst-italic {
-  font-style: italic;
-}
-
-.selected {
-  filter: drop-shadow(0 0 2px gold);
-  transform: scale(1.2);
-  transition: transform 0.2s ease;
-}
-
-.highlight {
-  background-color: yellow;
-  transition: background-color 0.5s ease;
-}
-
-/* Bottone stellina wishlist */
+/* Pulsante wishlist */
 .wishlist-btn {
   background: none;
   border: none;
   padding: 0.2rem 0.4rem;
   cursor: pointer;
-  color: var(--accent-color); /* rosa neon di base */
+  color: #ff4081; /* rosa neon */
   transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
 }
 
 .wishlist-btn i {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
   color: inherit;
 }
 
-/* Glow al passaggio del mouse */
 .wishlist-btn:hover i {
-  color: var(--accent-hover);
+  color: #ff79b0;
   filter:
-    drop-shadow(0 0 8px var(--glow-color))
-    drop-shadow(0 0 16px var(--glow-color))
-    drop-shadow(0 0 24px var(--accent-hover));
-  transform: scale(1.15);
-}
-
-/* Quando la stellina è attiva (inWishlist = true), colore e glow più forti */
-.wishlist-btn i.active {
-  color: var(--accent-hover);
-  filter:
-    drop-shadow(0 0 6px var(--glow-color))
-    drop-shadow(0 0 14px var(--glow-color))
-    drop-shadow(0 0 22px var(--accent-hover));
+    drop-shadow(0 0 6px #ff79b0)
+    drop-shadow(0 0 12px #ff79b0);
   transform: scale(1.2);
 }
 
-table {
-  width: 100%;
-  table-layout: fixed;
+.wishlist-btn i.active {
+  color: #ff4081;
+  filter:
+    drop-shadow(0 0 8px #ff4081)
+    drop-shadow(0 0 16px #ff79b0);
+  transform: scale(1.3);
 }
 
-th, td {
-  min-width: 80px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Emoji voto */
+.vote-icon {
+  cursor: pointer;
+  font-size: 1.6rem;
+  margin-right: 6px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.vote-icon.selected {
+  filter: drop-shadow(0 0 6px gold);
+  transform: scale(1.3);
+}
+
+/* Highlight riga scrollata */
+.highlight {
+  animation: highlightRow 2s ease forwards;
+}
+
+@keyframes highlightRow {
+  0% { background-color: #fffbcc; }
+  100% { background-color: transparent; }
+}
+
+/* Inputs */
+input.form-control-sm {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  color: #eee;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+}
+
+input.form-control-sm:focus {
+  border-color: #ffc107;
+  outline: none;
+  box-shadow: 0 0 6px #ffc107;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.85rem;
+  }
+
+  tbody tr td {
+    padding: 10px 8px;
+  }
 }
