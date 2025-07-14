@@ -223,3 +223,29 @@ input.form-control-sm:focus {
     padding: 10px 8px;
   }
 }
+
+/* Stile per il preview drag */
+.drag-preview-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 0.95rem;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+  overflow: visible !important;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Stile per il clone drag */
+.cdk-drag-preview {
+  box-shadow:
+    0 0 12px var(--glow-color),
+    0 0 24px var(--accent-hover),
+    0 0 36px var(--accent-hover);
+  border-radius: 12px;
+  overflow: visible !important;
+  width: 100% !important;
+  max-width: 1200px;
+}

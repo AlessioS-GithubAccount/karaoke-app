@@ -138,6 +138,30 @@
         </button>
       </td>
       <td *ngIf="!canEditOrDelete(canzone)"></td>
+
+      <!-- Drag preview personalizzato -->
+      <ng-template cdkDragPreview>
+        <table class="drag-preview-table">
+          <tbody>
+            <tr>
+              <td style="padding:14px 16px;">{{ canzone.cantata ? '🎤' : '' }}</td>
+              <td style="padding:14px 16px;">{{ i + 1 }}</td>
+              <td style="padding:14px 16px;">{{ canzone.nome }}</td>
+              <td style="padding:14px 16px;">{{ canzone.artista }}</td>
+              <td style="padding:14px 16px;">{{ canzone.canzone }}</td>
+              <td style="padding:14px 16px;" *ngIf="isAdmin">{{ canzone.tonalita }}</td>
+              <td style="padding:14px 16px;" *ngIf="isAdmin">{{ canzone.note }}</td>
+              <td style="padding:14px 16px;"></td>
+              <td style="padding:14px 16px;">{{ canzone.votoEmoji || '' }}</td>
+              <td style="padding:14px 16px;">
+                <i [ngClass]="canzone.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
+              </td>
+              <td style="padding:14px 16px;"></td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-template>
+
     </tr>
   </tbody>
 </table>
