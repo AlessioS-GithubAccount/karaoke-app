@@ -1,15 +1,17 @@
 <div class="login-background">
   <div class="login-container animated-fade-slide-in">
 
-    <h1 class="login-title glitch-text" style="animation-delay: 0.1s;">
-      <i class="fas fa-microphone-lines me-2"></i>
+    <h1 class="login-title glitch-text" attr.data-text="{{ 'login.title' | translate }}" style="animation-delay: 0.1s;">
+      <i class="fas fa-microphone-lines icon-spacing"></i>
       {{ 'login.title' | translate }}
     </h1>
 
     <form (ngSubmit)="login('client')" #loginForm="ngForm" class="login-form">
       
       <div class="form-group">
-        <label for="username" class="glitch-text" style="animation-delay: 0.2s;">{{ 'login.username_label' | translate }}</label>
+        <label for="username" class="glitch-text" attr.data-text="{{ 'login.username_label' | translate }}" style="animation-delay: 0.2s;">
+          {{ 'login.username_label' | translate }}
+        </label>
         <input
           type="text"
           id="username"
@@ -20,7 +22,9 @@
       </div>
 
       <div class="form-group">
-        <label for="password" class="glitch-text" style="animation-delay: 0.3s;">{{ 'login.password_label' | translate }}</label>
+        <label for="password" class="glitch-text" attr.data-text="{{ 'login.password_label' | translate }}" style="animation-delay: 0.3s;">
+          {{ 'login.password_label' | translate }}
+        </label>
         <input
           type="password"
           id="password"
@@ -30,38 +34,42 @@
           required />
       </div>
 
-      <div class="form-links text-center glitch-text" style="animation-delay: 0.4s;">
+      <div class="form-links text-center glitch-text" attr.data-text="{{ 'login.forgot_password_link' | translate }}" style="animation-delay: 0.4s;">
         <a routerLink="/forgot-password">{{ 'login.forgot_password_link' | translate }}</a>
       </div>
 
       <button
         type="submit"
         class="btn primary glitch-text"
+        attr.data-text="{{ 'login.login_button' | translate }}"
         style="animation-delay: 0.5s;"
         [disabled]="!loginForm.valid">
-        <i class="fas fa-lock me-2"></i>
+        <i class="fas fa-lock icon-spacing"></i>
         {{ 'login.login_button' | translate }}
       </button>
 
       <button
         type="button"
         class="btn secondary glitch-text"
+        attr.data-text="{{ 'login.guest_button' | translate }}"
         style="animation-delay: 0.6s;"
         (click)="loginOspite()">
-        <i class="fas fa-ticket-alt me-2"></i>
+        <i class="fas fa-ticket-alt icon-spacing"></i>
         {{ 'login.guest_button' | translate }}
       </button>
 
-      <div class="signup-section glitch-text" style="animation-delay: 0.7s;">
+      <div class="signup-section glitch-text" attr.data-text="{{ 'login.no_account_text' | translate }}" style="animation-delay: 0.7s;">
         <p>{{ 'login.no_account_text' | translate }}</p>
-        <a routerLink="/register" class="btn success">
-          <i class="fas fa-user-plus me-2"></i>
-          {{ 'login.register_button' | translate }}
-        </a>
+        <div class="text-center">
+          <a routerLink="/register" class="btn success">
+            <i class="fas fa-user-plus icon-spacing"></i>
+            {{ 'login.register_button' | translate }}
+          </a>
+        </div>
       </div>
     </form>
 
-    <p class="privacy-info glitch-text" style="animation-delay: 0.8s;">
+    <p class="privacy-info glitch-text" attr.data-text="{{ 'login.privacy_info' | translate }}" style="animation-delay: 0.8s;">
       <em>{{ 'login.privacy_info' | translate }}</em>
     </p>
 

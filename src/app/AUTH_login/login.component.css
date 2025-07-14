@@ -1,12 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap');
 
-/* Animazione all'ingresso */
+/* Animazione di ingresso */
 .animated-fade-slide-in {
   opacity: 0;
   transform: translateY(30px);
   animation: fadeSlideIn 0.8s ease-out forwards;
 }
-
 @keyframes fadeSlideIn {
   to {
     opacity: 1;
@@ -14,14 +13,20 @@
   }
 }
 
-
+/* BODY GENERALE */
 body {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
   background-color: #121212;
   color: #f0f0f0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+body.light-mode {
+  background-color: #f8f8ff;
+  color: #111111;
 }
 
+/* BACKGROUND LOGIN */
 .login-background {
   min-height: 100vh;
   display: flex;
@@ -29,8 +34,13 @@ body {
   align-items: center;
   padding: 40px 20px;
   background: radial-gradient(circle at top left, #1e1e1e, #0d0d0d);
-  }
+  transition: background 0.3s ease;
+}
+body.light-mode .login-background {
+  background: radial-gradient(circle at top left, #ffffff, #f2f2f2);
+}
 
+/* CONTENITORE LOGIN */
 .login-container {
   max-width: 400px;
   width: 100%;
@@ -39,26 +49,41 @@ body {
   padding: 40px 30px;
   box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
   margin-top: 2rem;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+body.light-mode .login-container {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 16px rgba(0, 200, 255, 0.2);
 }
 
+/* TITOLO LOGIN */
 .login-title {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 24px;
   color: #00f0ff;
+  transition: color 0.3s ease;
+}
+body.light-mode .login-title {
+  color: #00cfff;
 }
 
+/* FORM GROUP */
 .form-group {
   margin-bottom: 16px;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 6px;
   font-weight: 500;
   color: #ccc;
+  transition: color 0.3s ease;
+}
+body.light-mode .form-group label {
+  color: #333;
 }
 
+/* INPUT FORM */
 .form-control {
   width: 100%;
   padding: 10px 12px;
@@ -67,19 +92,30 @@ body {
   background-color: #222;
   color: #fff;
   font-size: 0.95rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+body.light-mode .form-control {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #ccc;
 }
 
+/* LINK FORM */
 .form-links {
   text-align: right;
   font-size: 0.85rem;
   margin-bottom: 20px;
 }
-
 .form-links a {
   color: #00f0ff;
   text-decoration: none;
+  transition: color 0.3s ease;
+}
+body.light-mode .form-links a {
+  color: #007acc;
 }
 
+/* BOTTONI */
 .btn {
   display: block;
   width: 100%;
@@ -91,138 +127,201 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .btn.primary {
   background-color: #00f0ff;
   color: #000;
+  box-shadow: 0 0 12px #00f0ff;
 }
-
 .btn.primary:hover {
   background-color: #0ff;
+  transform: scale(1.05);
+  box-shadow:
+    0 0 12px rgba(0, 255, 255, 0.4),
+    0 0 24px rgba(0, 255, 255, 0.3),
+    0 0 36px rgba(0, 255, 255, 0.2);
+}
+.btn.primary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
+  animation: pulse-glow 2s infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.btn.primary:hover::before {
+  opacity: 1;
 }
 
 .btn.secondary {
   background-color: transparent;
   border: 2px solid #00f0ff;
   color: #00f0ff;
+  box-shadow: none;
 }
-
 .btn.secondary:hover {
-  background-color: rgba(0, 240, 255, 0.1);
+  background-color: rgba(0, 255, 255, 0.1);
+  transform: scale(1.05);
+  box-shadow:
+    0 0 12px rgba(0, 255, 255, 0.4),
+    0 0 24px rgba(0, 255, 255, 0.3),
+    0 0 36px rgba(0, 255, 255, 0.2);
+}
+.btn.secondary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.2) 0%, transparent 70%);
+  animation: pulse-glow 2s infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.btn.secondary:hover::before {
+  opacity: 1;
 }
 
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+/* PULSANTE REGISTRAZIONE */
 .btn.success {
-  background-color: #00c972;
+  position: relative;
+  background: linear-gradient(135deg, #00c972, #00e688);
   color: #000;
+  font-weight: 700;
+  border: none;
+  border-radius: 30px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  box-shadow: 0 0 12px rgba(0, 230, 136, 0.6);
+  transition: all 0.3s ease;
+  width: auto;
+  display: inline-block;
 }
-
 .btn.success:hover {
-  background-color: #00e688;
+  background: linear-gradient(135deg, #00e688, #00c972);
+  box-shadow:
+    0 0 12px rgba(0, 230, 136, 0.6),
+    0 0 24px rgba(0, 230, 136, 0.4),
+    0 0 48px rgba(0, 230, 136, 0.2);
+  transform: scale(1.05);
 }
 
+/* SEZIONE REGISTRAZIONE */
 .signup-section {
   text-align: center;
   margin-top: 50px;
 }
-
 .signup-section p {
   margin-bottom: 8px;
   font-size: 0.9rem;
   color: #aaa;
+  transition: color 0.3s ease;
+}
+body.light-mode .signup-section p {
+  color: #555;
 }
 
+/* INFORMAZIONI PRIVACY */
 .privacy-info {
   text-align: center;
   font-size: 0.8rem;
   color: #777;
   margin-top: 20px;
+  transition: color 0.3s ease;
+}
+body.light-mode .privacy-info {
+  color: #444;
 }
 
+/* SPACING ICONA */
 .icon-spacing {
   margin-right: 8px;
 }
 
-/* Fade + Slide-in container */
-.animated-fade-slide-in {
-  opacity: 0;
-  transform: translateY(30px);
-  animation: fadeSlideIn 0.8s ease-out forwards;
-}
-
-@keyframes fadeSlideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Glitch effect base */
+/* Glitch effect base per testi */
+/*
 .glitch-text {
-  position: relative;
-  color: #00f0ff;
-  animation: glitchFade 0.6s ease forwards;
-  opacity: 0;
-  overflow: hidden;
-}
+  animation: none !important;
+  opacity: 1 !important;
+  position: static; 
+  color: inherit; 
+  }
+  body.light-mode .glitch-text {
+    color: #00cfff;
+  }
+  .glitch-text::before,
+  .glitch-text::after {
+    display: none !important;
+  }
+  .glitch-text::before {
+    animation: glitchBefore 1s infinite linear alternate-reverse;
+    color: #f0f;
+  }
+  .glitch-text::after {
+    animation: glitchAfter 1s infinite linear alternate-reverse;
+    color: #0ff;
+  }
 
-.glitch-text::before,
-.glitch-text::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  width: 100%;
-  opacity: 0.6;
-  clip: rect(0, 0, 0, 0); /* hidden initially */
-}
+  @keyframes glitchFade {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) skewX(5deg);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
-.glitch-text::before {
-  animation: glitchBefore 1s infinite linear alternate-reverse;
-  color: #f0f;
-}
+  @keyframes glitchBefore {
+    0% {
+      clip: rect(0, 9999px, 0, 0);
+      transform: translate(2px, -2px);
+    }
+    50% {
+      clip: rect(5px, 9999px, 15px, 0);
+      transform: translate(-2px, 2px);
+    }
+    100% {
+      clip: rect(10px, 9999px, 20px, 0);
+      transform: translate(2px, -1px);
+    }
+  }
 
-.glitch-text::after {
-  animation: glitchAfter 1s infinite linear alternate-reverse;
-  color: #0ff;
-}
-
-@keyframes glitchFade {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) skewX(5deg);
+  @keyframes glitchAfter {
+    0% {
+      clip: rect(0, 9999px, 0, 0);
+      transform: translate(-2px, 2px);
+    }
+    50% {
+      clip: rect(10px, 9999px, 15px, 0);
+      transform: translate(2px, -2px);
+    }
+    100% {
+      clip: rect(5px, 9999px, 20px, 0);
+      transform: translate(-2px, 1px);
+    }
   }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes glitchBefore {
-  0% {
-    clip: rect(0, 9999px, 0, 0);
-    transform: translate(2px, -2px);
-  }
-  50% {
-    clip: rect(5px, 9999px, 15px, 0);
-    transform: translate(-2px, 2px);
-  }
-  100% {
-    clip: rect(10px, 9999px, 20px, 0);
-    transform: translate(2px, -1px);
-  }
-}
-
-@keyframes glitchAfter {
-  0% {
-    clip: rect(0, 9999px, 0, 0);
-    transform: translate(-2px, 2px);
-  }
-  50% {
-    clip: rect(10px, 9999px, 15px, 0);
-    transform: translate(2px, -2px);
-  }
-  100% {
-    clip: rect(5px, 9999px, 20px, 0);
-    transform: translate(-2px, 1px);
-  }
-}
+*/

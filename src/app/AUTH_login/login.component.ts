@@ -2,13 +2,23 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { v4 as uuidv4 } from 'uuid';
+import { OnInit, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
+
+  ngOnInit() {
+    document.body.classList.add('light-mode');  // Attiva light mode quando entri in questa pagina
+  }
+
+  ngOnDestroy() {
+    document.body.classList.remove('light-mode'); // Rimuove light mode quando esci dalla pagina
+  }
+
   username: string = '';
   password: string = '';
 
