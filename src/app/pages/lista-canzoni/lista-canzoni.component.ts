@@ -35,6 +35,7 @@ export class ListaCanzoniComponent implements OnInit {
   puoPartecipare = false;
   nomePartecipanteMap: { [id: number]: string } = {};
   mostraInputPartecipazione: { [id: number]: boolean } = {};
+  isLoading = true;
 
   emojisVoto = [
     { icon: 'fa-face-meh', label: '😐' },
@@ -92,23 +93,28 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   caricaCanzoni(): void {
+    this.isLoading = true;
+
     this.karaokeService.getCanzoni().subscribe({
       next: (data: Canzone[]) => {
         this.canzoni = data;
 
-        if (this.scrollToId !== null) {
-          setTimeout(() => {
+        setTimeout(() => {
+          this.isLoading = false;
+
+          if (this.scrollToId !== null) {
             const el = document.getElementById('canzone-' + this.scrollToId);
             if (el) {
               el.scrollIntoView({ behavior: 'smooth', block: 'center' });
               el.classList.add('highlight');
               setTimeout(() => el.classList.remove('highlight'), 3000);
             }
-          }, 100);
-        }
+          }
+        }, 400); // leggera attesa per dare tempo alle animazioni
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
+        this.isLoading = false;
       }
     });
   }

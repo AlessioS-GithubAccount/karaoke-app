@@ -16,18 +16,13 @@
   </thead>
   <tbody cdkDropList (cdkDropListDropped)="onDrop($event)">
     <tr cdkDrag *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
-
+      
       <!-- Stato cantata -->
-      <td *ngIf="isAdmin">
-        <button (click)="toggleCantata(i)" class="btn btn-sm"
+      <td>
+        <button (click)="isAdmin && toggleCantata(i)"
+                class="btn btn-sm"
+                [disabled]="!isAdmin"
                 [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'">
-          {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
-        </button>
-      </td>
-      <td *ngIf="!isAdmin">
-        <button class="btn btn-sm"
-                [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'"
-                disabled [style.opacity]="'1'">
           {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
         </button>
       </td>
@@ -36,35 +31,35 @@
       <td>{{ i + 1 }}</td>
 
       <!-- Nome -->
-      <td *ngIf="editingIndex === i">
-        <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.nome" class="form-control form-control-sm" />
+      <td *ngIf="editingIndex === i && editedCanzone as ec">
+        <input [(ngModel)]="ec.nome" class="form-control form-control-sm" />
       </td>
       <td *ngIf="editingIndex !== i">{{ canzone.nome }}</td>
 
       <!-- Artista -->
-      <td *ngIf="editingIndex === i">
-        <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.artista" class="form-control form-control-sm" />
+      <td *ngIf="editingIndex === i && editedCanzone as ec">
+        <input [(ngModel)]="ec.artista" class="form-control form-control-sm" />
       </td>
       <td *ngIf="editingIndex !== i">{{ canzone.artista }}</td>
 
       <!-- Canzone -->
-      <td *ngIf="editingIndex === i">
-        <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.canzone" class="form-control form-control-sm" />
+      <td *ngIf="editingIndex === i && editedCanzone as ec">
+        <input [(ngModel)]="ec.canzone" class="form-control form-control-sm" />
       </td>
       <td *ngIf="editingIndex !== i">{{ canzone.canzone }}</td>
 
       <!-- Tonalità -->
       <td *ngIf="isAdmin">
-        <ng-container *ngIf="editingIndex === i; else tonalitaStatic">
-          <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.tonalita" class="form-control form-control-sm" />
+        <ng-container *ngIf="editingIndex === i && editedCanzone as ec; else tonalitaStatic">
+          <input [(ngModel)]="ec.tonalita" class="form-control form-control-sm" />
         </ng-container>
         <ng-template #tonalitaStatic>{{ canzone.tonalita }}</ng-template>
       </td>
 
       <!-- Note -->
       <td *ngIf="isAdmin">
-        <ng-container *ngIf="editingIndex === i; else noteStatic">
-          <input *ngIf="editedCanzone" [(ngModel)]="editedCanzone.note" class="form-control form-control-sm" />
+        <ng-container *ngIf="editingIndex === i && editedCanzone as ec; else noteStatic">
+          <input [(ngModel)]="ec.note" class="form-control form-control-sm" />
         </ng-container>
         <ng-template #noteStatic>{{ canzone.note }}</ng-template>
       </td>
@@ -72,26 +67,18 @@
       <!-- Partecipa -->
       <td>
         <button class="btn btn-success mb-1"
-          [disabled]="!puoPartecipare || partecipazioneCompleta(canzone) || !canzone.accetta_partecipanti"
-          (click)="partecipaAllaCanzone(canzone)">
+                [disabled]="!puoPartecipare || partecipazioneCompleta(canzone) || !canzone.accetta_partecipanti"
+                (click)="partecipaAllaCanzone(canzone)">
           {{ 'song_list.labels.join' | translate }}
         </button>
 
         <div *ngIf="mostraInputPartecipazione[canzone.id]" class="mt-1">
           <input type="text"
-            [(ngModel)]="nomePartecipanteMap[canzone.id]"
-            placeholder="Il tuo nome"
-            class="form-control form-control-sm mb-1" />
-
-          <button class="btn btn-primary btn-sm me-1"
-            (click)="partecipaAllaCanzone(canzone)">
-            Invia
-          </button>
-
-          <button class="btn btn-secondary btn-sm"
-            (click)="mostraInputPartecipazione[canzone.id] = false">
-            Annulla
-          </button>
+                 [(ngModel)]="nomePartecipanteMap[canzone.id]"
+                 placeholder="Il tuo nome"
+                 class="form-control form-control-sm mb-1" />
+          <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">Invia</button>
+          <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">Annulla</button>
         </div>
 
         <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
@@ -102,21 +89,20 @@
         </div>
       </td>
 
-      <!-- Emoji voto con icone FontAwesome -->
+      <!-- Emoji voto -->
       <td>
         <span *ngFor="let emoji of emojisVoto"
               (click)="votaCanzone(i, emoji.label)"
               [class.glow]="canzoni[i].votoEmoji === emoji.label"
               class="vote-icon"
-              [title]="'song_list.labels.vote' | translate:{ emoji: emoji.label }"
-              style="cursor: pointer; margin-right: 6px; font-size: 1.3rem;">
+              [title]="'song_list.labels.vote' | translate:{ emoji: emoji.label }">
           <i [ngClass]="'fa-solid ' + emoji.icon"></i>
-         </span>
+        </span>
       </td>
 
       <!-- Wishlist -->
       <td>
-        <button class="btn wishlist-btn" title="Aggiungi a Wishlist" (click)="aggiungiAWishlist(canzone)">
+        <button class="btn wishlist-btn" (click)="aggiungiAWishlist(canzone)">
           <i [ngClass]="canzone.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
         </button>
       </td>
@@ -138,7 +124,7 @@
       </td>
       <td *ngIf="!canEditOrDelete(canzone)"></td>
 
-      <!-- Drag preview personalizzato -->
+      <!-- Drag preview -->
       <ng-template cdkDragPreview>
         <table class="drag-preview-table">
           <tbody>

@@ -82,12 +82,13 @@ button, .btn {
   border-radius: 30px;
   cursor: pointer;
   box-shadow: 0 0 10px var(--glow-color);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.3s ease;
 }
 
 button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+  filter: brightness(1.1);
 }
 
 /* Pulsante disabilitato */
@@ -117,33 +118,29 @@ button:hover {
   border: none;
   padding: 0.2rem 0.4rem;
   cursor: pointer;
-  color: var(--accent-color); /* rosa neon */
+  color: var(--accent-color);
   transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
 }
 
 .wishlist-btn i {
   font-size: 1.4rem;
-  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
   color: inherit;
+  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
 }
 
 .wishlist-btn:hover i {
-  color: var(--accent-hover); /* azzurro neon */
-  filter:
-    drop-shadow(0 0 8px var(--accent-hover))
-    drop-shadow(0 0 16px var(--accent-hover));
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
   transform: scale(1.2);
 }
 
 .wishlist-btn i.active {
-  color: var(--accent-hover); /* azzurro neon */
-  filter:
-    drop-shadow(0 0 8px var(--accent-hover))
-    drop-shadow(0 0 16px var(--accent-hover));
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
   transform: scale(1.3);
 }
 
-/* Emoji voto (icona FontAwesome) */
+/* Emoji voto */
 .vote-icon {
   cursor: pointer;
   display: inline-flex;
@@ -157,32 +154,25 @@ button:hover {
 
 .vote-icon:hover {
   color: var(--accent-hover);
-  filter:
-    drop-shadow(0 0 8px var(--accent-hover))
-    drop-shadow(0 0 16px var(--accent-hover));
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
   transform: scale(1.2);
 }
 
 .vote-icon.glow {
   color: var(--accent-hover);
-  filter:
-    drop-shadow(0 0 8px var(--accent-hover))
-    drop-shadow(0 0 16px var(--accent-hover));
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
   transform: scale(1.3);
 }
 
 .vote-icon.glow:hover {
   transform: scale(1.3);
-  /* mantiene effetto attivo anche in hover */
 }
 
-/* Evidenzia righe */
 .highlight {
   background-color: rgba(255, 0, 255, 0.3);
   transition: background-color 3s ease;
 }
 
-/* Bottone emoji base */
 .emoji-btn {
   cursor: pointer;
   color: var(--accent-color);
@@ -194,20 +184,89 @@ button:hover {
   user-select: none;
 }
 
-/* Hover sull'emoji */
 .emoji-btn:hover {
   color: var(--accent-hover);
-  filter:
-    drop-shadow(0 0 8px var(--accent-hover))
-    drop-shadow(0 0 16px var(--accent-hover));
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
   transform: scale(1.2);
 }
 
-/* Emoji attiva (dopo click o voto) */
 .emoji-btn.active {
   color: var(--accent-hover);
-  filter:
-    drop-shadow(0 0 8px var(--accent-hover))
-    drop-shadow(0 0 16px var(--accent-hover));
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
   transform: scale(1.3);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+.table thead tr {
+  background: none;
+  border-bottom: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.table thead th {
+  border: none;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+.table tbody tr {
+  box-shadow: 0 0 6px rgba(255, 0, 255, 0.15);
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(4px);
+  background: linear-gradient(135deg, rgba(255, 0, 255, 0.07), rgba(0, 255, 255, 0.05));
+  animation: fadeSlideIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.table tbody tr:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+.table tbody td {
+  border: none;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  background: transparent;
+}
+
+.table tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.table tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.text-neon {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--glow-color), 0 0 12px var(--accent-color);
 }
