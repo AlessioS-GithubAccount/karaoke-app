@@ -102,17 +102,16 @@
         </div>
       </td>
 
-      <!-- Emoji voto -->
+      <!-- Emoji voto con icone FontAwesome -->
       <td>
         <span *ngFor="let emoji of emojisVoto"
-              (click)="votaCanzone(i, emoji)"
-              [style.cursor]="'pointer'"
-              [style.fontSize]="'1.5rem'"
-              [title]="'song_list.labels.vote' | translate:{ emoji: emoji }"
-              [class.selected]="canzoni[i].votoEmoji === emoji"
-              style="margin-right: 6px;">
-          {{ emoji }}
-        </span>
+              (click)="votaCanzone(i, emoji.label)"
+              [class.glow]="canzoni[i].votoEmoji === emoji.label"
+              class="vote-icon"
+              [title]="'song_list.labels.vote' | translate:{ emoji: emoji.label }"
+              style="cursor: pointer; margin-right: 6px; font-size: 1.3rem;">
+          <i [ngClass]="'fa-solid ' + emoji.icon"></i>
+         </span>
       </td>
 
       <!-- Wishlist -->

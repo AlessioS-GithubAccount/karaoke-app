@@ -14,12 +14,11 @@ interface Canzone {
   cantata: boolean;
   partecipanti_add: number;
   accetta_partecipanti: boolean;
-  user_id?: number;
-  guest_id?: number | null;
+  user_id?: number | null;
+  guest_id?: string | null;
   numero_richieste?: number;
   votoEmoji?: string;
-
-  inWishlist?: boolean;  //vedi html
+  inWishlist?: boolean;
 }
 
 @Component({
@@ -30,19 +29,25 @@ interface Canzone {
 export class ListaCanzoniComponent implements OnInit {
   canzoni: Canzone[] = [];
   top20: any[] = [];
-  isAdmin: boolean = false;
+  isAdmin = false;
   userId: number | null = null;
   guestId: string | null = null;
-  puoPartecipare: boolean = false;
+  puoPartecipare = false;
   nomePartecipanteMap: { [id: number]: string } = {};
   mostraInputPartecipazione: { [id: number]: boolean } = {};
 
-
-  emojisVoto: string[] = ['😐', '😂', '👍', '😎', '🤩', '❤', '🔥'];
+  emojisVoto = [
+    { icon: 'fa-face-meh', label: '😐' },
+    { icon: 'fa-face-laugh-squint', label: '😂' },
+    { icon: 'fa-thumbs-up', label: '👍' },
+    { icon: 'fa-face-grin-stars', label: '😎' },
+    { icon: 'fa-face-grin-hearts', label: '🤩' },
+    { icon: 'fa-heart', label: '❤' },
+    { icon: 'fa-fire', label: '🔥' }
+  ];
 
   editingIndex: number | null = null;
   editedCanzone: Canzone | null = null;
-
   scrollToId: number | null = null;
 
   constructor(
@@ -66,7 +71,7 @@ export class ListaCanzoniComponent implements OnInit {
     this.caricaTop20();
   }
 
-  onDrop(event: CdkDragDrop<Canzone[]>) {
+  onDrop(event: CdkDragDrop<Canzone[]>): void {
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
     this.salvaOrdine();
   }
@@ -151,60 +156,56 @@ export class ListaCanzoniComponent implements OnInit {
     }
   }
 
- partecipaAllaCanzone(canzone: Canzone): void {
-  if (!this.authService.canPartecipate()) {
-    alert('Devi essere loggato o registrato come ospite per partecipare!');
-    return;
-  }
-
-  // Se guest, può partecipare solo se è il guest che ha creato la canzone
-  if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
-    alert('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
-    return;
-  }
-
-  // Se input non ancora mostrato → lo mostro e aspetto clic su "Invia"
-  if (!this.mostraInputPartecipazione[canzone.id]) {
-    this.mostraInputPartecipazione[canzone.id] = true;
-    return;
-  }
-
-  const nome = this.nomePartecipanteMap[canzone.id]?.trim();
-
-  if (!nome || nome.length === 0) {
-    alert('Nome non valido.');
-    return;
-  }
-
-  // Controllo difensivo anche lato invio (non solo disabilitazione del bottone)
-  if (canzone.partecipanti_add >= 3) {
-    alert('Questa canzone ha già 3 partecipanti.');
-    return;
-  }
-
-  if (!canzone.accetta_partecipanti) {
-    alert('Questa canzone non accetta altri partecipanti.');
-    return;
-  }
-
-  this.karaokeService.aggiungiPartecipanteCompleto(canzone.id, nome).subscribe({
-    next: () => {
-      alert(`Partecipazione registrata con successo!`);
-      this.mostraInputPartecipazione[canzone.id] = false;
-      this.nomePartecipanteMap[canzone.id] = '';
-      this.caricaCanzoni();
-    },
-    error: (err) => {
-      console.error('Errore nella partecipazione:', err);
-      alert(err.error?.message || 'Errore durante la partecipazione ❌');
+  partecipaAllaCanzone(canzone: Canzone): void {
+    if (!this.authService.canPartecipate()) {
+      alert('Devi essere loggato o registrato come ospite per partecipare!');
+      return;
     }
-  });
-}
 
-partecipazioneCompleta(canzone: Canzone): boolean {
-  return canzone.partecipanti_add >= 3;
-}
+    if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
+      alert('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
+      return;
+    }
 
+    if (!this.mostraInputPartecipazione[canzone.id]) {
+      this.mostraInputPartecipazione[canzone.id] = true;
+      return;
+    }
+
+    const nome = this.nomePartecipanteMap[canzone.id]?.trim();
+
+    if (!nome || nome.length === 0) {
+      alert('Nome non valido.');
+      return;
+    }
+
+    if (canzone.partecipanti_add >= 3) {
+      alert('Questa canzone ha già 3 partecipanti.');
+      return;
+    }
+
+    if (!canzone.accetta_partecipanti) {
+      alert('Questa canzone non accetta altri partecipanti.');
+      return;
+    }
+
+    this.karaokeService.aggiungiPartecipanteCompleto(canzone.id, nome).subscribe({
+      next: () => {
+        alert(`Partecipazione registrata con successo!`);
+        this.mostraInputPartecipazione[canzone.id] = false;
+        this.nomePartecipanteMap[canzone.id] = '';
+        this.caricaCanzoni();
+      },
+      error: (err) => {
+        console.error('Errore nella partecipazione:', err);
+        alert(err.error?.message || 'Errore durante la partecipazione ❌');
+      }
+    });
+  }
+
+  partecipazioneCompleta(canzone: Canzone): boolean {
+    return canzone.partecipanti_add >= 3;
+  }
 
   eliminaCanzone(id: number, index: number): void {
     if (!this.canEditOrDelete(this.canzoni[index])) return;
@@ -279,29 +280,25 @@ partecipazioneCompleta(canzone: Canzone): boolean {
     });
   }
 
-aggiungiAWishlist(canzone: Canzone): void {
-  if (!this.userId) {
-    alert('Devi essere loggato per aggiungere alla wishlist.');
-    return;
-  }
-
-  // Toggle locale per cambio colore immediato
-  canzone.inWishlist = !canzone.inWishlist;
-
-  this.karaokeService.aggiungiAWishlist({
-    user_id: this.userId,
-    artista: canzone.artista,
-    canzone: canzone.canzone
-  }).subscribe({
-    next: () => alert(canzone.inWishlist ? 'Canzone aggiunta alla wishlist! ✅' : 'Canzone rimossa dalla wishlist! ❌'),
-    error: (err) => {
-      console.error('Errore wishlist:', err);
-      alert('Errore durante l\'aggiunta alla wishlist ❌');
-      // In caso di errore, revert toggle
-      canzone.inWishlist = !canzone.inWishlist;
+  aggiungiAWishlist(canzone: Canzone): void {
+    if (!this.userId) {
+      alert('Devi essere loggato per aggiungere alla wishlist.');
+      return;
     }
-  });
-}
 
+    canzone.inWishlist = !canzone.inWishlist;
 
+    this.karaokeService.aggiungiAWishlist({
+      user_id: this.userId,
+      artista: canzone.artista,
+      canzone: canzone.canzone
+    }).subscribe({
+      next: () => alert(canzone.inWishlist ? 'Canzone aggiunta alla wishlist! ✅' : 'Canzone rimossa dalla wishlist! ❌'),
+      error: (err) => {
+        console.error('Errore wishlist:', err);
+        alert('Errore durante l\'aggiunta alla wishlist ❌');
+        canzone.inWishlist = !canzone.inWishlist;
+      }
+    });
+  }
 }
