@@ -17,7 +17,7 @@
 body {
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
-  background-color: #121212;
+  background-color: var(--background-color);
   color: #f0f0f0;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -33,7 +33,7 @@ body.light-mode {
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
-  background: radial-gradient(circle at top left, #1e1e1e, #0d0d0d);
+  background: var(--menu-bg-color);
   transition: background 0.3s ease;
 }
 body.light-mode .login-background {
@@ -44,17 +44,20 @@ body.light-mode .login-background {
 .login-container {
   max-width: 400px;
   width: 100%;
-  background-color: rgba(20, 20, 20, 0.85);
+  background-color: var(--background-color);
   border-radius: 12px;
   padding: 40px 30px;
   box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
   margin-top: 2rem;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
+
 body.light-mode .login-container {
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 16px rgba(0, 200, 255, 0.2);
+  background-color: var(--background-color);
+  box-shadow: 0 0 16px rgba(0, 200, 255, 0.2) !important;
 }
+
+
 
 /* TITOLO LOGIN */
 .login-title {
@@ -87,12 +90,13 @@ body.light-mode .form-group label {
 .form-control {
   width: 100%;
   padding: 10px 12px;
-  border-radius: 6px;
-  border: none;
-  background-color: #222;
+  border-radius: 30px;
   color: #fff;
   font-size: 0.95rem;
   transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: #fff;           /* sfondo bianco pulito */
+  color: var(--text-color);         /* #111111 testo scuro */
+  border: 1px solid var(--menu-bg-color); 
 }
 body.light-mode .form-control {
   background-color: #fff;

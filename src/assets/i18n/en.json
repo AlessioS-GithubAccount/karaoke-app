@@ -70,7 +70,7 @@
     "not_logged_in_text": "You must log in first to see your profile.",
     "go_to_login": "Go to Login"
   },
- "song_list": {
+  "song_list": {
     "title": "Song queue List",
     "description": "The song order may be adjusted to provide the best possible experience for everyone. Please maintain a friendly and respectful attitude.",
     "labels": {
@@ -84,8 +84,9 @@
       "join": "Join",
       "vote": "Votes",
       "wishlist": "Wishlist",
-      "actions": "Actions",
-       "status_values": {
+      "actions": "Actions"
+    },
+    "status_values": {
       "sung": "Sung",
       "to_sing": "To sing"
     },
