@@ -7,39 +7,33 @@
   --menu-bg-color: #141414;
   --text-color: #e0e0e0;
 
-  --accent-color: #ff00ff; /* Neon fucsia (rosa neon) */
-  --accent-hover: #00ffff; /* Neon cyan (azzurro neon) */
+  --accent-color: #ff00ff;
+  --accent-hover: #00ffff;
   --glow-color: rgba(255, 0, 255, 0.4);
 
-  --button-gradient-1: #050047; /* Neon green */
-  --button-gradient-2: #ff00ff; /* Neon pink */
+  --button-gradient-1: #050047;
+  --button-gradient-2: #ff00ff;
 
   --feature-bg-gradient: linear-gradient(135deg, rgba(20, 30, 60, 0.7), rgba(50, 70, 100, 0.7));
 }
 
-/* 🌞 LIGHT MODE OVERRIDE */
+/* 🌞 LIGHT MODE */
 body.light-mode {
   --background-color: #f2f2f2;
   --navbar-color: #ffffff;
   --menu-bg-color: #e0e0e0;
   --text-color: #111111;
 
-  --accent-color: #d100d1; /* più tenue fucsia neon */
-  --accent-hover: #00cfff; /* neon azzurrino */
+  --accent-color: #d100d1;
+  --accent-hover: #00cfff;
   --glow-color: rgba(0, 200, 255, 0.3);
 
-  --button-gradient-1: #00ffff; /* neon light cyan */
-  --button-gradient-2: #ff66cc; /* neon pink pastel */
+  --button-gradient-1: #00ffff;
+  --button-gradient-2: #ff66cc;
 
   --feature-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(163, 177, 138, 0.7));
 }
 
-/* Centrare verticalmente contenuti TD */
-tbody td {
-  vertical-align: middle;
-}
-
-/* Corpo pagina */
 body {
   padding-top: 60px;
   font-family: 'Montserrat', sans-serif;
@@ -48,7 +42,6 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Link */
 a {
   color: var(--accent-color);
   text-decoration: none;
@@ -60,19 +53,16 @@ a:hover {
   text-shadow: 0 0 8px var(--glow-color);
 }
 
-/* Navbar */
 .navbar {
   background-color: var(--navbar-color);
   transition: background-color 0.3s ease;
 }
 
-/* Menu Links */
 .nav-links {
   background-color: var(--menu-bg-color);
   transition: background-color 0.3s ease;
 }
 
-/* Pulsanti */
 button, .btn {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
@@ -82,16 +72,14 @@ button, .btn {
   border-radius: 30px;
   cursor: pointer;
   box-shadow: 0 0 10px var(--glow-color);
-  transition: transform 0.2s ease, box-shadow 0.3s ease, filter 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 button:hover {
   transform: scale(1.05);
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
-  filter: brightness(1.1);
 }
 
-/* Pulsante disabilitato */
 .language-switch button:disabled {
   background: #555;
   color: #aaa;
@@ -99,7 +87,6 @@ button:hover {
   cursor: default;
 }
 
-/* Drag preview */
 .cdk-drag-preview {
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   border-radius: 8px;
@@ -112,97 +99,14 @@ button:hover {
   z-index: 1000 !important;
 }
 
-/* Pulsante wishlist */
-.wishlist-btn {
-  background: none;
-  border: none;
-  padding: 0.2rem 0.4rem;
-  cursor: pointer;
-  color: var(--accent-color);
-  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
-}
-
-.wishlist-btn i {
-  font-size: 1.4rem;
-  color: inherit;
-  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
-}
-
-.wishlist-btn:hover i {
-  color: var(--accent-hover);
-  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
-  transform: scale(1.2);
-}
-
-.wishlist-btn i.active {
-  color: var(--accent-hover);
-  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
-  transform: scale(1.3);
-}
-
-/* Emoji voto */
-.vote-icon {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  margin-right: 6px;
-  color: var(--accent-color);
-  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
-}
-
-.vote-icon:hover {
-  color: var(--accent-hover);
-  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
-  transform: scale(1.2);
-}
-
-.vote-icon.glow {
-  color: var(--accent-hover);
-  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
-  transform: scale(1.3);
-}
-
-.vote-icon.glow:hover {
-  transform: scale(1.3);
-}
-
-.highlight {
-  background-color: rgba(255, 0, 255, 0.3);
-  transition: background-color 3s ease;
-}
-
-.emoji-btn {
-  cursor: pointer;
-  color: var(--accent-color);
-  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  user-select: none;
-}
-
-.emoji-btn:hover {
-  color: var(--accent-hover);
-  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
-  transform: scale(1.2);
-}
-
-.emoji-btn.active {
-  color: var(--accent-hover);
-  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
-  transform: scale(1.3);
-}
-
-.table {
+/* ✅ TABELLA PERSONALIZZATA ZEBRATA */
+.my-zebra-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 12px;
 }
 
-.table thead tr {
+.my-zebra-table thead tr {
   background: none;
   border-bottom: 2px solid var(--accent-color);
   color: var(--accent-color);
@@ -211,40 +115,52 @@ button:hover {
   letter-spacing: 1px;
 }
 
-.table thead th {
+.my-zebra-table thead th {
   border: none;
   padding: 0.75rem 0.5rem;
   text-align: center;
 }
 
-.table tbody tr {
+.my-zebra-table tbody tr:nth-child(odd) {
+  background: linear-gradient(135deg, rgba(255, 0, 255, 0.07), rgba(253, 253, 253, 0.05));
   box-shadow: 0 0 6px rgba(255, 0, 255, 0.15);
   border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
   backdrop-filter: blur(4px);
-  background: linear-gradient(135deg, rgba(255, 0, 255, 0.07), rgba(0, 255, 255, 0.05));
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
   animation: fadeSlideIn 0.5s ease forwards;
   opacity: 0;
 }
 
-.table tbody tr:hover {
+.my-zebra-table tbody tr:nth-child(even) {
+  background: linear-gradient(135deg, rgba(148, 148, 148, 0.2), rgba(57, 57, 57, 0.2));
+  box-shadow: 0 0 6px rgba(255, 0, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  animation: fadeSlideIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.my-zebra-table tbody tr:hover {
   transform: scale(1.01);
   box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
 }
 
-.table tbody td {
+.my-zebra-table tbody td {
+  color: var(--text-color);
+  vertical-align: middle;
   border: none;
   padding: 0.75rem 0.5rem;
   text-align: center;
   background: transparent;
 }
 
-.table tbody tr td:first-child {
+.my-zebra-table tbody tr td:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
 }
 
-.table tbody tr td:last-child {
+.my-zebra-table tbody tr td:last-child {
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
 }
@@ -260,11 +176,30 @@ button:hover {
   }
 }
 
-.table tbody tr:nth-child(1) { animation-delay: 0.05s; }
-.table tbody tr:nth-child(2) { animation-delay: 0.1s; }
-.table tbody tr:nth-child(3) { animation-delay: 0.15s; }
-.table tbody tr:nth-child(4) { animation-delay: 0.2s; }
-.table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+/* VOTO / WISHLIST / EMOJI */
+.vote-icon,
+.emoji-btn,
+.wishlist-btn {
+  color: var(--accent-color);
+  cursor: pointer;
+  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+}
+
+.vote-icon:hover,
+.emoji-btn:hover,
+.wishlist-btn:hover {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
+  transform: scale(1.2);
+}
+
+.vote-icon.glow,
+.emoji-btn.active,
+.wishlist-btn i.active {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
+  transform: scale(1.3);
+}
 
 .text-neon {
   color: var(--accent-color);
