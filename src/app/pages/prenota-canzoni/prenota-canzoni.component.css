@@ -178,6 +178,21 @@
   background: linear-gradient(135deg, rgba(69, 85, 108, 0.3), rgba(243, 130, 255, 0.1));
   border-radius: 12px;
   box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.4);
+    animation: neonAlertPink 2.5s ease-in-out infinite;
+}
+
+@keyframes neonAlertPink {
+  0%, 100% {
+    box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.4);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 15px 4px rgba(243, 130, 255, 0.6);
+    transform: translateX(1px);
+  }
+  60% {
+    transform: translateX(1px);
+  }
 }
 
 .p3height{

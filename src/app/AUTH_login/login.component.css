@@ -50,7 +50,11 @@ body.light-mode .login-background {
   box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
   margin-top: 2rem;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideIn 0.8s ease-out forwards, neonAlert 2.5s ease-in-out infinite;
 }
+
 
 body.light-mode .login-container {
   background-color: var(--background-color);
@@ -263,6 +267,25 @@ body.light-mode .privacy-info {
 .icon-spacing {
   margin-right: 8px;
 }
+
+@keyframes neonAlert {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.4), 0 0 24px rgba(0, 240, 255, 0.2);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.5);
+    transform: translateX(1px);
+  }
+  60% {
+    transform: translateX(-1px);
+  }
+}
+
+.neonShadow {
+  animation: neonAlert 2.5s ease-in-out infinite;
+}
+
 
 /* Glitch effect base per testi */
 /*

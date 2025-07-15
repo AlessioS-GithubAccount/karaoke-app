@@ -1,8 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { v4 as uuidv4 } from 'uuid';
-import { OnInit, OnDestroy } from '@angular/core';
 
 @Component({
   selector: 'app-login',
@@ -10,14 +9,6 @@ import { OnInit, OnDestroy } from '@angular/core';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit, OnDestroy {
-
-  ngOnInit() {
-    document.body.classList.add('light-mode');  // Attiva light mode quando entri in questa pagina
-  }
-
-  ngOnDestroy() {
-    document.body.classList.remove('light-mode'); // Rimuove light mode quando esci dalla pagina
-  }
 
   username: string = '';
   password: string = '';
@@ -27,14 +18,30 @@ export class LoginComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
-  login(tipo: 'admin' | 'client' = 'client') {
+  ngOnInit(): void {
+    // Applica il tema salvato (se presente)
+    const savedTheme = localStorage.getItem('theme'); // può essere 'light' o 'dark'
+    
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Non rimuove light-mode se fa parte del tema salvato
+    // Quindi non serve modificare nulla qui
+  }
+
+  login(tipo: 'admin' | 'client' = 'client'): void {
     if (!this.username || !this.password) {
       alert('Per favore compila username e password.');
       return;
     }
 
+    // Se esiste un guest ID precedente, rimuovilo
     if (localStorage.getItem('guestId')) {
-      console.warn('Rimosso guestId residuo');
       localStorage.removeItem('guestId');
     }
 
@@ -52,7 +59,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     });
   }
 
-  loginOspite() {
+  loginOspite(): void {
     const guestId = uuidv4();
     localStorage.setItem('guestId', guestId);
     this.router.navigate(['/prenota-canzoni']);
