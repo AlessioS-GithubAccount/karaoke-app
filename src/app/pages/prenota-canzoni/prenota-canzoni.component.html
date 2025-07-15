@@ -1,5 +1,5 @@
-<body class="bg-dark text-light">
-  <nav class="p-3 text-center bg-dark d-flex justify-content-center gap-2" style="max-width: 600px; margin: auto;">
+<body>
+  <nav class="p-3 text-center d-flex justify-content-center gap-2 p3height" style="max-width: 600px; margin: auto;">
     <!-- eventuale testo tradotto -->
   </nav>
 
@@ -81,7 +81,7 @@
               <div class="form-col">
                 <div class="mb-3">
                   <label for="num_microfoni" class="form-label">
-                    {{ 'booking.microphones' | translate }} <span class="required-asterisk"></span>
+                    {{ 'booking.microphones' | translate }}
                   </label>
                   <input
                     type="number"
@@ -131,7 +131,7 @@
             <div class="text-center">
               <button
                 type="submit"
-                class="btn btn-primary w-auto px-5"
+                class="btn"
                 [disabled]="!karaokeForm.valid || microfoniInvalid">
                 {{ 'booking.save_button' | translate }}
               </button>
@@ -142,7 +142,7 @@
       </ng-container>
 
       <ng-template #accessPromptTemplate>
-        <div class="alert alert-warning-custom alert-animated text-center">
+        <div class="alert-warning-custom alert-animated text-center">
           <h3>{{ 'booking.access_required' | translate }}</h3>
           <p>
             {{ 'booking.access_text' | translate }}
@@ -151,8 +151,8 @@
             <strong>{{ 'booking.guest' | translate }}</strong>.
           </p>
           <div class="d-flex justify-content-center gap-3 mt-3">
-            <button class="btn btn-primary" (click)="goToLogin()">{{ 'booking.go_to_login' | translate }}</button>
-            <button class="btn btn-secondary" (click)="enterAsGuest()">{{ 'booking.enter_guest' | translate }}</button>
+            <button class="btn btn1" (click)="goToLogin()">{{ 'booking.go_to_login' | translate }}</button>
+            <button class="btn btn1" (click)="enterAsGuest()">{{ 'booking.enter_guest' | translate }}</button>
           </div>
         </div>
       </ng-template>

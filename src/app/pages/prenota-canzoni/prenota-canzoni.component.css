@@ -13,23 +13,16 @@
 
 .form-columns {
   display: flex;
-  gap: 7rem; /* mantenuto il gap più ampio */
+  gap: 7rem;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .form-col {
-  flex: 1 1 220px;  /* larghezza minima colonna */
+  flex: 1 1 220px;
   max-width: 300px;
 }
 
-/* Mantieni la dark mode globale o aggiungi questo in root */
-body.bg-dark, .bg-dark {
-  background-color: #121212 !important;
-  color: #eee !important;
-}
-
-/* Aggiungo margine top al container per distanziare dalla navbar */
 .container.mt-4 {
   margin-top: 0rem !important;
 }
@@ -41,12 +34,33 @@ body.bg-dark, .bg-dark {
 }
 
 .alert-warning-custom {
-  background-color: #2a2a2a; /* grigio scuro */
-  color: #eee;               /* testo chiaro */
-  border: 1px solid #444;    /* bordo soft */
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1); /* leggero glow ciano */
-  margin-top: 3rem;
+  background-color: #2a2a2a;
+  color: #eee;
+  border: 1px solid #444;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.1);
+  margin-top: -0.5rem;
+  margin-right: 1rem;
+  border-radius: 6px;
+  padding: 3rem;
 }
+
+.btn1 {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 0 8px var(--glow-color);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.btn1:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 14px var(--glow-color), 0 0 24px var(--accent-hover);
+}
+
 
 @keyframes alertPopIn {
   0% {
@@ -73,7 +87,6 @@ body.bg-dark, .bg-dark {
   box-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
 }
 
-/* Animazione fade + slide dal basso per il form */
 @keyframes fadeSlideUp {
   0% {
     opacity: 0;
@@ -89,7 +102,6 @@ body.bg-dark, .bg-dark {
   animation: fadeSlideUp 0.6s ease forwards;
 }
 
-/* --- Animazione sequenziale scritte (label, h2) --- */
 @keyframes fadeInUp {
   0% {
     opacity: 0;
@@ -101,8 +113,6 @@ body.bg-dark, .bg-dark {
   }
 }
 
-/* Applichiamo animazione con delay diverso a titoli e label */
-
 .form-animate h2,
 .form-animate label,
 .form-animate .required-asterisk {
@@ -113,48 +123,64 @@ body.bg-dark, .bg-dark {
   animation-timing-function: ease;
 }
 
-/* Delay per farle apparire in sequenza */
 .form-animate h2 {
   animation-delay: 0.1s;
 }
+
 .form-animate label:nth-of-type(1) {
   animation-delay: 0.3s;
 }
+
 .form-animate label:nth-of-type(2) {
   animation-delay: 0.5s;
 }
+
 .form-animate label:nth-of-type(3) {
   animation-delay: 0.7s;
 }
-/* ... puoi continuare ad aggiungere nth-of-type o meglio applicare con JS se vuoi più controllo */
+
+/* Tabella stile dark custom */
 
 .table-dark {
-  background-color: #1e1e1e; /* sfondo scuro per la tabella */
+  background-color: #1e1e1e;
   color: #eee;
 }
 
 .table-dark thead th {
   background-color: #2a2a2a;
-  color: #ffc107; /* ad esempio giallo bootstrap */
+  color: #ffc107;
   border-color: #444;
 }
 
 .table-dark tbody tr:nth-of-type(odd) {
-  background-color: #222; /* riga dispari più scura */
+  background-color: #222;
 }
 
 .table-dark tbody tr:nth-of-type(even) {
-  background-color: #2c2c2c; /* riga pari leggermente meno scura */
+  background-color: #2c2c2c;
 }
 
 .table-dark tbody tr:hover {
-  background-color: #333; /* effetto hover */
+  background-color: #333;
 }
 
-/* Per i bordi */
 .table-dark th,
 .table-dark td {
   border-color: #444;
 }
 
-/* Pulsanti, etc. li hai già abbastanza coperti */
+.container.mt-4 {
+  margin-top: 1rem !important;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  padding-right: 1rem;
+  padding-left: 2rem;
+  background: linear-gradient(135deg, rgba(69, 85, 108, 0.3), rgba(243, 130, 255, 0.1));
+  border-radius: 12px;
+  box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.4);
+}
+
+.p3height{
+  height: 2px;
+}
+
