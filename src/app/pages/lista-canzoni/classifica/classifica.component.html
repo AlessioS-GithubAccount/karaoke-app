@@ -1,36 +1,38 @@
 <div class="container mt-5">
-  <h2 class="text-center mb-4">{{ 'chart.title' | translate }}</h2>
+  <h2>{{ 'chart.title' | translate }}</h2>
 
- <table class="table table-dark table-striped table-hover">
-  <thead>
-    <tr>
-      <th>{{ 'chart.position' | translate }}</th>
-      <th>{{ 'chart.song' | translate }}</th>
-      <th>{{ 'chart.artist' | translate }}</th>
-      <th>{{ 'chart.requests' | translate }}</th>
-      <th *ngIf="isAdmin">Elimina</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let c of topCanzoni; let i = index">
-  <td>{{ i + 1 }}</td>
-  <td>{{ c.canzone }}</td>
-  <td>{{ c.artista }}</td>
-  <td>{{ c.num_richieste }}</td>
-  <td *ngIf="isAdmin">
-    <!-- log id -->
-    <span style="display:none">{{ logId(c.id) }}</span>
-    <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(c.id)">
-      Elimina
-    </button>
-  </td>
-</tr>
+  <table class="table my-zebra-table" *ngIf="topCanzoni.length > 0; else noData">
+    <thead>
+      <tr>
+        <th>{{ 'chart.position' | translate }}</th>
+        <th>{{ 'chart.song' | translate }}</th>
+        <th>{{ 'chart.artist' | translate }}</th>
+        <th>{{ 'chart.requests' | translate }}</th>
+        <th *ngIf="isAdmin">Elimina</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of topCanzoni; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ c.canzone }}</td>
+        <td>{{ c.artista }}</td>
+        <td>{{ c.num_richieste }}</td>
+        <td *ngIf="isAdmin">
+          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(c.id)">
+            Elimina
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
-  </tbody>
-</table>
+  <ng-template #noData>
+    <div class="alert alert-info mt-3">
+      {{ 'chart.no_data' | translate }}
+    </div>
+  </ng-template>
 
-
-  <div class="text-center mt-4">
+  <div class="text-center">
     <a routerLink="/lista-canzoni" class="btn btn-outline-light">
       {{ 'chart.back_to_list' | translate }}
     </a>

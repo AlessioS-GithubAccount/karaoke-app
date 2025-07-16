@@ -46,7 +46,7 @@ h2{
   box-shadow: var(--box-shadow);
   border-radius: 12px;
   backdrop-filter: blur(4px);
-  animation: fadeSlideIn 0.5s ease forwards;
+  animation: fadeSlideIn 1.5s ease forwards;
   opacity: 0;
 }
 
@@ -55,7 +55,7 @@ h2{
   box-shadow: var(--box-shadow);
   border-radius: 12px;
   backdrop-filter: blur(4px);
-  animation: fadeSlideIn 0.5s ease forwards;
+  animation: fadeSlideIn 1.5s ease forwards;
   opacity: 0;
 }
 

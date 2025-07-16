@@ -1,12 +1,164 @@
-/* Styling semplice per dare un tocco elegante */
-table {
-  font-size: 1.1rem;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+:host {
+  display: block;
+  padding-top: 60px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-th, td {
-  vertical-align: middle;
-}
-
+/* Titolo centrato e grassetto */
 h2 {
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Contenitore */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Tabella con zebra striping e hover */
+.my-zebra-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 1rem;
+}
+
+.my-zebra-table thead tr {
+  background: none;
+  border-bottom: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.my-zebra-table thead th {
+  border: none;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+/* Animazioni più lente con delay diversi per righe dispari e pari */
+.my-zebra-table tbody tr:nth-child(odd) {
+  background: var(--odd-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  animation: fadeSlideIn 1.5s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.my-zebra-table tbody tr:nth-child(even) {
+  background: var(--even-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  animation: fadeSlideIn 1.5s ease forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+.my-zebra-table tbody tr {
+  opacity: 1 !important;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2) !important;
+  transition: transform 0.2s ease, box-shadow 0.3s ease !important;
+}
+
+.my-zebra-table tbody tr:hover {
+  opacity: 1 !important;
+  transform: scale(1.01) !important;
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover) !important;
+}
+
+/* Reset focus/active per evitare glow persistente */
+.my-zebra-table tbody tr:focus,
+.my-zebra-table tbody tr:active {
+  outline: none;
+  box-shadow: var(--box-shadow);
+}
+
+.my-zebra-table tbody td {
+  color: var(--text-color);
+  vertical-align: middle;
+  border: none;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  background: transparent;
+}
+
+.my-zebra-table tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.my-zebra-table tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Pulsanti arrotondati e gradiente come lista canzoni */
+button, .btn {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  border: none;
   font-weight: bold;
+  padding: 0.4rem 0.9rem;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  font-size: 0.85rem;
+}
+
+button:hover, .btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+/* Link stile bottone outline chiaro */
+a.btn-outline-light {
+  display: inline-block;
+  color: var(--accent-color);
+  border: 2px solid var(--accent-color);
+  border-radius: 30px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a.btn-outline-light:hover {
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  text-decoration: none;
+  box-shadow: 0 0 12px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+/* Animazione fade & slide */
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Centrare il contenuto del container per il bottone di ritorno */
+.text-center {
+  text-align: center;
+  margin-top: 1.5rem;
 }

@@ -1,17 +1,17 @@
 <table class="table my-zebra-table">
   <thead>
     <tr>
-      <th>{{ 'song_list.labels.status' | translate }}</th>
-      <th>#</th>
-      <th>{{ 'song_list.labels.name' | translate }}</th>
-      <th>{{ 'song_list.labels.artist' | translate }}</th>
-      <th>{{ 'song_list.labels.song' | translate }}</th>
-      <th *ngIf="isAdmin">{{ 'song_list.labels.key' | translate }}</th>
-      <th *ngIf="isAdmin">{{ 'song_list.labels.notes' | translate }}</th>
-      <th>{{ 'song_list.labels.join' | translate }}</th>
-      <th>{{ 'song_list.labels.vote' | translate }}</th>
-      <th>{{ 'song_list.labels.wishlist' | translate }}</th>
-      <th>{{ 'song_list.labels.actions' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.status' | translate }}</th>
+      <th class="fade-text">#</th>
+      <th class="fade-text">{{ 'song_list.labels.name' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.artist' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.song' | translate }}</th>
+      <th *ngIf="isAdmin" class="fade-text">{{ 'song_list.labels.key' | translate }}</th>
+      <th *ngIf="isAdmin" class="fade-text">{{ 'song_list.labels.notes' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.join' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.vote' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.wishlist' | translate }}</th>
+      <th class="fade-text">{{ 'song_list.labels.actions' | translate }}</th>
     </tr>
   </thead>
   <tbody cdkDropList (cdkDropListDropped)="onDrop($event)">
@@ -37,26 +37,26 @@
       <td *ngIf="editingIndex === i && editedCanzone as ec">
         <input [(ngModel)]="ec.nome" class="form-control form-control-sm" />
       </td>
-      <td *ngIf="editingIndex !== i">{{ canzone.nome }}</td>
+      <td *ngIf="editingIndex !== i" class="fade-text">{{ canzone.nome }}</td>
 
       <!-- Artista -->
       <td *ngIf="editingIndex === i && editedCanzone as ec">
         <input [(ngModel)]="ec.artista" class="form-control form-control-sm" />
       </td>
-      <td *ngIf="editingIndex !== i">{{ canzone.artista }}</td>
+      <td *ngIf="editingIndex !== i" class="fade-text">{{ canzone.artista }}</td>
 
       <!-- Canzone -->
       <td *ngIf="editingIndex === i && editedCanzone as ec">
         <input [(ngModel)]="ec.canzone" class="form-control form-control-sm" />
       </td>
-      <td *ngIf="editingIndex !== i">{{ canzone.canzone }}</td>
+      <td *ngIf="editingIndex !== i" class="fade-text">{{ canzone.canzone }}</td>
 
       <!-- Tonalità -->
       <td *ngIf="isAdmin">
         <ng-container *ngIf="editingIndex === i && editedCanzone as ec; else tonalitaStatic">
           <input [(ngModel)]="ec.tonalita" class="form-control form-control-sm" />
         </ng-container>
-        <ng-template #tonalitaStatic>{{ canzone.tonalita }}</ng-template>
+        <ng-template #tonalitaStatic class="fade-text">{{ canzone.tonalita }}</ng-template>
       </td>
 
       <!-- Note -->
@@ -64,7 +64,7 @@
         <ng-container *ngIf="editingIndex === i && editedCanzone as ec; else noteStatic">
           <input [(ngModel)]="ec.note" class="form-control form-control-sm" />
         </ng-container>
-        <ng-template #noteStatic>{{ canzone.note }}</ng-template>
+        <ng-template #noteStatic class="fade-text">{{ canzone.note }}</ng-template>
       </td>
 
       <!-- Partecipa -->

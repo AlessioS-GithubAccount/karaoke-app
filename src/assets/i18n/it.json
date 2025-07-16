@@ -19,12 +19,12 @@
     "artist": "🎤 Artista"
   },
   "chart": {
-    "title": "🏆 Classifica Top 30 Canzoni Più Richieste",
+    "title": "Classifica Top 30 Canzoni Più Richieste",
     "position": "#",
     "song": "Canzone",
     "artist": "Artista",
     "requests": "Richieste",
-    "back_to_list": "🔙 Torna alla Lista Canzoni"
+    "back_to_list": "Torna alla Lista Canzoni"
   },
   "password_recovery": {
     "title": "Recupera la Password con Domanda Segreta",

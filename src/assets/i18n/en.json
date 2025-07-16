@@ -19,12 +19,12 @@
     "artist": "🎤 Artist"
   },
   "chart": {
-    "title": "🏆 Top 30 Most Requested Songs Ranking",
+    "title": "Top 30 Most Requested Songs Ranking",
     "position": "#",
     "song": "Song",
     "artist": "Artist",
     "requests": "Requests",
-    "back_to_list": "🔙 Back to Song List"
+    "back_to_list": "Back to Song List"
   },
   "password_recovery": {
     "title": "Recover Password with Security Question",
