@@ -1,11 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
 /* 🌑 DARK MODE (default) */
-:root {
+/* 🌑 DARK MODE (default) */
+body.dark-mode {
   --background-color: #0d0d0d;
   --navbar-color: #1a1a1a;
   --menu-bg-color: #141414;
   --text-color: #e0e0e0;
+  --box-shadow: 0 0 6px rgba(255, 0, 255, 0.1);
+  --odd-color: linear-gradient(135deg, rgba(255, 0, 255, 0.09), rgba(255, 255, 255, 0.09));
+  --even-color: linear-gradient(135deg, rgba(148, 148, 148, 0.2), rgba(57, 57, 57, 0.2));
 
   --accent-color: #ff00ff; /* Neon fucsia */
   --accent-hover: #00ffff; /* Neon cyan */
@@ -14,7 +18,7 @@
   --button-gradient-1: #050047; /* Neon green */
   --button-gradient-2: #ff00ff; /* Neon pink */
 
-    --feature-bg-gradient: linear-gradient(135deg, rgba(20, 30, 60, 0.7), rgba(50, 70, 100, 0.7));
+  --feature-bg-gradient: linear-gradient(135deg, rgba(20, 30, 60, 0.7), rgba(50, 70, 100, 0.7));
 }
 
 /* 🌞 LIGHT MODE OVERRIDE */
@@ -24,6 +28,10 @@ body.light-mode {
   --menu-bg-color: #e0e0e0;
   --text-color: #111111;
 
+  --box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+  --odd-color: linear-gradient(135deg, rgba(255, 230, 246, 0.8), rgba(255, 255, 255, 0.6));
+  --even-color: linear-gradient(135deg, rgba(192, 240, 255, 0.8), rgba(255, 255, 255, 0.6));
+
   --accent-color: #d100d1; /* più tenue fucsia neon */
   --accent-hover: #00cfff; /* neon azzurrino */
   --glow-color: rgba(0, 200, 255, 0.3);
@@ -31,8 +39,9 @@ body.light-mode {
   --button-gradient-1: #00ffff; /* neon light cyan */
   --button-gradient-2: #ff66cc; /* neon pink pastel */
 
-   --feature-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(163, 177, 138, 0.7));
+  --feature-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(163, 177, 138, 0.7));
 }
+
 
 body {
   padding-top: 60px;

@@ -1,38 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
-/* 🌑 DARK MODE (default) */
-:root {
-  --background-color: #0d0d0d;
-  --navbar-color: #1a1a1a;
-  --menu-bg-color: #141414;
-  --text-color: #e0e0e0;
-
-  --accent-color: #ff00ff;
-  --accent-hover: #00ffff;
-  --glow-color: rgba(255, 0, 255, 0.4);
-
-  --button-gradient-1: #050047;
-  --button-gradient-2: #ff00ff;
-
-  --feature-bg-gradient: linear-gradient(135deg, rgba(20, 30, 60, 0.7), rgba(50, 70, 100, 0.7));
-}
-
-/* 🌞 LIGHT MODE */
-body.light-mode {
-  --background-color: #f2f2f2;
-  --navbar-color: #ffffff;
-  --menu-bg-color: #e0e0e0;
-  --text-color: #111111;
-
-  --accent-color: #d100d1;
-  --accent-hover: #00cfff;
-  --glow-color: rgba(0, 200, 255, 0.3);
-
-  --button-gradient-1: #00ffff;
-  --button-gradient-2: #ff66cc;
-
-  --feature-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(163, 177, 138, 0.7));
-}
 
 body {
   padding-top: 60px;
@@ -122,8 +89,8 @@ button:hover {
 }
 
 .my-zebra-table tbody tr:nth-child(odd) {
-  background: linear-gradient(135deg, rgba(255, 0, 255, 0.07), rgba(253, 253, 253, 0.05));
-  box-shadow: 0 0 6px rgba(255, 0, 255, 0.15);
+  background: var(--odd-color);
+  box-shadow: var(--box-shadow);
   border-radius: 12px;
   backdrop-filter: blur(4px);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
@@ -132,8 +99,8 @@ button:hover {
 }
 
 .my-zebra-table tbody tr:nth-child(even) {
-  background: linear-gradient(135deg, rgba(148, 148, 148, 0.2), rgba(57, 57, 57, 0.2));
-  box-shadow: 0 0 6px rgba(255, 0, 255, 0.1);
+  background: var(--even-color);
+  box-shadow: var(--box-shadow);
   border-radius: 12px;
   backdrop-filter: blur(4px);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
@@ -141,9 +108,23 @@ button:hover {
   opacity: 0;
 }
 
+.my-zebra-table tbody tr {
+  opacity: 1 !important;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2) !important;
+  transition: transform 0.2s ease, box-shadow 0.3s ease !important;
+}
+
 .my-zebra-table tbody tr:hover {
-  transform: scale(1.01);
-  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+  opacity: 1 !important;
+  transform: scale(1.01) !important;
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover)!important;
+}
+
+/* Reset focus/active per evitare glow persistente */
+.my-zebra-table tbody tr:focus,
+.my-zebra-table tbody tr:active {
+  outline: none;
+  box-shadow: var(--box-shadow);
 }
 
 .my-zebra-table tbody td {

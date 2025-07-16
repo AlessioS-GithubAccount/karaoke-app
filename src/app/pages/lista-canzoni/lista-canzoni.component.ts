@@ -1,4 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  QueryList,
+  ViewChildren,
+  ElementRef
+} from '@angular/core';
 import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -27,6 +33,8 @@ interface Canzone {
   styleUrls: ['./lista-canzoni.component.css']
 })
 export class ListaCanzoniComponent implements OnInit {
+  @ViewChildren('rigaCanzone') righeCanzoni!: QueryList<ElementRef>;
+
   canzoni: Canzone[] = [];
   top20: any[] = [];
   isAdmin = false;
@@ -75,6 +83,17 @@ export class ListaCanzoniComponent implements OnInit {
   onDrop(event: CdkDragDrop<Canzone[]>): void {
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
     this.salvaOrdine();
+
+    // Rimuove e riapplica le classi per forzare il repaint
+    setTimeout(() => {
+      this.righeCanzoni.forEach((riga: ElementRef) => {
+        const el = riga.nativeElement as HTMLElement;
+        el.classList.remove('drag-alone-fix');
+        // trigger reflow
+        void el.offsetWidth;
+        el.classList.add('drag-alone-fix');
+      });
+    }, 10);
   }
 
   salvaOrdine(): void {
@@ -110,7 +129,7 @@ export class ListaCanzoniComponent implements OnInit {
               setTimeout(() => el.classList.remove('highlight'), 3000);
             }
           }
-        }, 400); // leggera attesa per dare tempo alle animazioni
+        }, 400);
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -299,7 +318,12 @@ export class ListaCanzoniComponent implements OnInit {
       artista: canzone.artista,
       canzone: canzone.canzone
     }).subscribe({
-      next: () => alert(canzone.inWishlist ? 'Canzone aggiunta alla wishlist! ✅' : 'Canzone rimossa dalla wishlist! ❌'),
+      next: () =>
+        alert(
+          canzone.inWishlist
+            ? 'Canzone aggiunta alla wishlist! ✅'
+            : 'Canzone rimossa dalla wishlist! ❌'
+        ),
       error: (err) => {
         console.error('Errore wishlist:', err);
         alert('Errore durante l\'aggiunta alla wishlist ❌');

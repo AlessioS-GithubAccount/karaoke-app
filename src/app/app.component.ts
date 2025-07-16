@@ -67,13 +67,16 @@ export class AppComponent implements OnInit {
     this.updateBodyClass();
   }
 
-  updateBodyClass(): void {
-    if (this.darkMode) {
-      this.renderer.removeClass(document.body, 'light-mode');
-    } else {
-      this.renderer.addClass(document.body, 'light-mode');
-    }
+updateBodyClass(): void {
+  if (this.darkMode) {
+    this.renderer.addClass(document.body, 'dark-mode');
+    this.renderer.removeClass(document.body, 'light-mode');
+  } else {
+    this.renderer.addClass(document.body, 'light-mode');
+    this.renderer.removeClass(document.body, 'dark-mode');
   }
+}
+
 
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
