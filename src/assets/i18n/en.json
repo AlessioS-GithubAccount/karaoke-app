@@ -150,6 +150,7 @@
       "artist": "Artist",
       "song": "Song",
       "total_requests": "Total requests",
+      "add on wishlist":"Add on wishlist",
       "actions": "Actions"
     },
     "buttons": {

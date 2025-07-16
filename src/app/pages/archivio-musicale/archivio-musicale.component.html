@@ -6,6 +6,7 @@
       <th>{{ 'song_archive.columns.artist' | translate }}</th>
       <th>{{ 'song_archive.columns.song' | translate }}</th>
       <th>{{ 'song_archive.columns.total_requests' | translate }}</th>
+      <th>Aggiungi in wishlist</th>
       <th *ngIf="canUseActions">{{ 'song_archive.columns.actions' | translate }}</th>
     </tr>
   </thead>
@@ -14,11 +15,16 @@
       <td>{{ item.artista }}</td>
       <td>{{ item.canzone }}</td>
       <td>{{ item.num_richieste }}</td>
-      <td *ngIf="canUseActions" class="text-center">
-        <button class="btn btn-sm btn-warning me-2 wishlist-btn" (click)="aggiungiAWishlist(item)">
+
+      <!-- Nuova colonna per wishlist -->
+      <td class="text-center">
+        <button class="btn btn-sm btn-warning wishlist-btn" (click)="aggiungiAWishlist(item)">
           <i [ngClass]="item.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
         </button>
+      </td>
 
+      <!-- Colonna azioni: solo per admin -->
+      <td *ngIf="canUseActions" class="text-center">
         <button class="btn btn-sm btn-danger" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
           {{ 'song_archive.buttons.delete' | translate }}
         </button>
