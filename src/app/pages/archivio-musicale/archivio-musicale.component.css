@@ -1,107 +1,151 @@
-.navbar {
-  background-color: #222;
-  color: white;
-  padding: 0.5rem 0;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
-}
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
-.navbar-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-  height: 60px;
-  position: relative;
-}
-
-.logo {
-  flex: 0 0 auto;
-}
-
-.logo-img {
-  height: 40px;
-  width: auto;
-}
-
-.title {
-  flex: 1 1 auto;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.burger {
-  font-size: 28px;
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  flex: 0 0 auto;
-  z-index: 1100;
-}
-
-/* Menu laterale a tendina */
-.nav-links {
-  position: absolute;
-  top: 60px;
-  right: 0;
-  background-color: #333;
-  list-style: none;
-  padding: 1rem 0;  /* solo padding verticale */
-  margin: 0;
-  display: none;
-  flex-direction: column;
-  width: 220px;
-  border-radius: 0 0 0 5px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-.nav-links.open {
-  display: flex;
-}
-
-.nav-links li {
-  margin: 0; /* zero margini */
-}
-
-.nav-links a {
+:host {
   display: block;
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 0;
-  background-color: transparent;
+  padding-top: 60px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.my-zebra-table{
+  padding: 4rem;
+
+}
+
+h2{
+  margin-left: 4rem;
+}
+
+/* Tabella zebratissima */
+.my-zebra-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 0.9rem;
+}
+
+.my-zebra-table thead tr {
+  background: none;
+  border-bottom: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.my-zebra-table thead th {
   border: none;
-  text-align: left;
-  transition: background-color 0.3s ease;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
 }
 
-.nav-links a:hover {
-  background-color: #555;
-  color: white;
-  text-decoration: none;
+.my-zebra-table tbody tr:nth-child(odd) {
+  background: var(--odd-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  animation: fadeSlideIn 0.5s ease forwards;
+  opacity: 0;
 }
 
-/* Responsiveness: burger sempre visibile, menu chiuso di default */
-@media (min-width: 768px) {
-  .burger {
-    display: block;
+.my-zebra-table tbody tr:nth-child(even) {
+  background: var(--even-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  animation: fadeSlideIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.my-zebra-table tbody tr {
+  opacity: 1 !important;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2) !important;
+  transition: transform 0.2s ease, box-shadow 0.3s ease !important;
+}
+
+.my-zebra-table tbody tr:hover {
+  opacity: 1 !important;
+  transform: scale(1.01) !important;
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover) !important;
+}
+
+/* Reset focus/active per evitare glow persistente */
+.my-zebra-table tbody tr:focus,
+.my-zebra-table tbody tr:active {
+  outline: none;
+  box-shadow: var(--box-shadow);
+}
+
+.my-zebra-table tbody td {
+  color: var(--text-color);
+  vertical-align: middle;
+  border: none;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+  background: transparent;
+}
+
+.my-zebra-table tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.my-zebra-table tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Pulsanti arrotondati e gradiente come lista canzoni */
+button, .btn {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  border: none;
+  font-weight: bold;
+  padding: 0.4rem 0.9rem;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  font-size: 0.8rem;
+}
+
+button:hover, .btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+/* Bottone wishlist stile lista canzoni */
+.wishlist-btn {
+  color: var(--accent-color);
+  cursor: pointer;
+  transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.wishlist-btn:hover {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
+  transform: scale(1.2);
+}
+
+.wishlist-btn i.active {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 8px var(--accent-hover)) drop-shadow(0 0 16px var(--accent-hover));
+  transform: scale(1.3);
+}
+
+/* Animazione fade & slide */
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
   }
-  
-  .nav-links {
-    position: absolute;
-    top: 60px;
-    right: 0;
-    display: none;
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

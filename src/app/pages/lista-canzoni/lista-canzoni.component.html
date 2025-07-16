@@ -15,8 +15,13 @@
     </tr>
   </thead>
   <tbody cdkDropList (cdkDropListDropped)="onDrop($event)">
-    <tr #rigaCanzone cdkDrag *ngFor="let canzone of canzoni; let i = index" [id]="'canzone-' + canzone.id">
-      
+    <tr
+      #rigaCanzone
+      *ngFor="let canzone of canzoni; let i = index"
+      [id]="'canzone-' + canzone.id"
+      cdkDrag
+      [cdkDragDisabled]="!isAdmin"
+    >
       <!-- Stato cantata -->
       <td>
         <button (click)="isAdmin && toggleCantata(i)"
@@ -26,8 +31,6 @@
           {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
         </button>
       </td>
-
-      <!-- Numero -->
       <td>{{ i + 1 }}</td>
 
       <!-- Nome -->
@@ -71,7 +74,6 @@
                 (click)="partecipaAllaCanzone(canzone)">
           {{ 'song_list.labels.join' | translate }}
         </button>
-
         <div *ngIf="mostraInputPartecipazione[canzone.id]" class="mt-1">
           <input type="text"
                  [(ngModel)]="nomePartecipanteMap[canzone.id]"
@@ -80,7 +82,6 @@
           <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">Invia</button>
           <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">Annulla</button>
         </div>
-
         <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
           {{ 'song_list.participation.full' | translate }}
         </div>
@@ -146,7 +147,6 @@
           </tbody>
         </table>
       </ng-template>
-
     </tr>
   </tbody>
 </table>

@@ -81,15 +81,15 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   onDrop(event: CdkDragDrop<Canzone[]>): void {
+    if (!this.isAdmin) return; // ⛔ Blocca se non admin
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
     this.salvaOrdine();
 
-    // Rimuove e riapplica le classi per forzare il repaint
+    // Forza repaint per animazioni
     setTimeout(() => {
       this.righeCanzoni.forEach((riga: ElementRef) => {
         const el = riga.nativeElement as HTMLElement;
         el.classList.remove('drag-alone-fix');
-        // trigger reflow
         void el.offsetWidth;
         el.classList.add('drag-alone-fix');
       });
@@ -198,7 +198,6 @@ export class ListaCanzoniComponent implements OnInit {
     }
 
     const nome = this.nomePartecipanteMap[canzone.id]?.trim();
-
     if (!nome || nome.length === 0) {
       alert('Nome non valido.');
       return;

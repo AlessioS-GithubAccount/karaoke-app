@@ -1,7 +1,7 @@
 <h2>{{ 'song_archive.title' | translate }}</h2>
 
-<table class="table table-bordered table-hover mt-2" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
-  <thead class="table-dark">
+<table class="table my-zebra-table" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
+  <thead>
     <tr>
       <th>{{ 'song_archive.columns.artist' | translate }}</th>
       <th>{{ 'song_archive.columns.song' | translate }}</th>
@@ -14,12 +14,12 @@
       <td>{{ item.artista }}</td>
       <td>{{ item.canzone }}</td>
       <td>{{ item.num_richieste }}</td>
-      <td *ngIf="canUseActions">
-        <button class="btn btn-warning btn-sm me-2" (click)="aggiungiAWishlist(item)">
-          {{ 'song_archive.buttons.add_to_wishlist' | translate }}
+      <td *ngIf="canUseActions" class="text-center">
+        <button class="btn btn-sm btn-warning me-2 wishlist-btn" (click)="aggiungiAWishlist(item)">
+          <i [ngClass]="item.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
         </button>
 
-        <button class="btn btn-danger btn-sm" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
+        <button class="btn btn-sm btn-danger" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
           {{ 'song_archive.buttons.delete' | translate }}
         </button>
       </td>

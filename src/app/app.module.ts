@@ -25,6 +25,8 @@ import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canz
 
 // Import DragDropModule from Angular CDK
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 
 // Import dell'interceptor
 import { TokenInterceptor  } from './Authguards/Interceptor';
@@ -53,6 +55,7 @@ export function HttpLoaderFactory(http: HttpClient) {
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     FormsModule,
     ReactiveFormsModule,
