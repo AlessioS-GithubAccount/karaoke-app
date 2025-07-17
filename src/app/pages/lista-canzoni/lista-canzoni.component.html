@@ -1,3 +1,4 @@
+<h2 class="fade-text">Canzoni in coda</h2>
 <table class="table my-zebra-table">
   <thead>
     <tr>
@@ -27,7 +28,7 @@
         <button (click)="isAdmin && toggleCantata(i)"
                 class="btn btn-sm"
                 [disabled]="!isAdmin"
-                [ngClass]="canzoni[i].cantata ? 'btn-danger' : 'btn-success'">
+                [ngClass]="canzoni[i].cantata ? 'btn-cantata' : 'btn-dacantare'">
           {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
         </button>
       </td>

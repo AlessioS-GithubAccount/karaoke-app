@@ -9,6 +9,29 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+
+
+.fade-text {
+  margin-top: 6rem;
+  margin-left: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeSlideIn 0.8s ease forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table{
+  padding: 3rem;
+}
+
+
 a {
   color: var(--accent-color);
   text-decoration: none;
@@ -30,6 +53,33 @@ a:hover {
   transition: background-color 0.3s ease;
 }
 
+.btn-cantata {
+  background: linear-gradient(135deg, #ff0040, #d100d1) !important;; /* neon rosso-fucsia */
+  color: white;
+  box-shadow: 0 0 10px rgba(255, 0, 100, 0.6), 0 0 150px rgba(255, 0, 150, 0.9);
+}
+
+.btn-cantata,
+.btn-dacantare {
+  min-width: 120px; /* o 130px se serve più spazio */
+  white-space: nowrap;
+  text-align: center;
+}
+
+
+.btn-dacantare {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2))!important;; /* già neon blu-fucsia */
+  color: white;
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+.btn-cantata:hover,
+.btn-dacantare:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+
 button, .btn {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
@@ -40,6 +90,7 @@ button, .btn {
   cursor: pointer;
   box-shadow: 0 0 10px var(--glow-color);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
+  margin-bottom: 0.5rem;
 }
 
 button:hover {
@@ -94,7 +145,7 @@ button:hover {
   border-radius: 12px;
   backdrop-filter: blur(4px);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
-  animation: fadeSlideIn 0.5s ease forwards;
+  animation: fadeSlideIn 1.2s ease forwards;
   opacity: 0;
 }
 
@@ -104,7 +155,7 @@ button:hover {
   border-radius: 12px;
   backdrop-filter: blur(4px);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
-  animation: fadeSlideIn 0.5s ease forwards;
+  animation: fadeSlideIn 1.2s ease forwards;
   opacity: 0;
 }
 
@@ -134,6 +185,9 @@ button:hover {
   padding: 0.75rem 0.5rem;
   text-align: center;
   background: transparent;
+  white-space: normal;       /* permette il wrap multilinea */
+  word-break: break-word;    /* spezza parole troppo lunghe */
+  max-width: 250px;          /* limita la larghezza della cella */
 }
 
 .my-zebra-table tbody tr td:first-child {
