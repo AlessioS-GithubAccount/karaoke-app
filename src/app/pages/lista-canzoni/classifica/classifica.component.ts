@@ -5,7 +5,7 @@ import { AuthService } from '../../../services/auth.service'; // se ce l'hai
 @Component({
   selector: 'app-classifica',
   templateUrl: './classifica.component.html',
-  styleUrls: ['./classifica.component.css']
+  styleUrls: ['./classifica.component.scss']
 })
 export class ClassificaComponent implements OnInit {
   topCanzoni: any[] = [];

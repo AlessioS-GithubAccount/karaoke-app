@@ -149,3 +149,20 @@ button:hover, .btn:hover {
     transform: translateY(0) scale(1);
   }
 }
+
+/* Animazione fade-in con slide verso l'alto */
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Applica opacità iniziale e trasformazione */
+h2,
+thead tr th {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out forwards;
+  animation-delay: 0.1s;
+}
