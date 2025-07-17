@@ -14,9 +14,9 @@
     "light_mode": "Light Mode"
   },
   "music_archive": {
-    "title": "📚 Archivio Musicale",
-    "song": "🎵 Canzone",
-    "artist": "🎤 Artista"
+    "title": "Archivio Musicale",
+    "song": "Canzone",
+    "artist": "Artista"
   },
   "chart": {
     "title": "Classifica Top 30 Canzoni Più Richieste",
@@ -156,7 +156,7 @@
       "actions": "Azioni"
     },
     "buttons": {
-      "add_to_wishlist": "⭐ Aggiungi a wishlist",
+      "add_to_wishlist": "Aggiungi a wishlist",
       "delete": "Elimina"
     },
     "messages": {
@@ -166,7 +166,7 @@
     }
   },
   "registration": {
-    "title": "📝 Registrazione Nuovo Utente",
+    "title": "Registrazione Nuovo Utente",
     "username_label": "Username",
     "password_label": "Password",
     "password_recovery_info": "Seleziona una domanda e una risposta per il recupero password. Questo sito non gestisce e-mail quindi questo sarà l'unico modo di recuperarla in caso di smarrimento.",
@@ -181,8 +181,8 @@
     "recovery_answer_placeholder": "Inserisci la tua risposta segreta",
     "admin_keypass_label": "Admin Mode Keypass (PIN)",
     "admin_keypass_placeholder": "Campo compilabile solo dai gestori del karaoke",
-    "create_account_button": "🆕 Crea Account",
-    "back_to_login_button": "🔙 Torna al Login",
+    "create_account_button": "Crea Account",
+    "back_to_login_button": "Torna al Login",
     "privacy_info": "Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili."
   },
   "performance_history": {
@@ -196,12 +196,12 @@
     "actions": "Azioni",
     "dash": "—",
     "no_performances": "Non hai ancora esibizioni registrate.",
-    "wishlist_title": "💭 La tua lista desideri",
+    "wishlist_title": "La tua lista desideri",
     "save_button": "Salva",
     "delete_button": "Elimina",
     "fill_minimum_fields": "Compila almeno canzone e artista per salvare",
     "delete_from_wishlist": "Elimina questa canzone dalla lista desideri",
-    "go_to_booking": "🎶 Vai a Prenota Canzoni",
+    "go_to_booking": "Vai a Prenota Canzoni",
     "wishlist_empty": "La tua lista dei desideri è vuota.",
     "add_song": "+ Aggiungi Canzone"
   },

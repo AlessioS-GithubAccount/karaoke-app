@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+:host {
+  display: block;
+  padding-top: 60px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+h2 {
+  margin-left: 4rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+/* Tabella stile "archivio canzoni" */
+.my-zebra-table {
+  width: 100%;
+  padding: 4rem;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 0.9rem;
+}
+
+.my-zebra-table thead tr {
+  background: none;
+  border-bottom: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.my-zebra-table th, .my-zebra-table td {
+  text-align: center;
+  padding: 0.75rem;
+}
+
+.my-zebra-table tbody tr:nth-child(odd),
+.my-zebra-table tbody tr:nth-child(even) {
+  background: var(--odd-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  animation: fadeSlideIn 1.5s ease forwards;
+}
+
+.my-zebra-table tbody tr:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+/* Input uniformi */
+.wishlist-input {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--text-color);
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+  width: 100%;
+}
+
+/* Pulsanti */
+button {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  border: none;
+  font-weight: bold;
+  padding: 0.4rem 0.9rem;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  font-size: 0.8rem;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+button:disabled {
+  background: #444;
+  color: #999;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Link stile bottone */
+.btn-crud{
+    margin-bottom: 1rem;
+    margin-right: 1rem;
+}
+
+.btn-link {
+  display: inline-block;
+  text-decoration: none;
+  margin-left: 4rem;
+  /*margin-top: 2rem;*/
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 0.8rem; /* Uniforma */
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease;
+}
+
+.add-song-btn {
+  margin-left: 4rem;
+  margin-top: 2rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 30px;
+  font-size: 0.8rem; /* Uniforma */
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  font-weight: bold;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease;
+}
+
+
+.btn-link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+/* Bottone aggiungi canzone */
+.add-song-btn {
+  margin-left: 4rem;
+ /*margin-top: 2rem;*/
+  padding: 0.6rem 1.4rem;
+  border-radius: 30px;
+  font-size: 0.8rem; /* Uniforma */
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  font-weight: bold;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease;
+}
+
+.add-song-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+/* Animazioni */
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

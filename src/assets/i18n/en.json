@@ -14,9 +14,9 @@
     "light_mode": "Light Mode"
   },
   "music_archive": {
-    "title": "📚 Music Archive",
-    "song": "🎵 Song",
-    "artist": "🎤 Artist"
+    "title": "Music Archive",
+    "song": "Song",
+    "artist": "Artist"
   },
   "chart": {
     "title": "Top 30 Most Requested Songs Ranking",
@@ -156,7 +156,7 @@
       "actions": "Actions"
     },
     "buttons": {
-      "add_to_wishlist": "⭐ Add to wishlist",
+      "add_to_wishlist": "Add to wishlist",
       "delete": "Delete"
     },
     "messages": {
@@ -166,7 +166,7 @@
     }
   },
   "registration": {
-    "title": "📝 New User Registration",
+    "title": "New User Registration",
     "username_label": "Username",
     "password_label": "Password",
     "password_recovery_info": "Select a question and an answer for password recovery. This site does not handle emails, so this will be the only way to recover your password if lost.",
@@ -181,12 +181,12 @@
     "recovery_answer_placeholder": "Enter your secret answer",
     "admin_keypass_label": "Admin Mode Keypass (PIN)",
     "admin_keypass_placeholder": "Field to be filled only by karaoke managers",
-    "create_account_button": "🆕 Create Account",
-    "back_to_login_button": "🔙 Back to Login",
+    "create_account_button": "Create Account",
+    "back_to_login_button": "Back to Login",
     "privacy_info": "This site does not require or store emails, phone numbers, or sensitive personal data."
   },
   "performance_history": {
-    "title": "🎤 Your Performance History",
+    "title": "Your Performance History",
     "song": "Song",
     "artist": "Artist",
     "key": "Key",
@@ -196,12 +196,12 @@
     "actions": "Actions",
     "dash": "—",
     "no_performances": "No performances found.",
-    "wishlist_title": "💭 Your Wishlist",
+    "wishlist_title": "Your Wishlist",
     "save_button": "Save",
     "delete_button": "Delete",
     "fill_minimum_fields": "Fill at least song and artist to save",
     "delete_from_wishlist": "Delete this song from wishlist",
-    "go_to_booking": "🎶 Go to Song Booking",
+    "go_to_booking": "Go to Song Booking",
     "wishlist_empty": "Your wishlist is empty.",
     "add_song": "+ Add Song"
   },
