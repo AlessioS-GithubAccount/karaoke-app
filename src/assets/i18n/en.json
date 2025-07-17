@@ -68,7 +68,9 @@
     "privacy_desc": "Manage your personal data",
     "not_logged_in_title": "You are not logged in!",
     "not_logged_in_text": "You must log in first to see your profile.",
-    "go_to_login": "Go to Login"
+    "go_to_login": "Go to Login",
+    "wishlist": "Wishlist",
+    "wishlist_desc": "Your favorite songs saved"
   },
   "song_list": {
     "title": "Song queue List",
@@ -97,14 +99,14 @@
       "full": "Max microphones reached",
       "not_available": "Participation not available"
     },
+    "wishlist": {
+      "add": "Add to Wishlist"
+    },
     "actions": {
       "edit": "Edit",
       "save": "Save",
       "cancel": "Cancel",
       "delete": "Delete"
-    },
-    "wishlist": {
-      "add": "Add to Wishlist"
     }
   },
   "login": {
@@ -150,7 +152,7 @@
       "artist": "Artist",
       "song": "Song",
       "total_requests": "Total requests",
-      "add on wishlist":"Add on wishlist",
+      "add on wishlist": "Add on wishlist",
       "actions": "Actions"
     },
     "buttons": {

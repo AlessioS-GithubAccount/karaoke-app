@@ -30,7 +30,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 // Import dell'interceptor
 import { TokenInterceptor  } from './Authguards/Interceptor';
-import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';  
+import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';
+import { WishlistComponent } from './pages/user-profile/wishlist/wishlist.component';  
 
 // Factory function per HttpLoader
 export function HttpLoaderFactory(http: HttpClient) {
@@ -51,7 +52,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     HomepageComponent,
     ForgotPasswordComponent,
     UserCanzoniComponent,
-    PrivacyComponent  
+    PrivacyComponent,
+    WishlistComponent  
   ],
   imports: [
     BrowserModule,

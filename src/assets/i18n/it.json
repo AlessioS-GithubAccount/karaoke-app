@@ -68,9 +68,11 @@
     "privacy_desc": "Gestisci i tuoi dati personali",
     "not_logged_in_title": "Non sei loggato!",
     "not_logged_in_text": "Per vedere il tuo profilo devi prima effettuare il login.",
-    "go_to_login": "Vai al Login"
+    "go_to_login": "Vai al Login",
+    "wishlist": "Wishlist",
+    "wishlist_desc": "Le tue canzoni preferite salvate"
   },
- "song_list": {
+  "song_list": {
     "title": "Lista Canzoni",
     "description": "L'ordine delle canzoni potrebbe essere modificato per favorire la migliore esperienza possibile per tutti. Si prega di mantenere un atteggiamento amichevole ed educato.",
     "labels": {
@@ -144,13 +146,13 @@
     "go_to_login": "Vai al Login",
     "enter_guest": "Entra come Ospite"
   },
-    "song_archive": {
+  "song_archive": {
     "title": "Archivio Canzoni",
     "columns": {
       "artist": "Artista",
       "song": "Canzone",
       "total_requests": "Richieste totali",
-      "add on wishlist":"Aggiungi in wishlist",
+      "add on wishlist": "Aggiungi in wishlist",
       "actions": "Azioni"
     },
     "buttons": {
