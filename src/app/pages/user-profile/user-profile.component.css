@@ -3,10 +3,52 @@
 :host {
   display: block;
   font-family: 'Montserrat', sans-serif;
-  background-color: var(--background-color);
   color: var(--text-color);
-  padding-top: 60px;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+
+  background-image: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url('/assets/images/sfondo2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -1;
+
 }
+
+.profile-title{
+  margin-top: 8rem;
+}
+
+/* Glowing icon styles (come homepage) */
+.profile-card i {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent-color);
+  text-shadow:
+    0 0 5px var(--accent-color),
+    0 0 10px var(--accent-hover),
+    0 0 20px var(--glow-color);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.profile-card:hover i {
+  color: var(--accent-hover);
+  text-shadow:
+    0 0 10px var(--accent-hover),
+    0 0 20px var(--glow-color),
+    0 0 30px var(--accent-hover);
+}
+
+::ng-deep body.light-mode .profile-card {
+  background: var(--feature-bg-gradient) !important;
+
+}
+
+
 
 /* Container principale */
 .user-profile-container {

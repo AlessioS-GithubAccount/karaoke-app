@@ -1,31 +1,44 @@
 <ng-container *ngIf="isLoggedIn; else notLoggedIn">
   <div class="user-profile-container fade-slide-in">
-
-    <h1 class="profile-title">{{ 'profile.welcome' | translate }} {{ username }}!</h1>
+    <h1 class="profile-title">
+      {{ 'profile.welcome' | translate }} {{ username }}!
+    </h1>
     <p class="profile-subtitle">{{ 'profile.choose_action' | translate }}</p>
 
     <div class="profile-card-grid">
       <!-- Card per lo storico delle canzoni -->
       <div class="profile-card" routerLink="storico" tabindex="0" role="button">
-        <h3>📜<br>{{ 'profile.your_songs' | translate }}</h3>
+        <h3>
+          <i class="fas fa-scroll"></i><br />
+          {{ 'profile.your_songs' | translate }}
+        </h3>
         <p>{{ 'profile.your_songs_desc' | translate }}</p>
       </div>
 
       <!-- Card wishlist -->
       <div class="profile-card" routerLink="wishlist" tabindex="0" role="button">
-        <h3>❤️<br>{{ 'profile.wishlist' | translate }}</h3>
+        <h3>
+          <i class="fas fa-heart"></i><br />
+          {{ 'profile.wishlist' | translate }}
+        </h3>
         <p>{{ 'profile.wishlist_desc' | translate }}</p>
       </div>
 
       <!-- Card modifica profilo -->
       <div class="profile-card" routerLink="modifica-profilo" tabindex="0" role="button">
-        <h3>⚙️<br>{{ 'profile.edit_profile' | translate }}</h3>
+        <h3>
+          <i class="fas fa-cog"></i><br />
+          {{ 'profile.edit_profile' | translate }}
+        </h3>
         <p>{{ 'profile.edit_profile_desc' | translate }}</p>
       </div>
 
       <!-- Card privacy -->
       <div class="profile-card" routerLink="privacy" tabindex="0" role="button">
-        <h3>🔐<br>{{ 'profile.privacy' | translate }}</h3>
+        <h3>
+          <i class="fas fa-lock"></i><br />
+          {{ 'profile.privacy' | translate }}
+        </h3>
         <p>{{ 'profile.privacy_desc' | translate }}</p>
       </div>
     </div>
@@ -38,6 +51,8 @@
   <div class="not-logged neon-glow">
     <h4>{{ 'profile.not_logged_in_title' | translate }}</h4>
     <p>{{ 'profile.not_logged_in_text' | translate }}</p>
-    <a routerLink="/login" class="btn">{{ 'profile.go_to_login' | translate }}</a>
+    <a routerLink="/login" class="btn">
+      {{ 'profile.go_to_login' | translate }}
+    </a>
   </div>
 </ng-template>
