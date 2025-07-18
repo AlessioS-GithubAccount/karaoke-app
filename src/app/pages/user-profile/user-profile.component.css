@@ -23,6 +23,10 @@
   margin-top: 8rem;
 }
 
+::ng-deep body.light-mode .profile-title {
+  color: #fff;
+}
+
 /* Glowing icon styles (come homepage) */
 .profile-card i {
   font-size: 2.5rem;
@@ -43,10 +47,7 @@
     0 0 30px var(--accent-hover);
 }
 
-::ng-deep body.light-mode .profile-card {
-  background: var(--feature-bg-gradient) !important;
 
-}
 
 
 
@@ -82,12 +83,13 @@
 }
 
 /* Singola card */
+/* Stile base della card */
 .profile-card {
   background: var(--card-bg);
   border-radius: 16px;
   padding: 1.5rem;
   min-height: 200px;
-  box-shadow: var(--box-shadow);
+  box-shadow: 0 0 0 transparent; 
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
   backdrop-filter: blur(6px);
@@ -99,10 +101,29 @@
   justify-content: center;
 }
 
+/* Hover glow */
 .profile-card:hover {
   transform: translateY(-5px) scale(1.03);
-  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+  box-shadow:
+    0 0 10px var(--glow-color),
+    0 0 20px var(--accent-hover);
 }
+
+
+/* Stile base per light mode */
+::ng-deep body.light-mode .profile-card {
+  background: var(--feature-bg-gradient) !important;
+  box-shadow: 0 0 0 transparent; /* nessun !important qui */
+}
+
+/* Hover glow in light mode */
+::ng-deep body.light-mode .profile-card:hover {
+  box-shadow:
+    0 0 10px var(--glow-color),
+    0 0 20px var(--accent-hover);
+}
+
+
 
 .profile-card h3 {
   font-size: 1.3rem;
