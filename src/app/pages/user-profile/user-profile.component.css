@@ -21,10 +21,18 @@
 
 .profile-title{
   margin-top: 8rem;
-}
+  text-shadow:
+    0 0 10px var(--accent-hover),
+    0 0 10px var(--glow-color),
+    0 0 10px var(--accent-hover)!important;
+  }
 
 ::ng-deep body.light-mode .profile-title {
-  color: #fff;
+  color: #fff !important;
+  text-shadow:
+    0 0 10px var(--accent-hover),
+    0 0 20px var(--glow-color),
+    0 0 30px var(--accent-hover)!important;
 }
 
 /* Glowing icon styles (come homepage) */
