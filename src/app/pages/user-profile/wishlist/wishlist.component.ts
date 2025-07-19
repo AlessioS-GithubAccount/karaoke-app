@@ -2,13 +2,16 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
+import { ViewEncapsulation } from '@angular/core';
 
 @Component({
   selector: 'app-wishlist',
   templateUrl: './wishlist.component.html',
-  styleUrls: ['./wishlist.component.css']
+  styleUrls: ['./wishlist.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class WishlistComponent implements OnInit {
+  
   wishlist: any[] = [];
   private backendUrl = 'http://localhost:3000/api';
 
