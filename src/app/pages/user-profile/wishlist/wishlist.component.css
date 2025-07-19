@@ -19,7 +19,9 @@ h2 {
 /* Tabella stile "archivio canzoni" */
 .my-zebra-table {
   width: 100%;
-  padding: 4rem;
+  padding-left: 4rem;
+  padding-right: 4rem;
+  padding-bottom: 2rem;
   border-collapse: separate;
   border-spacing: 0 12px;
   font-size: 0.9rem;
@@ -39,6 +41,16 @@ h2 {
   padding: 0.75rem;
 }
 
+.my-zebra-table tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.my-zebra-table tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
 .my-zebra-table tbody tr:nth-child(odd),
 .my-zebra-table tbody tr:nth-child(even) {
   background: var(--odd-color);
@@ -46,6 +58,7 @@ h2 {
   border-radius: 12px;
   backdrop-filter: blur(4px);
   animation: fadeSlideIn 1.5s ease forwards;
+  
 }
 
 .my-zebra-table tbody tr:hover {
@@ -66,6 +79,31 @@ h2 {
 }
 
 /* Pulsanti */
+
+.wishlist-header-buttons {
+
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap; /* così su schermi piccoli vanno a capo */
+}
+
+.wishlist-header-buttons .btn-link {
+  border: none;
+  background-color: #4c6ef5;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.3s;
+}
+
+.wishlist-header-buttons .btn-link:hover {
+  background-color: #3b5bdb;
+}
+
+
 button {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
@@ -92,8 +130,9 @@ button:disabled {
 }
 
 /* Link stile bottone */
+
 .btn-crud{
-    margin-bottom: 1rem;
+    margin-bottom: 0rem;
     margin-right: 1rem;
 }
 
@@ -130,6 +169,36 @@ button:disabled {
   transform: scale(1.05);
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
 }
+
+.animated-btn {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUpIn 0.6s ease-out forwards;
+}
+
+.animated-btn.delay-1 {
+  animation-delay: 0.2s;
+}
+
+.animated-btn.delay-2 {
+  animation-delay: 0.4s;
+}
+
+.animated-btn.delay-3 {
+  animation-delay: 0.6s;
+}
+
+@keyframes fadeUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 /* Bottone aggiungi canzone */
 .add-song-btn {

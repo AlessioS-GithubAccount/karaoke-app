@@ -203,6 +203,7 @@
     "delete_from_wishlist": "Delete this song from wishlist",
     "go_to_booking": "Go to Song Booking",
     "wishlist_empty": "Your wishlist is empty.",
+    "back_to_profile": "Back to Profile",
     "add_song": "+ Add Song"
   },
   "privacy": {

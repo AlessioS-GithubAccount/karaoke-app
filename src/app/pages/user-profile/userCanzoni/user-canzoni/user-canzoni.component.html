@@ -1,51 +1,65 @@
 <div class="userCanzoni-container">
-  <h2>🎤 {{ 'performance_history.title' | translate }}</h2>
 
-  <table class="table table-bordered table-hover" *ngIf="esibizioni.length > 0; else noEsibizioni">
-    <thead class="table-dark">
-      <tr>
-        <th>{{ 'performance_history.song' | translate }}</th>
-        <th>{{ 'performance_history.artist' | translate }}</th>
-        <th>{{ 'performance_history.key' | translate }}</th>
-        <th>{{ 'performance_history.sang_with' | translate }}</th>
-        <th>{{ 'performance_history.votes' | translate }}</th>
-        <th>{{ 'performance_history.date' | translate }}</th>
-        <th>{{ 'performance_history.actions' | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let canzone of esibizioni">
-        <td>{{ canzone.canzone }}</td>
-        <td>{{ canzone.artista }}</td>
-        <td>{{ canzone.tonalita || ('performance_history.dash' | translate) }}</td>
-        <td>
-          <span *ngIf="canzone.partecipante_2 || canzone.partecipante_3; else noCollab">
-            {{ canzone.partecipante_2 || '' }}<span *ngIf="canzone.partecipante_2 && canzone.partecipante_3">, </span>{{ canzone.partecipante_3 || '' }}
-          </span>
-          <ng-template #noCollab>
-            <span>{{ 'performance_history.dash' | translate }}</span>
-          </ng-template>
-        </td>
-        <td>
-          <div *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
-            <div *ngFor="let voto of canzone.voti" style="display: inline-block; margin-right: 10px; text-align: center;">
-              <div style="font-size: 1.5em;">{{ voto.emoji }}</div>
-              <div>{{ voto.count }}</div>
-            </div>
-          </div>
-          <ng-template #noVoti>
-            <span>{{ 'performance_history.dash' | translate }}</span>
-          </ng-template>
-        </td>
-        <td>{{ canzone.data_esibizione | date:'dd/MM/yyyy HH:mm' }}</td>
-        <td>
-          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(canzone.esibizione_id)">
-            {{ 'performance_history.delete_button' | translate }}
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <!-- Pulsante in alto -->
+  <div class="center-btn">
+    <button (click)="ritornaAlProfilo()">
+      {{ 'performance_history.back_to_profile' | translate }}
+    </button>
+  </div>
+
+  <h2 class="animated-title">{{ 'performance_history.title' | translate }}</h2>
+
+  <div *ngIf="esibizioni.length > 0; else noEsibizioni">
+    <div class="table-wrapper">
+      <table class="my-zebra-table">
+        <thead>
+          <tr>
+            <th>{{ 'performance_history.song' | translate }}</th>
+            <th>{{ 'performance_history.artist' | translate }}</th>
+            <th>{{ 'performance_history.key' | translate }}</th>
+            <th>{{ 'performance_history.sang_with' | translate }}</th>
+            <th>{{ 'performance_history.votes' | translate }}</th>
+            <th>{{ 'performance_history.date' | translate }}</th>
+            <th>{{ 'performance_history.actions' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let canzone of esibizioni">
+            <td>{{ canzone.canzone }}</td>
+            <td>{{ canzone.artista }}</td>
+            <td>{{ canzone.tonalita || ('performance_history.dash' | translate) }}</td>
+            <td>
+              <span *ngIf="canzone.partecipante_2 || canzone.partecipante_3; else noCollab">
+                {{ canzone.partecipante_2 || '' }}<span *ngIf="canzone.partecipante_2 && canzone.partecipante_3">, </span>{{ canzone.partecipante_3 || '' }}
+              </span>
+              <ng-template #noCollab>
+                <span>{{ 'performance_history.dash' | translate }}</span>
+              </ng-template>
+            </td>
+            <td>
+              <div *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
+                <div *ngFor="let voto of canzone.voti" class="emoji-voto">
+                  <div class="emoji">
+                    <i class="fa-solid" [ngClass]="getFaIconClass(voto.emoji)"></i>
+                  </div>
+                  <div class="count">{{ voto.count }}</div>
+                </div>
+              </div>
+              <ng-template #noVoti>
+                <span>{{ 'performance_history.dash' | translate }}</span>
+              </ng-template>
+            </td>
+            <td>{{ canzone.data_esibizione | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button (click)="eliminaCanzone(canzone.esibizione_id)">
+                {{ 'performance_history.delete_button' | translate }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <ng-template #noEsibizioni>
     <div class="alert alert-info mt-3">
@@ -53,4 +67,10 @@
     </div>
   </ng-template>
 
- 
+  <!-- Pulsante in basso -->
+  <div class="center-btn mt-4">
+    <button (click)="ritornaAlProfilo()">
+      {{ 'performance_history.back_to_profile' | translate }}
+    </button>
+  </div>
+</div>

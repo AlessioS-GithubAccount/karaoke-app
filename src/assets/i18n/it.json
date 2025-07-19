@@ -186,7 +186,7 @@
     "privacy_info": "Questo sito non richiede né memorizza email, numeri di telefono o dati personali sensibili."
   },
   "performance_history": {
-    "title": "🎤 Storico delle tue esibizioni",
+    "title": "Storico delle tue esibizioni",
     "song": "Canzone",
     "artist": "Artista",
     "key": "Tonalità",
@@ -203,6 +203,7 @@
     "delete_from_wishlist": "Elimina questa canzone dalla lista desideri",
     "go_to_booking": "Vai a Prenota Canzoni",
     "wishlist_empty": "La tua lista dei desideri è vuota.",
+    "back_to_profile": "Ritorna al Profilo",
     "add_song": "+ Aggiungi Canzone"
   },
   "privacy": {

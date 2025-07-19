@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+:host {
+  display: block;
+  padding-top: 60px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.animated-title {
+  margin-left: 4rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+.table-wrapper {
+  padding: 4rem;
+}
+
+.my-zebra-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  font-size: 0.9rem;
+}
+
+.my-zebra-table thead tr {
+  background: none;
+  border-bottom: 2px solid var(--accent-color);
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+  animation: fadeSlideIn 1.5s ease forwards;
+  opacity: 0; /* parte nascosto */
+  transform: translateY(20px) scale(0.98);
+}
+
+.my-zebra-table th,
+.my-zebra-table td {
+  text-align: center;
+  padding: 0.75rem;
+}
+
+.my-zebra-table tbody tr {
+  background: var(--odd-color);
+  box-shadow: var(--box-shadow);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  animation: fadeSlideIn 1.5s ease forwards;
+  transition: transform 0.2s ease;
+}
+
+.my-zebra-table tbody tr:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+.my-zebra-table tbody tr td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.my-zebra-table tbody tr td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+
+.emoji-voto {
+  display: inline-block;
+  margin-right: 10px;
+  text-align: center;
+}
+
+.emoji-voto .emoji {
+  font-size: 1.5em;
+}
+
+.emoji-voto .count {
+  font-size: 0.8rem;
+}
+
+button {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  border: none;
+  font-weight: bold;
+  padding: 0.4rem 0.9rem;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--glow-color);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  font-size: 0.8rem;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+.center-btn {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.center-btn button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 12px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.center-btn button:hover {
+  background-color: #555;
+}
+
+
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

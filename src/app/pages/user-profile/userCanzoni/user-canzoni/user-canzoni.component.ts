@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../../services/auth.service';
+import { Router } from '@angular/router';
 
 interface VotoEmoji {
   emoji: string;
@@ -18,7 +19,6 @@ interface Esibizione {
   partecipante_3?: string;
 }
 
-
 @Component({
   selector: 'app-user-canzoni',
   templateUrl: './user-canzoni.component.html',
@@ -31,7 +31,7 @@ export class UserCanzoniComponent implements OnInit {
 
   private backendUrl = 'http://localhost:3000/api';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService,private router: Router) {}
 
   ngOnInit(): void {
     this.auth.getUtenteLoggato().subscribe(user => {
@@ -50,28 +50,27 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
-loadEsibizioni(id: number): void {
-  this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, {
-    headers: this.getAuthHeaders()
-  }).subscribe({
-    next: res => {
-      this.esibizioni = res.map(e => ({
-        esibizione_id: e.id,
-        artista: e.artista,
-        canzone: e.canzone,
-        tonalita: e.tonalita,
-        data_esibizione: e.data_esibizione,
-        partecipante_2: e.partecipante_2,
-        partecipante_3: e.partecipante_3,
-        voti: e.voti || []
-      }));
-    },
-    error: err => {
-      console.error('Errore caricamento esibizioni:', err);
-    }
-  });
-}
-
+  loadEsibizioni(id: number): void {
+    this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: res => {
+        this.esibizioni = res.map(e => ({
+          esibizione_id: e.id,
+          artista: e.artista,
+          canzone: e.canzone,
+          tonalita: e.tonalita,
+          data_esibizione: e.data_esibizione,
+          partecipante_2: e.partecipante_2,
+          partecipante_3: e.partecipante_3,
+          voti: Array.isArray(e.voti) ? e.voti : []
+        }));
+      },
+      error: err => {
+        console.error('Errore caricamento esibizioni:', err);
+      }
+    });
+  }
 
   loadWishlist(): void {
     this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
@@ -83,7 +82,6 @@ loadEsibizioni(id: number): void {
   }
 
   eliminaCanzone(id: number): void {
-    console.log('Chiamata eliminaCanzone con id:', id);
     if (confirm('Sei sicuro di voler eliminare questa esibizione?')) {
       this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
         headers: this.getAuthHeaders()
@@ -110,8 +108,7 @@ loadEsibizioni(id: number): void {
   }
 
   rimuoviWishlist(id: number): void {
-    const conferma = confirm('Sei sicuro di voler eliminare questa canzone dalla wishlist?');
-    if (!conferma) return;
+    if (!confirm('Sei sicuro di voler eliminare questa canzone dalla wishlist?')) return;
 
     this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
       headers: this.getAuthHeaders()
@@ -125,8 +122,30 @@ loadEsibizioni(id: number): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
   }
 
-  formattaVoti(voti: any[]): string {
+  formattaVoti(voti: VotoEmoji[]): string {
     if (!voti || voti.length === 0) return '—';
     return voti.map(v => `${v.emoji} (${v.count})`).join(', ');
+  }
+
+  ritornaAlProfilo() {
+  this.router.navigate(['/user-profile']); // oppure l'URL corretto del tuo profilo
+}
+
+
+  // Mappa emoji testuali a classi FontAwesome per icone
+  getFaIconClass(emoji: string): string {
+    switch (emoji) {
+      case '👍': return 'fa-thumbs-up';
+      case '👎': return 'fa-thumbs-down';
+      case '❤️': return 'fa-heart';
+      case '🔥': return 'fa-fire';
+      case '😊': return 'fa-smile';
+      case '😢': return 'fa-face-sad-tear'; // FontAwesome 6 pro, potresti sostituire se non disponibile
+      case '⭐': return 'fa-star';
+      case '🎵': return 'fa-music';
+      default:
+        // fallback: se l’emoji non è mappata, usa un’icona generica
+        return 'fa-circle';
+    }
   }
 }

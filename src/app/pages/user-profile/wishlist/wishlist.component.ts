@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-wishlist',
@@ -11,7 +12,7 @@ export class WishlistComponent implements OnInit {
   wishlist: any[] = [];
   private backendUrl = 'http://localhost:3000/api';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.loadWishlist();
@@ -57,4 +58,8 @@ export class WishlistComponent implements OnInit {
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
   }
+
+    ritornaAlProfilo() {
+  this.router.navigate(['/user-profile']); // oppure l'URL corretto del tuo profilo
+}
 }
