@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
+
 :host {
   display: block;
   padding-top: 60px;
@@ -51,19 +52,28 @@ h2 {
   border-bottom-right-radius: 12px;
 }
 
+/* Riga tabella con box-shadow solo al hover */
 .my-zebra-table tbody tr:nth-child(odd),
 .my-zebra-table tbody tr:nth-child(even) {
   background: var(--odd-color);
-  box-shadow: var(--box-shadow);
+  box-shadow: none; /* no shadow di default */
   border-radius: 12px;
   backdrop-filter: blur(4px);
   animation: fadeSlideIn 1.5s ease forwards;
-  
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .my-zebra-table tbody tr:hover {
   transform: scale(1.01);
-  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover) !important;
+}
+
+/* Reset focus e active per evitare glow permanente */
+.my-zebra-table tbody tr:focus,
+.my-zebra-table tbody tr:active {
+  outline: none;
+  box-shadow: none;
+  transform: none;
 }
 
 /* Input uniformi */
@@ -79,14 +89,12 @@ h2 {
 }
 
 /* Pulsanti */
-
 .wishlist-header-buttons {
-
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
   margin-bottom: 2rem;
-  flex-wrap: wrap; /* così su schermi piccoli vanno a capo */
+  flex-wrap: wrap;
 }
 
 .wishlist-header-buttons .btn-link {
@@ -103,6 +111,13 @@ h2 {
   background-color: #3b5bdb;
 }
 
+.light-mode button {
+  color: white !important;
+}
+
+body.light-mode .btn-crud {
+  color: var( --background-color)!important;
+}
 
 button {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
@@ -130,25 +145,28 @@ button:disabled {
 }
 
 /* Link stile bottone */
-
-.btn-crud{
-    margin-bottom: 0rem;
-    margin-right: 1rem;
+.btn-crud {
+  margin-bottom: 0rem;
+  margin-right: 1rem;
 }
 
 .btn-link {
   display: inline-block;
   text-decoration: none;
   margin-left: 4rem;
-  /*margin-top: 2rem;*/
   padding: 0.6rem 1.2rem;
   border-radius: 30px;
   font-weight: bold;
-  font-size: 0.8rem; /* Uniforma */
+  font-size: 0.8rem;
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
   box-shadow: 0 0 10px var(--glow-color);
   transition: transform 0.2s ease;
+}
+
+.btn-link:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
 }
 
 .add-song-btn {
@@ -156,57 +174,7 @@ button:disabled {
   margin-top: 2rem;
   padding: 0.6rem 1.4rem;
   border-radius: 30px;
-  font-size: 0.8rem; /* Uniforma */
-  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
-  color: var(--text-color);
-  font-weight: bold;
-  box-shadow: 0 0 10px var(--glow-color);
-  transition: transform 0.2s ease;
-}
-
-
-.btn-link:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
-}
-
-.animated-btn {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeUpIn 0.6s ease-out forwards;
-}
-
-.animated-btn.delay-1 {
-  animation-delay: 0.2s;
-}
-
-.animated-btn.delay-2 {
-  animation-delay: 0.4s;
-}
-
-.animated-btn.delay-3 {
-  animation-delay: 0.6s;
-}
-
-@keyframes fadeUpIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
-/* Bottone aggiungi canzone */
-.add-song-btn {
-  margin-left: 4rem;
- /*margin-top: 2rem;*/
-  padding: 0.6rem 1.4rem;
-  border-radius: 30px;
-  font-size: 0.8rem; /* Uniforma */
+  font-size: 0.8rem;
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
   font-weight: bold;

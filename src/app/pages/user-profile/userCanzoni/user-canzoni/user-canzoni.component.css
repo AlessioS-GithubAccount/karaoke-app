@@ -35,7 +35,7 @@
   font-weight: 600;
   letter-spacing: 1px;
   animation: fadeSlideIn 1.5s ease forwards;
-  opacity: 0; /* parte nascosto */
+  opacity: 0;
   transform: translateY(20px) scale(0.98);
 }
 
@@ -47,16 +47,23 @@
 
 .my-zebra-table tbody tr {
   background: var(--odd-color);
-  box-shadow: var(--box-shadow);
+  box-shadow: none; /* rimosso il glow fisso */
   border-radius: 12px;
   backdrop-filter: blur(4px);
   animation: fadeSlideIn 1.5s ease forwards;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .my-zebra-table tbody tr:hover {
   transform: scale(1.01);
   box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+.my-zebra-table tbody tr:focus,
+.my-zebra-table tbody tr:active {
+  outline: none;
+  box-shadow: none;
+  transform: none;
 }
 
 .my-zebra-table tbody tr td:first-child {
@@ -68,7 +75,6 @@
   border-top-right-radius: 12px;
   border-bottom-right-radius: 12px;
 }
-
 
 .emoji-voto {
   display: inline-block;
@@ -82,6 +88,10 @@
 
 .emoji-voto .count {
   font-size: 0.8rem;
+}
+
+.light-mode button {
+  color: white !important;
 }
 
 button {
@@ -121,7 +131,6 @@ button:hover {
 .center-btn button:hover {
   background-color: #555;
 }
-
 
 @keyframes fadeSlideIn {
   0% {
