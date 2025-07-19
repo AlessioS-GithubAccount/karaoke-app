@@ -25,14 +25,18 @@ export class WishlistComponent implements OnInit {
     });
   }
 
-  loadWishlist(): void {
-    this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: res => this.wishlist = res,
-      error: err => console.error('Errore caricamento wishlist:', err)
-    });
-  }
+loadWishlist(): void {
+  this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
+    headers: this.getAuthHeaders()
+  }).subscribe({
+    next: res => {
+      console.log('Wishlist caricata:', res);  // <-- qui stampi il JSON in console
+      this.wishlist = res;
+    },
+    error: err => console.error('Errore caricamento wishlist:', err)
+  });
+}
+
 
   salvaWishlist(song: any): void {
     this.http.post(`${this.backendUrl}/wishlist`, song, {
