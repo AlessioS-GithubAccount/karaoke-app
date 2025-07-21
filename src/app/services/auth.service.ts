@@ -18,11 +18,9 @@ export class AuthService {
   private logoutUrl = 'http://localhost:3000/api/auth/logout';
   private refreshUrl = 'http://localhost:3000/api/auth/token';
 
-  // Stato login BehaviorSubject inizializzato in base a validità token
   private loggedIn = new BehaviorSubject<boolean>(this.hasValidToken());
   public isLoggedIn$ = this.loggedIn.asObservable();
 
-  // Caching utente loggato
   private currentUserSubject = new BehaviorSubject<any | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -32,7 +30,7 @@ export class AuthService {
 
   private loadUserFromStorage() {
     const username = localStorage.getItem('username');
-    if (username) {
+    if (username && this.hasValidToken()) {
       this.http.get<any>(`http://localhost:3000/api/users/by-username/${username}`).subscribe({
         next: user => this.currentUserSubject.next(user),
         error: () => this.currentUserSubject.next(null),
@@ -42,18 +40,16 @@ export class AuthService {
     }
   }
 
-  // Metodo pubblico per ottenere l'utente loggato come Observable
   getUtenteLoggato(): Observable<any | null> {
     return this.currentUser$;
   }
 
-  // Ricarica manuale utente loggato (es. dopo login)
   reloadUtenteLoggato() {
     this.loadUserFromStorage();
   }
 
   login(username: string, password: string): Observable<LoginResponse> {
-    console.log('Invio richiesta login a backend', { username, password })// log da eliminare per sicurezza privacy frontend
+    console.log('Invio richiesta login a backend', { username, password }); // <-- Rimuovere in produzione
     return new Observable<LoginResponse>((observer) => {
       this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
         next: (res) => {
@@ -81,12 +77,7 @@ export class AuthService {
       });
     }
 
-    localStorage.removeItem('guestId');
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('username');
-
+    this.clearStorage();
     this.loggedIn.next(false);
     this.currentUserSubject.next(null);
   }
@@ -99,20 +90,30 @@ export class AuthService {
     const token = localStorage.getItem('token');
     if (!token) return false;
 
-    // Facoltativo: verifica scadenza token con jwtDecode e controllo data scadenza
     try {
       const decoded: any = jwtDecode(token);
-      if (decoded.exp) {
-        const now = Date.now().valueOf() / 1000;
-        if (decoded.exp < now) {
-          // token scaduto
-          return false;
-        }
+      const now = Date.now().valueOf() / 1000;
+      if (decoded.exp && decoded.exp < now) {
+        this.clearStorage(); // ⛔ Token scaduto, rimuovilo
+        this.loggedIn.next(false);
+        this.currentUserSubject.next(null);
+        return false;
       }
       return true;
-    } catch {
+    } catch (err) {
+      this.clearStorage(); // ⛔ Token malformato
+      this.loggedIn.next(false);
+      this.currentUserSubject.next(null);
       return false;
     }
+  }
+
+  private clearStorage() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('username');
+    localStorage.removeItem('guestId');
   }
 
   getUserId(): number | null {
@@ -138,24 +139,22 @@ export class AuthService {
   }
 
   getToken(): string | null {
-  return localStorage.getItem('token');
-}
+    return localStorage.getItem('token');
+  }
 
-isUser(): boolean {
-  return this.isLoggedIn(); // già fa verifica token valido
-}
+  isUser(): boolean {
+    return this.isLoggedIn();
+  }
 
-isGuest(): boolean {
-  return !this.isUser() && !!localStorage.getItem('guestId');
-}
+  isGuest(): boolean {
+    return !this.isUser() && !!localStorage.getItem('guestId');
+  }
 
-canPartecipate(): boolean {
-  return this.isUser() || this.isGuest();
-}
+  canPartecipate(): boolean {
+    return this.isUser() || this.isGuest();
+  }
 
-getGuestId(): string | null {
-  return localStorage.getItem('guestId');
-}
-
-
+  getGuestId(): string | null {
+    return localStorage.getItem('guestId');
+  }
 }

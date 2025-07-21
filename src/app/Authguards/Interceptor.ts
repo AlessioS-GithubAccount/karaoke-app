@@ -35,7 +35,7 @@ export class TokenInterceptor implements HttpInterceptor {
     );
   }
 
-  private addTokenHeader(request: HttpRequest<any>, token: string) {
+  private addTokenHeader(request: HttpRequest<any>, token: string): HttpRequest<any> {
     return request.clone({
       headers: request.headers.set('Authorization', `Bearer ${token}`)
     });
@@ -56,7 +56,26 @@ export class TokenInterceptor implements HttpInterceptor {
         }),
         catchError((err) => {
           this.isRefreshing = false;
-          localStorage.clear();
+
+          // ⛔ Fallimento nel refresh token: effettua logout anche sul backend se possibile
+          const username = localStorage.getItem('username');
+          if (username) {
+            this.http.post('http://localhost:3000/api/auth/logout', { username }).subscribe({
+              next: () => console.log('Logout notificato al backend dopo refresh fallito'),
+              error: (e) => console.error('Errore logout backend dopo refresh fallito:', e)
+            });
+          }
+
+          // ⛔ Pulizia totale del localStorage
+          localStorage.removeItem('token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('role');
+          localStorage.removeItem('username');
+          localStorage.removeItem('guestId');
+
+          // 👉 opzionale: forzare logout frontend o reindirizzamento
+          // window.location.href = '/login'; // o router.navigate(['/login'])
+
           return throwError(() => err);
         })
       );
