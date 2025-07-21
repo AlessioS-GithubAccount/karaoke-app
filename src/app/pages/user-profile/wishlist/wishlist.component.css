@@ -9,8 +9,27 @@
   color: var(--text-color);
 }
 
+.wishlist-header-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* o center, se vuoi centrare tutto */
+  gap: 10px; /* Spazio tra h2 e i bottoni */
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wishlist-header-buttons-2{
+  margin-bottom: 3rem;
+}
+
+
 h2 {
   margin-left: 4rem;
+  margin-bottom: 2rem;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeInUp 0.8s ease-out forwards;
@@ -18,11 +37,15 @@ h2 {
 }
 
 /* Tabella stile "archivio canzoni" */
+table{
+
+}
+
 .my-zebra-table {
   width: 100%;
   padding-left: 4rem;
   padding-right: 4rem;
-  padding-bottom: 2rem;
+  padding-bottom: 0rem;
   border-collapse: separate;
   border-spacing: 0 12px;
   font-size: 0.9rem;

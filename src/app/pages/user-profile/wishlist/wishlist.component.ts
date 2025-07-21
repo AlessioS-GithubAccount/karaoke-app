@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
@@ -15,6 +15,8 @@ export class WishlistComponent implements OnInit {
   wishlist: any[] = [];
   private backendUrl = 'http://localhost:3000/api';
 
+  @ViewChild('bottom') bottom!: ElementRef;  // <-- per lo scroll
+
   constructor(private http: HttpClient, private auth: AuthService, private router: Router) {}
 
   ngOnInit(): void {
@@ -28,18 +30,17 @@ export class WishlistComponent implements OnInit {
     });
   }
 
-loadWishlist(): void {
-  this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
-    headers: this.getAuthHeaders()
-  }).subscribe({
-    next: res => {
-      console.log('Wishlist caricata:', res);  // <-- qui stampi il JSON in console
-      this.wishlist = res;
-    },
-    error: err => console.error('Errore caricamento wishlist:', err)
-  });
-}
-
+  loadWishlist(): void {
+    this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: res => {
+        console.log('Wishlist caricata:', res);
+        this.wishlist = res;
+      },
+      error: err => console.error('Errore caricamento wishlist:', err)
+    });
+  }
 
   salvaWishlist(song: any): void {
     this.http.post(`${this.backendUrl}/wishlist`, song, {
@@ -64,9 +65,18 @@ loadWishlist(): void {
 
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
+
+    // Attendi che Angular aggiorni il DOM prima di scrollare
+    setTimeout(() => this.scrollToBottom(), 100);
   }
 
-    ritornaAlProfilo() {
-  this.router.navigate(['/user-profile']); // oppure l'URL corretto del tuo profilo
-}
+  scrollToBottom(): void {
+    if (this.bottom) {
+      this.bottom.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  ritornaAlProfilo(): void {
+    this.router.navigate(['/user-profile']);
+  }
 }

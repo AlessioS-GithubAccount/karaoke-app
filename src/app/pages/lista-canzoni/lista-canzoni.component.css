@@ -218,6 +218,7 @@ button:hover {
   color: var(--accent-color);
   cursor: pointer;
   transition: color 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+  margin-right: 5px;
 }
 
 .vote-icon:hover,

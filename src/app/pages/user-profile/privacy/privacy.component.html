@@ -3,7 +3,6 @@
 
   <div *ngIf="userData; else loadingOrError">
     <p><strong>{{ 'privacy.username' | translate }}:</strong> {{ userData.username }}</p>
-    <p><strong>{{ 'privacy.role' | translate }}:</strong> {{ userData.ruolo }}</p>
     <p><strong>{{ 'privacy.secret_question_label' | translate }}:</strong> 
        {{ translatedSecretQuestion }}
     </p>

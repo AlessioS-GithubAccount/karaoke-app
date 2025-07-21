@@ -1,18 +1,23 @@
-<h2>{{ 'performance_history.wishlist_title' | translate }}</h2>
+
 
 <div class="wishlist-header-buttons">
-  <a routerLink="/prenota-canzoni" class="btn-link animated-btn delay-1">
-    {{ 'performance_history.go_to_booking' | translate }}
-  </a>
+  <h2>{{ 'performance_history.wishlist_title' | translate }}</h2>
 
-  <button class="btn-link animated-btn delay-2" (click)="ritornaAlProfilo()">
-    {{ 'performance_history.back_to_profile' | translate }}
-  </button>
+  <div class="button-group">
+    <a routerLink="/prenota-canzoni" class="btn-link animated-btn delay-1">
+      {{ 'performance_history.go_to_booking' | translate }}
+    </a>
 
-  <button class="btn-link animated-btn delay-3" (click)="aggiungiRiga()">
-    {{ 'performance_history.add_song' | translate }}
-  </button>
+    <button class="btn-link animated-btn delay-2" (click)="ritornaAlProfilo()">
+      {{ 'performance_history.back_to_profile' | translate }}
+    </button>
+
+    <button class="btn-link animated-btn delay-3" (click)="aggiungiRiga()">
+      {{ 'performance_history.add_song' | translate }}
+    </button>
+  </div>
 </div>
+
 
 
 
@@ -48,13 +53,19 @@
     </tr>
   </tbody>
 </table>
+<div #bottom></div>
 
-<a routerLink="/prenota-canzoni" class="btn-link mt-4 btn-crud">
+
+
+<div class="wishlist-header-buttons-2">
+  <a routerLink="/prenota-canzoni" class="btn-link mt-4 btn-crud">
   {{ 'performance_history.go_to_booking' | translate }}
-</a>
+  </a>
 
-<ng-template #noWishlist>
-  <p>{{ 'performance_history.wishlist_empty' | translate }}</p>
-</ng-template>
+  <ng-template #noWishlist>
+    <p>{{ 'performance_history.wishlist_empty' | translate }}</p>
+  </ng-template>
 
-<button class="add-song-btn" (click)="aggiungiRiga()"> {{ 'performance_history.add_song' | translate }}</button>
+  <button class="add-song-btn" (click)="aggiungiRiga()"> {{ 'performance_history.add_song' | translate }}</button>
+</div>
+

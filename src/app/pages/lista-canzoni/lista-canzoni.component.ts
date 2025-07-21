@@ -46,13 +46,10 @@ export class ListaCanzoniComponent implements OnInit {
   isLoading = true;
 
   emojisVoto = [
+    { icon: 'fa-thumbs-up', label: '👍' },
     { icon: 'fa-face-meh', label: '😐' },
     { icon: 'fa-face-laugh-squint', label: '😂' },
-    { icon: 'fa-thumbs-up', label: '👍' },
-    { icon: 'fa-face-grin-stars', label: '😎' },
-    { icon: 'fa-face-grin-hearts', label: '🤩' },
-    { icon: 'fa-heart', label: '❤' },
-    { icon: 'fa-fire', label: '🔥' }
+    { icon: 'fa-heart', label: '❤' }
   ];
 
   editingIndex: number | null = null;
