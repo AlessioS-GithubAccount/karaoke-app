@@ -13,6 +13,7 @@ import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canz
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';
 import { WishlistComponent } from './pages/user-profile/wishlist/wishlist.component';
+import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';
 
 import { AuthGuard } from './Authguards/auth.guard';
 
@@ -25,6 +26,7 @@ const routes: Routes = [
   { path: 'lista-canzoni', component: ListaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
   { path: 'archivio-musicale', component: ArchivioMusicaleComponent },
+  {path: 'modify-profile', component: ModifyProfileComponent},
 
   // Pagina profilo principale
   { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuard] },

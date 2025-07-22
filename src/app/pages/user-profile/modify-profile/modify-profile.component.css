@@ -9,73 +9,97 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.privacy-container {
+.modify-profile-container {
   max-width: 600px;
   margin: 40px auto;
-  padding: 30px;
+  padding: 20px;
   border-radius: 16px;
-  background-color: var(--menu-bg-color);
-  border: 1px solid var(--accent-color);
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15), 0 0 16px var(--glow-color);
+  background-color: var(--background-color);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.12), 0 0 16px var(--glow-color);
   animation: fadeSlideIn 1s ease-out forwards;
   transform: translateY(20px);
   opacity: 0;
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 h2 {
-  margin-bottom: 24px;
-  font-size: 1.6rem;
-  font-weight: 600;
+  margin-left: 1rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
   color: var(--text-color);
-  animation: fadeInUp 0.8s ease-out forwards;
-  animation-delay: 0.1s;
   opacity: 0;
   transform: translateY(20px);
+  animation: fadeInUp 0.8s ease-out forwards;
+  animation-delay: 0.1s;
   transition: color 0.3s ease;
 }
 
 form {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centra i button */
+  gap: 0.5rem;
+}
+
+
+
+
+
+.form-section {
+  background-color: var(--background-color);
+  border-radius: 16px;
+  padding: 20px;
   margin-bottom: 30px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-section h3 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
 label {
   display: block;
-  margin: 10px 0 4px;
+  margin-bottom: 6px;
   font-weight: 500;
   color: var(--text-color);
   transition: color 0.3s ease;
 }
 
-input {
+input[type="password"],
+input[type="text"] {
   width: 100%;
   padding: 10px 12px;
+  margin-bottom: 16px;
   border-radius: 10px;
   border: 1px solid var(--accent-color);
+  font-size: 14px;
   background-color: var(--background-color);
   color: var(--text-color);
-  margin-bottom: 16px;
   box-sizing: border-box;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
-input:focus {
+input[type="password"]:focus,
+input[type="text"]:focus {
   outline: none;
   border-color: var(--accent-hover);
   box-shadow: 0 0 6px var(--glow-color);
 }
 
 button {
-  padding: 10px 20px;
+  padding: 10px 16px;
   border: none;
   border-radius: 30px;
-  font-weight: bold;
+  font-weight: 700;
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
   cursor: pointer;
   box-shadow: 0 0 10px var(--glow-color);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.3s ease;
   font-size: 0.9rem;
 }
 
@@ -93,15 +117,15 @@ button:disabled {
 
 .error-message {
   color: #ff4c4c;
-  font-weight: 500;
   margin-top: 10px;
+  font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .success-message {
   color: #00cc66;
-  font-weight: 500;
   margin-top: 10px;
+  font-weight: 600;
   transition: color 0.3s ease;
 }
 
@@ -123,3 +147,4 @@ button:disabled {
     transform: translateY(0);
   }
 }
+ 

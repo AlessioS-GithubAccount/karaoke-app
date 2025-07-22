@@ -8,31 +8,6 @@
       {{ ('privacy.secret_questions.' + userData.domanda_recupero) | translate }}
     </p>
 
-
-    <hr>
-
-    <h3>{{ 'privacy.change_password_old' | translate }}</h3>
-    <form [formGroup]="formOldPassword" (ngSubmit)="changePasswordByOld()">
-      <label>{{ 'privacy.old_password' | translate }}:</label>
-      <input type="password" formControlName="vecchiaPassword" />
-      <label>{{ 'privacy.new_password' | translate }}:</label>
-      <input type="password" formControlName="nuovaPassword" />
-      <button type="submit" [disabled]="formOldPassword.invalid">{{ 'privacy.submit' | translate }}</button>
-    </form>
-
-    <hr>
-
-    <h3>{{ 'privacy.change_password_secret' | translate }}</h3>
-    <form [formGroup]="formSecretAnswer" (ngSubmit)="changePasswordBySecret()">
-      <label>{{ 'privacy.secret_answer' | translate }}:</label>
-      <input type="text" formControlName="risposta" />
-      <label>{{ 'privacy.new_password' | translate }}:</label>
-      <input type="password" formControlName="nuovaPassword" />
-      <button type="submit" [disabled]="formSecretAnswer.invalid">{{ 'privacy.submit' | translate }}</button>
-    </form>
-
-    <hr>
-
     <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
     <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
   </div>

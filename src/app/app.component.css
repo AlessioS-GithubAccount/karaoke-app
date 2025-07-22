@@ -308,3 +308,44 @@ body, html {
   background: #444;
   color: #ccc;
 }
+
+@media screen and (max-width: 768px) {
+  .navbar-container {
+    flex-direction: row;
+    padding: 0 0.5rem;
+  }
+
+  .navbar-title-link {
+    font-size: 1.2rem;
+  }
+
+  .burger {
+    width: 35px;
+    height: 28px;
+  }
+
+  .burger-line {
+    height: 3px;
+  }
+
+  .nav-links {
+    width: 100%;
+    right: 0;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .nav-links li {
+    margin-left: 1rem;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+    margin-left: 0;
+  }
+
+  .language-switch button {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.9rem;
+  }
+}

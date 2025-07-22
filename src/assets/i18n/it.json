@@ -227,5 +227,14 @@
     "loading_user_data": "Caricamento dati utente...",
     "error_message": "Errore",
     "success_message": "Operazione completata con successo"
+  },
+  "modify_profile": {
+    "title": "Modifica il tuo profilo",
+    "change_password_old": "Cambia password usando quella vecchia",
+    "old_password": "Vecchia password",
+    "new_password": "Nuova password",
+    "submit": "Invia",
+    "change_password_secret": "Cambia password con la risposta segreta",
+    "secret_answer": "Risposta segreta"
   }
 }
