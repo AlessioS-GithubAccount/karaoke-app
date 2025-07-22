@@ -3,9 +3,11 @@
 
   <div *ngIf="userData; else loadingOrError">
     <p><strong>{{ 'privacy.username' | translate }}:</strong> {{ userData.username }}</p>
-    <p><strong>{{ 'privacy.secret_question_label' | translate }}:</strong> 
-       {{ translatedSecretQuestion }}
+    <p>
+      <strong>{{ 'privacy.secret_question_label' | translate }}:</strong>
+      {{ ('privacy.secret_questions.' + userData.domanda_recupero) | translate }}
     </p>
+
 
     <hr>
 
