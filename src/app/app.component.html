@@ -96,4 +96,14 @@
   </ul>
 </nav>
 
-<router-outlet></router-outlet>
+<div [class.content-blur]="menuOpen">
+  <router-outlet></router-outlet>
+</div>
+
+<div
+  class="navbar-overlay"
+  *ngIf="menuOpen"
+  (click)="closeMenu()"
+><router-outlet></router-outlet></div>
+
+

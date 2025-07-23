@@ -84,6 +84,12 @@ body, html {
   justify-content: flex-end;
 }
 
+.content-blur {
+  filter: blur(5px);
+  transition: filter 0.3s ease;
+}
+
+
 /* Burger button */
 .burger {
   width: 40px;
@@ -129,30 +135,50 @@ body, html {
 
 /* Mobile nav */
 .nav-links {
-  position: absolute;
-  top: 60px;
-  right: 1rem;
+  position: fixed;
+  top: 0;
+  right: -100%;
+  height: 100vh;
+  width: 260px;
   background-color: var(--navbar-color);
   list-style: none;
-  padding: 1rem;
+  padding: 2rem 1.5rem;
   margin: 0;
   display: flex;
   flex-direction: column;
-  width: 220px;
-  border-radius: 0 0 10px 10px;
-  box-sizing: border-box;
   z-index: 1050;
-  transform: translateY(-10px);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
 }
 
-.nav-links.open {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
+.navbar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1040;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
+
+.navbar-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+
+/* Menu visibile quando aperto */
+.nav-links.open {
+  right: 0;
+}
+
 
 .nav-links li {
   margin: 0.5rem 0;
@@ -309,4 +335,72 @@ body, html {
   color: #ccc;
 }
 
-  
+ /* -----------------------------
+   MEDIA QUERIES
+------------------------------*/
+
+/* Tablet e inferiori (max-width: 1024px) */
+@media screen and (max-width: 1024px) {
+  .navbar-title-link {
+    font-size: 1.2rem;
+  }
+
+  .right-controls {
+    justify-content: flex-end;
+  }
+
+  .burger {
+    display: flex;
+  }
+
+  .nav-links {
+    width: 240px;
+    padding: 2rem 1.2rem;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.95rem;
+  }
+
+  .language-switch button {
+    font-size: 0.95rem;
+  }
+}
+
+/* Smartphone (max-width: 768px) */
+@media screen and (max-width: 768px) {
+  .navbar-container {
+    padding: 0 0.75rem;
+  }
+
+  .navbar-title-link {
+    font-size: 1rem;
+  }
+
+  @media screen and (max-width: 768px) {
+  .nav-links {
+    width: 100vw; /* tutta la larghezza dello schermo */
+    padding: 2rem 1rem; /* puoi regolare il padding se vuoi */
+    right: -100%; /* inizialmente nascosto */
+  }
+  .nav-links.open {
+    right: 0; /* aperto a schermo intero */
+  }
+}
+
+
+  .nav-links li {
+    margin-left: 1rem;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .language-switch button {
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+  }
+}
+ 

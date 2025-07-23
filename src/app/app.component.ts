@@ -78,13 +78,16 @@ updateBodyClass(): void {
 }
 
 
-  toggleMenu(): void {
-    this.menuOpen = !this.menuOpen;
-  }
+toggleMenu() {
+  this.menuOpen = !this.menuOpen;
+  document.body.style.overflow = this.menuOpen ? 'hidden' : 'auto';
+}
 
-  closeMenu(): void {
-    this.menuOpen = false;
-  }
+closeMenu() {
+  this.menuOpen = false;
+  document.body.style.overflow = 'auto';
+}
+
 
   logout(): void {
     this.authService.logout();
