@@ -275,12 +275,10 @@ body.light-mode .privacy-info {
   }
   50% {
     box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.5);
-    transform: translateX(1px);
-  }
-  60% {
-    transform: translateX(-1px);
+    transform: translateX(0);
   }
 }
+
 
 .neonShadow {
   animation: neonAlert 2.5s ease-in-out infinite;
