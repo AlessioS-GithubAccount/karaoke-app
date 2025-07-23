@@ -396,3 +396,46 @@ body, html {
     padding: 0.4rem 1rem;
   }
 }
+
+/* Smartphone piccoli (max-width: 480px) per app component */
+@media screen and (max-width: 480px) {
+  .navbar-container {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .navbar-title-link {
+    font-size: 0.9rem;
+  }
+
+  .burger {
+    width: 35px;
+    height: 25px;
+  }
+
+  .burger-line {
+    height: 3px;
+  }
+
+  .nav-links {
+    width: 100vw;
+    padding: 1.5rem 1rem;
+  }
+
+  .nav-links li {
+    margin-left: 0.8rem;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.85rem;
+    padding: 0.4rem 1rem;
+    margin-top: 1.5rem;
+    margin-left: 0;
+  }
+
+  .language-switch button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+    margin: 0.2rem 0.1rem;
+  }
+}
