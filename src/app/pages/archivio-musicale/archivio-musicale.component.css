@@ -11,7 +11,6 @@
 
 .my-zebra-table{
   padding: 4rem;
-
 }
 
 h2{
@@ -167,6 +166,55 @@ thead tr th {
   animation-delay: 0.1s;
 }
 
+/* --- NUOVE CLASSI PER VISUALIZZAZIONE RESPONSIVE --- */
+
+/* Lista card per smartphone */
+.mobile-cards {
+  display: none;
+  padding: 1rem 2rem;
+  gap: 1rem;
+}
+
+.mobile-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-color);
+  user-select: none;
+  transition: box-shadow 0.3s ease;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+
+  animation: fadeSlideIn 1.5s ease forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.mobile-card:hover {
+  box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+}
+
+.mobile-card div {
+  font-size: 0.9rem;
+}
+
+.mobile-card button.btn {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.8rem;
+}
+
+/* --- MEDIA QUERY --- */
+
 @media screen and (max-width: 768px) {
   .my-zebra-table {
     padding: 2rem;
@@ -189,8 +237,16 @@ thead tr th {
   }
 }
 
-
 @media screen and (max-width: 480px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-cards {
+    display: flex;
+    flex-direction: column;
+  }
+
   .my-zebra-table {
     padding: 1rem;
     font-size: 0.75rem;
@@ -214,5 +270,13 @@ thead tr th {
 
   .wishlist-btn i.active {
     transform: scale(1.1);
+  }
+
+  .mobile-card {
+    box-shadow: 0 0 6px 4px var(--accent-hover);
+  }
+
+  .mobile-card:hover {
+    box-shadow: 0 0 10px 6px var(--accent-hover);
   }
 }

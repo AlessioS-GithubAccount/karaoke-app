@@ -1,6 +1,7 @@
 <h2>{{ 'song_archive.title' | translate }}</h2>
 
-<table class="table my-zebra-table" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
+<!-- Tabella desktop/tablet (visibile sopra 480px) -->
+<table class="table my-zebra-table desktop-table" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
   <thead>
     <tr>
       <th>{{ 'song_archive.columns.artist' | translate }}</th>
@@ -32,6 +33,25 @@
     </tr>
   </tbody>
 </table>
+
+<!-- Lista card smartphone (visibile sotto 480px) -->
+<div class="mobile-cards" *ngIf="archivioFiltrato.length > 0">
+  <div class="mobile-card" *ngFor="let item of archivioFiltrato">
+    <div><strong>{{ 'song_archive.columns.artist' | translate }}:</strong> {{ item.artista }}</div>
+    <div><strong>{{ 'song_archive.columns.song' | translate }}:</strong> {{ item.canzone }}</div>
+    <div><strong>{{ 'song_archive.columns.total_requests' | translate }}:</strong> {{ item.num_richieste }}</div>
+    <div>
+      <button class="btn btn-sm btn-warning wishlist-btn" (click)="aggiungiAWishlist(item)">
+        <i [ngClass]="item.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i> {{ 'Aggiungi in wishlist' }}
+      </button>
+    </div>
+    <div *ngIf="canUseActions">
+      <button class="btn btn-sm btn-danger" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
+        {{ 'song_archive.buttons.delete' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
 
 <ng-template #noCanzoni>
   <div class="alert alert-info mt-3">
