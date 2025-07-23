@@ -96,14 +96,14 @@
   </ul>
 </nav>
 
-<div [class.content-blur]="menuOpen">
-  <router-outlet></router-outlet>
-</div>
-
+<!-- Overlay sfocatura -->
 <div
   class="navbar-overlay"
-  *ngIf="menuOpen"
+  [class.open]="menuOpen"
   (click)="closeMenu()"
-><router-outlet></router-outlet></div>
+></div>
 
-
+<!-- Contenuto principale (sfocato quando menu aperto) -->
+<div class="main-content" [class.content-blur]="menuOpen">
+  <router-outlet></router-outlet>
+</div>

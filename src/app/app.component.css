@@ -31,7 +31,7 @@ body, html {
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 1000;
+  z-index: 1100; /* aumentato per essere sopra overlay e contenuto */
   padding: 0.5rem 0;
   height: 60px;
   transition: background-color 0.3s ease;
@@ -77,18 +77,17 @@ body, html {
   outline: none;
 }
 
-
 .right-controls {
   display: flex;
   align-items: center;
   justify-content: flex-end;
 }
 
-.content-blur {
+/* SFUMATURA SOLO SUL CONTENUTO PRINCIPALE */
+.main-content.content-blur {
   filter: blur(5px);
   transition: filter 0.3s ease;
 }
-
 
 /* Burger button */
 .burger {
@@ -102,7 +101,7 @@ body, html {
   flex-direction: column;
   justify-content: space-between;
   padding: 0;
-  z-index: 1100;
+  z-index: 1200; /* sopra navbar per evitare problemi */
   background: transparent !important;
   border: none !important;
   outline: none !important;
@@ -112,7 +111,7 @@ body, html {
 .burger:focus {
   background: transparent !important;
   outline: none !important;
-  box-shadow: none !important; /* se ci fosse un’ombra di focus */
+  box-shadow: none !important;
 }
 
 .burger-line {
@@ -146,7 +145,7 @@ body, html {
   margin: 0;
   display: flex;
   flex-direction: column;
-  z-index: 1050;
+  z-index: 1150; /* sopra navbar, sotto burger */
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
   transition: right 0.3s ease;
   overflow-y: auto;
@@ -162,7 +161,7 @@ body, html {
   height: 100vh;
   backdrop-filter: blur(4px);
   background-color: rgba(0, 0, 0, 0.4);
-  z-index: 1040;
+  z-index: 1050; /* sotto nav-links */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -173,12 +172,10 @@ body, html {
   pointer-events: all;
 }
 
-
 /* Menu visibile quando aperto */
 .nav-links.open {
   right: 0;
 }
-
 
 .nav-links li {
   margin: 0.5rem 0;
@@ -186,7 +183,7 @@ body, html {
 }
 
 .nav-links a {
-  position: relative; /* necessario per posizionare il ::before */
+  position: relative;
   color: var(--text-color);
   text-decoration: none;
   font-size: 1rem;
@@ -194,7 +191,7 @@ body, html {
   display: inline-block;
   user-select: none;
   background-color: transparent;
-  z-index: 0; /* per gestire layering */
+  z-index: 0;
 }
 
 .nav-links a::before {
@@ -226,8 +223,6 @@ body, html {
 .nav-links a:focus i {
   color: var(--accent-hover);
 }
-
-
 
 .nav-links a:hover::before,
 .nav-links a:focus::before {
@@ -335,7 +330,7 @@ body, html {
   color: #ccc;
 }
 
- /* -----------------------------
+/* -----------------------------
    MEDIA QUERIES
 ------------------------------*/
 
@@ -377,17 +372,15 @@ body, html {
     font-size: 1rem;
   }
 
-  @media screen and (max-width: 768px) {
   .nav-links {
     width: 100vw; /* tutta la larghezza dello schermo */
     padding: 2rem 1rem; /* puoi regolare il padding se vuoi */
     right: -100%; /* inizialmente nascosto */
   }
+
   .nav-links.open {
     right: 0; /* aperto a schermo intero */
   }
-}
-
 
   .nav-links li {
     margin-left: 1rem;
@@ -403,4 +396,3 @@ body, html {
     padding: 0.4rem 1rem;
   }
 }
- 
