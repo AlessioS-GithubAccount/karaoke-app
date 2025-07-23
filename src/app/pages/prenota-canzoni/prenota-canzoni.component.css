@@ -199,3 +199,68 @@
   height: 2px;
 }
 
+/*mediaquery*/
+@media screen and (max-width: 768px) {
+  .form-columns {
+    gap: 3rem;
+    padding: 0 1.5rem;
+  }
+
+  .form-col {
+    max-width: 100%;
+  }
+
+  .alert-warning-custom {
+    padding: 2rem;
+    margin-right: 0.5rem;
+  }
+
+  .btn1 {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .container.mt-4 {
+    padding: 1.5rem;
+  }
+}
+
+
+@media screen and (max-width: 480px) {
+
+  .fullscreen-wrapper{
+    padding-left: 25px;
+    padding-right: 25px;
+  }
+  
+  .form-columns {
+    flex-direction: column;
+    gap: 2rem;
+    padding: 0 1rem;
+  }
+
+  .form-col {
+    max-width: 100%;
+  }
+
+  .alert-warning-custom {
+    padding: 1.5rem;
+    font-size: 0.85rem;
+    margin-right: 0;
+  }
+
+  .btn1 {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .container.mt-4 {
+    padding: 1rem;
+    margin-top: 0.5rem !important;
+  }
+
+  .required-legend {
+    font-size: 0.75rem;
+    text-align: center;
+  }
+}

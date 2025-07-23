@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap');
-
 /* Animazione di ingresso */
 .animated-fade-slide-in {
   opacity: 0;
@@ -350,4 +348,116 @@ body.light-mode .privacy-info {
     }
   }
 */
+
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 0.95rem;
+  }
+
+  .login-background {
+    padding: 20px 10px;
+    background-position: right center;
+    background-size: auto 100vh; /* Mostra la parte destra dell'immagine */
+  }
+
+  .login-container {
+    padding: 30px 20px;
+    margin-top: 5px;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.1);
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+
+  .form-links {
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .signup-section {
+    margin-top: 30px;
+  }
+
+  .signup-section p {
+    font-size: 0.85rem;
+  }
+
+  .privacy-info {
+    font-size: 0.75rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  body {
+    font-size: 0.85rem;
+  }
+
+  .login-background {
+    padding: 15px 5px;
+    background-position: right center;
+    background-size: auto 100vh;
+  }
+
+  .login-container {
+    padding: 25px 15px;
+    margin-top: 1rem;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.08);
+  }
+
+  .login-title {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .form-control {
+    font-size: 0.8rem;
+    padding: 7px 8px;
+  }
+
+  .form-links {
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  .btn {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+  }
+
+  .signup-section p {
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .privacy-info {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  .homepage {
+    background-position: right center;
+    background-size: auto 100vh;
+  }
+}
+
 

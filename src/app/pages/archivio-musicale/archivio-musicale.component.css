@@ -166,3 +166,53 @@ thead tr th {
   animation: fadeInUp 0.8s ease-out forwards;
   animation-delay: 0.1s;
 }
+
+@media screen and (max-width: 768px) {
+  .my-zebra-table {
+    padding: 2rem;
+    font-size: 0.85rem;
+  }
+
+  h2 {
+    margin-left: 2rem;
+    font-size: 1.2rem;
+  }
+
+  button, .btn {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.8rem;
+  }
+
+  .my-zebra-table thead th,
+  .my-zebra-table tbody td {
+    padding: 0.5rem;
+  }
+}
+
+
+@media screen and (max-width: 480px) {
+  .my-zebra-table {
+    padding: 1rem;
+    font-size: 0.75rem;
+  }
+
+  h2 {
+    margin-left: 1rem;
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  button, .btn {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .my-zebra-table thead th,
+  .my-zebra-table tbody td {
+    padding: 0.4rem;
+  }
+
+  .wishlist-btn i.active {
+    transform: scale(1.1);
+  }
+}
