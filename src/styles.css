@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
 /* 🌑 DARK MODE (default) */
-/* 🌑 DARK MODE (default) */
 body.dark-mode {
   --background-color: #0d0d0d;
   --navbar-color: #1a1a1a;
@@ -42,7 +41,6 @@ body.light-mode {
   --feature-bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(163, 177, 138, 0.7));
 }
 
-
 body {
   padding-top: 60px;
   font-family: 'Montserrat', sans-serif;
@@ -65,11 +63,42 @@ a:hover {
 .navbar {
   background-color: var(--navbar-color);
   transition: background-color 0.3s ease;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1100;
+  padding: 0.5rem 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .nav-links {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
   background-color: var(--menu-bg-color);
-  transition: background-color 0.3s ease;
+  list-style: none;
+  padding: 2rem 1.5rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1150;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+
+  /* Inizialmente nascosto con transform */
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  width: 240px; /* default width */
+  overflow-y: auto;
+}
+
+.nav-links.open {
+  transform: translateX(0);
 }
 
 button, .btn {
@@ -106,4 +135,267 @@ button:hover {
   max-width: 300px;
   pointer-events: none;
   z-index: 1000 !important;
+}
+
+/*mediaquery login*/
+
+/* Tablet e inferiori (max-width: 768px) */
+@media screen and (max-width: 768px) {
+  .login-background {
+    padding: 20px 10px;
+  }
+
+  .login-container {
+    max-width: 100%;
+    padding: 30px 20px;
+    margin-top: 1rem;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-control {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+
+  .form-links {
+    font-size: 0.8rem;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 10px 16px;
+  }
+
+  .signup-section p {
+    font-size: 0.85rem;
+  }
+
+  .privacy-info {
+    font-size: 0.75rem;
+    margin-top: 15px;
+  }
+}
+
+/* Smartphone piccoli (max-width: 480px) */
+@media screen and (max-width: 480px) {
+  .login-container {
+    padding: 25px 15px;
+  }
+
+  .login-title {
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .form-control {
+    font-size: 0.85rem;
+    padding: 8px 8px;
+  }
+
+  .form-links {
+    font-size: 0.75rem;
+  }
+
+  .btn {
+    font-size: 0.85rem;
+    padding: 9px 14px;
+  }
+
+  .signup-section p {
+    font-size: 0.8rem;
+  }
+
+  .privacy-info {
+    font-size: 0.7rem;
+  }
+}
+
+/* mediaquery  Register Tablet grande e inferiori */
+@media screen and (max-width: 1024px) {
+  .container {
+    max-width: 450px !important;
+    padding: 1.5rem;
+  }
+  h2.text-center {
+    font-size: 1.8rem;
+  }
+  .form-label {
+    font-size: 1rem;
+  }
+  .btn {
+    font-size: 1rem;
+    padding: 10px;
+  }
+
+  /* Nav-links adjustment for tablet */
+  .nav-links {
+    width: 240px;
+    padding: 2rem 1.2rem;
+  }
+}
+
+/* Tablet medio/piccolo e inferiori */
+@media screen and (max-width: 768px) {
+  .container {
+    max-width: 400px !important;
+    padding: 1rem;
+  }
+  h2.text-center {
+    font-size: 1.5rem;
+  }
+  .form-label {
+    font-size: 0.95rem;
+  }
+  .btn {
+    font-size: 0.95rem;
+    padding: 9px;
+  }
+
+
+  /* mediaquery appcomponent (navbar) Nav-links adjustment for smaller tablets / smartphones */
+  .nav-links {
+    width: 100vw;
+    padding: 2rem 1rem;
+    transform: translateX(100%);
+  }
+
+  .nav-links.open {
+    transform: translateX(0);
+  }
+}
+
+/* Smartphone piccolo (max-width: 480px) */
+@media screen and (max-width: 480px) {
+  .container {
+    max-width: 100% !important;
+    padding: 0.8rem 1rem;
+    margin-top: 2rem !important;
+  }
+  h2.text-center {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-label {
+    font-size: 0.9rem;
+  }
+  input.form-control,
+  select.form-select {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+  .btn {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  a.btn {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  .text-muted.small {
+    font-size: 0.8rem;
+  }
+
+  /* Nav-links adjustment for very small smartphones */
+  .nav-links {
+    width: 100vw;
+    padding: 1.5rem 1rem;
+  }
+  .nav-links li {
+    margin-left: 0.8rem;
+  }
+}
+
+/* -----------------------------
+   MEDIA QUERIES per navbar e burger
+------------------------------*/
+
+/* Tablet e inferiori (max-width: 1024px) */
+@media screen and (max-width: 1024px) {
+  .navbar-title-link {
+    font-size: 1.2rem;
+  }
+
+  .right-controls {
+    justify-content: flex-end;
+  }
+
+  .burger {
+    display: flex;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.95rem;
+  }
+
+  .language-switch button {
+    font-size: 0.95rem;
+  }
+}
+
+/* Smartphone (max-width: 768px) */
+@media screen and (max-width: 768px) {
+  .navbar-container {
+    padding: 0 0.75rem;
+  }
+
+  .navbar-title-link {
+    font-size: 1rem;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .language-switch button {
+    font-size: 0.9rem;
+    padding: 0.4rem 1rem;
+  }
+}
+
+/* Smartphone piccoli (max-width: 480px) per app component */
+@media screen and (max-width: 480px) {
+  .navbar-container {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .navbar-title-link {
+    font-size: 0.9rem;
+  }
+
+  .burger {
+    width: 35px;
+    height: 25px;
+  }
+
+  .burger-line {
+    height: 3px;
+  }
+
+  .toggle-darkmode {
+    font-size: 0.85rem;
+    padding: 0.4rem 1rem;
+    margin-top: 1.5rem;
+    margin-left: 0;
+  }
+
+  .language-switch button {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.9rem;
+    margin: 0.2rem 0.1rem;
+  }
 }
