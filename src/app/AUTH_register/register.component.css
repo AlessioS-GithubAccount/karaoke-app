@@ -1,0 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap');
+/* Import font Montserrat (già incluso presumibilmente) */
+/* Arrotondamento inputs e select */
+input.form-control,
+select.form-select {
+  border-radius: 12px !important;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  /* Per animazioni hover/ focus si possono aggiungere qui */
+}
+
+/* Animazione di ingresso simile a login */
+.register-animated-fade-slide-in {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideIn 0.8s ease-out forwards;
+}
+
+/* Chiave animazione */
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Neon/glow effetto per container */
+.register-container {
+  background-color: var(--background-color);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
+  margin-top: 2rem;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideIn 0.8s ease-out forwards, neonAlert 2.5s ease-in-out infinite;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes neonAlert {
+  0%, 100% {
+    box-shadow:  0 0 12px rgba(0, 240, 255, 0.4), 0 0 24px rgba(0, 240, 255, 0.2);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.5);
+    transform: translateX(0);
+  }
+}
+
+/* Label */
+.form-label {
+  font-weight: 600;
+  color: var(--text-color);
+  transition: color 0.3s ease;
+}
+
+/* Pulsanti */
+.btn {
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-success {
+  background-color: #00f0ff;
+  color: #000;
+  box-shadow: 0 0 12px #00f0ff;
+}
+
+.btn-success:hover {
+    background-color: #0ff;
+  transform: scale(1.05);
+  box-shadow:
+    0 0 12px rgba(0, 255, 255, 0.4),
+    0 0 24px rgba(0, 255, 255, 0.3),
+    0 0 36px rgba(0, 255, 255, 0.2);
+}
+
+/* Link btn stile simile a secondary login */
+a.btn.btn-outline-primary {
+  border: 2px solid #00c972;
+  color: #00c972;
+  background: transparent;
+  border-radius: 30px;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: block;
+}
+
+a.btn.btn-outline-primary:hover {
+  background: rgba(0, 230, 136, 0.1);
+  color: #007a3d;
+  transform: scale(1.05);
+}
+
+/* Media Queries */
+
+/* Tablet grande e inferiori */
+@media screen and (max-width: 1024px) {
+  .container {
+    max-width: 450px !important;
+    padding: 1.5rem;
+  }
+  h2.text-center {
+    font-size: 1.8rem;
+  }
+  .form-label {
+    font-size: 1rem;
+  }
+  .btn {
+    font-size: 1rem;
+    padding: 10px;
+  }
+}
+
+/* Tablet medio/piccolo e inferiori */
+@media screen and (max-width: 768px) {
+  .container {
+    max-width: 400px !important;
+    padding: 1rem;
+  }
+  h2.text-center {
+    font-size: 1.5rem;
+  }
+  .form-label {
+    font-size: 0.95rem;
+  }
+  .btn {
+    font-size: 0.95rem;
+    padding: 9px;
+  }
+}
+
+/* Smartphone piccolo (max-width: 480px) */
+@media screen and (max-width: 480px) {
+  .container {
+    max-width: 100% !important;
+    padding: 0.8rem 1rem;
+    margin-top: 2rem !important;
+  }
+  h2.text-center {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-label {
+    font-size: 0.9rem;
+  }
+  input.form-control,
+  select.form-select {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+  .btn {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  a.btn {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+  .text-muted.small {
+    font-size: 0.8rem;
+  }
+}
