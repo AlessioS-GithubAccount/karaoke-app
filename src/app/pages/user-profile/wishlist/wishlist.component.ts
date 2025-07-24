@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
@@ -11,16 +11,33 @@ import { ViewEncapsulation } from '@angular/core';
   encapsulation: ViewEncapsulation.None
 })
 export class WishlistComponent implements OnInit {
-  
+
   wishlist: any[] = [];
   private backendUrl = 'http://localhost:3000/api';
 
-  @ViewChild('bottom') bottom!: ElementRef;  // <-- per lo scroll
+  isMobile: boolean = false;  // <-- aggiunta
 
-  constructor(private http: HttpClient, private auth: AuthService, private router: Router) {}
+  @ViewChild('bottom') bottom!: ElementRef;
+
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.checkScreenSize();   // Controlla subito la dimensione
     this.loadWishlist();
+  }
+
+  // Listener per aggiornare la variabile al resize
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isMobile = window.innerWidth <= 768;  // breakpoint comune per mobile
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -66,7 +83,6 @@ export class WishlistComponent implements OnInit {
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
 
-    // Attendi che Angular aggiorni il DOM prima di scrollare
     setTimeout(() => this.scrollToBottom(), 100);
   }
 
@@ -78,5 +94,14 @@ export class WishlistComponent implements OnInit {
 
   ritornaAlProfilo(): void {
     this.router.navigate(['/user-profile']);
+  }
+
+  get isWishlistEffettivamenteVuota(): boolean {
+    return this.wishlist.length === 0 || this.wishlist.every(
+      song =>
+        (!song.canzone || song.canzone.trim() === '') &&
+        (!song.artista || song.artista.trim() === '') &&
+        (!song.tonalita || song.tonalita.trim() === '')
+    );
   }
 }

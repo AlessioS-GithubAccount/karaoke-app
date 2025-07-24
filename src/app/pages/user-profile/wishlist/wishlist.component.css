@@ -37,9 +37,6 @@ h2 {
 }
 
 /* Tabella stile "archivio canzoni" */
-table{
-
-}
 
 .my-zebra-table {
   width: 100%;
@@ -228,3 +225,97 @@ button:disabled {
     transform: translateY(0);
   }
 }
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+  h2 {
+    margin: 0 auto 1.5rem;
+    text-align: center;
+  }
+
+  .wishlist-header-buttons {
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem auto;
+    text-align: center;
+  }
+
+  .wishlist-header-buttons .btn-link,
+  .wishlist-header-buttons-2 .btn-link,
+  .add-song-btn {
+    margin: 0.5rem auto;
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+
+ .wishlist-mobile-card {
+  background-color: var(--card-background, rgba(255, 255, 255, 0.05));
+  padding: 1rem;
+  margin: 1rem auto;      /* margin auto orizzontale per centrare */
+  border-radius: 16px;
+  box-shadow: 0 0 12px var(--accent-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 90%;        /* restringi un po' la larghezza */
+  /* oppure max-width: 400px; se vuoi un limite fisso */
+}
+
+  .mobile-card-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .wishlist-input {
+    width: 100%;
+  }
+
+  .no-wishlist-text {
+    text-align: center;
+    margin-top: 2rem;
+    font-weight: 500;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  h2 {
+    font-size: 1.25rem;
+    margin: 0 auto 1rem;
+  }
+
+  .wishlist-header-buttons {
+    gap: 6px;
+  }
+
+  .wishlist-header-buttons .btn-link,
+  .wishlist-header-buttons-2 .btn-link,
+  .add-song-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+    margin: 0.4rem auto;
+  }
+
+ .wishlist-mobile-card {
+  background-color: var(--card-background, rgba(255, 255, 255, 0.05));
+  padding: 1rem;
+  margin: 1rem auto;      /* margin auto orizzontale per centrare */
+  border-radius: 16px;
+  box-shadow: 0 0 12px var(--accent-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 90%;        /* restringi un po' la larghezza */
+  /* oppure max-width: 400px; se vuoi un limite fisso */
+}
+
+  .mobile-card-actions {
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+}
+
+
+

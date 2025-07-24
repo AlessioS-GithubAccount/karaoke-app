@@ -1,5 +1,3 @@
-
-
 <div class="wishlist-header-buttons">
   <h2>{{ 'performance_history.wishlist_title' | translate }}</h2>
 
@@ -18,10 +16,8 @@
   </div>
 </div>
 
-
-
-
-<table class="my-zebra-table" *ngIf="wishlist.length > 0; else noWishlist">
+<!-- DESKTOP TABLE -->
+<table class="my-zebra-table" *ngIf="!isMobile && wishlist.length > 0; else mobileView">
   <thead>
     <tr>
       <th>{{ 'performance_history.song' | translate }}</th>
@@ -37,15 +33,10 @@
       <td><input class="wishlist-input" [(ngModel)]="song.tonalita" /></td>
       <td>
         <div class="action-buttons">
-          <button class="btn-crud"
-            (click)="salvaWishlist(song)"
-            [disabled]="!song.canzone || !song.artista"
-            [title]="'performance_history.fill_minimum_fields' | translate">
+          <button class="btn-crud" (click)="salvaWishlist(song)" [disabled]="!song.canzone || !song.artista">
             {{ 'performance_history.save_button' | translate }}
           </button>
-          <button class="btn-crud"
-            (click)="rimuoviWishlist(song.id)"
-            [title]="'performance_history.delete_from_wishlist' | translate">
+          <button class="btn-crud" (click)="rimuoviWishlist(song.id)">
             {{ 'performance_history.delete_button' | translate }}
           </button>
         </div>
@@ -53,19 +44,45 @@
     </tr>
   </tbody>
 </table>
-<div #bottom></div>
 
+<!-- MOBILE CARDS -->
+<ng-template #mobileView>
+  <div *ngIf="isMobile && wishlist.length > 0; else noWishlist">
+    <div *ngFor="let song of wishlist" class="wishlist-mobile-card">
+      <div><strong>{{ 'performance_history.song' | translate }}:</strong>
+        <input class="wishlist-input" [(ngModel)]="song.canzone" />
+      </div>
+      <div><strong>{{ 'performance_history.artist' | translate }}:</strong>
+        <input class="wishlist-input" [(ngModel)]="song.artista" />
+      </div>
+      <div><strong>{{ 'performance_history.key' | translate }}:</strong>
+        <input class="wishlist-input" [(ngModel)]="song.tonalita" />
+      </div>
+      <div class="mobile-card-actions">
+        <button (click)="salvaWishlist(song)" [disabled]="!song.canzone || !song.artista">
+          {{ 'performance_history.save_button' | translate }}
+        </button>
+        <button (click)="rimuoviWishlist(song.id)">
+          {{ 'performance_history.delete_button' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>
 
+<!-- Empty State -->
+<ng-template #noWishlist>
+  <p class="no-wishlist-text">{{ 'performance_history.wishlist_empty' | translate }}</p>
+</ng-template>
 
+<!-- BOTTOM ACTIONS -->
 <div class="wishlist-header-buttons-2">
   <a routerLink="/prenota-canzoni" class="btn-link mt-4 btn-crud">
-  {{ 'performance_history.go_to_booking' | translate }}
+    {{ 'performance_history.go_to_booking' | translate }}
   </a>
-
-  <ng-template #noWishlist>
-    <p>{{ 'performance_history.wishlist_empty' | translate }}</p>
-  </ng-template>
-
-  <button class="add-song-btn" (click)="aggiungiRiga()"> {{ 'performance_history.add_song' | translate }}</button>
+  <button class="add-song-btn" (click)="aggiungiRiga()">
+    {{ 'performance_history.add_song' | translate }}
+  </button>
 </div>
 
+<div #bottom></div>
