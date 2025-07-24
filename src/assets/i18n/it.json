@@ -217,16 +217,7 @@
       "nome_madre": "Qual è il nome di tua madre?",
       "animale_preferito": "Qual è il tuo animale preferito?",
       "codicepin": "Qual è il tuo codice PIN?"
-    },
-    "change_password_old": "Cambia Password con Vecchia Password",
-    "old_password": "Vecchia Password",
-    "new_password": "Nuova Password",
-    "change_password_secret": "Cambia Password con Risposta Domanda Segreta",
-    "secret_answer": "Risposta alla domanda segreta",
-    "submit": "Cambia Password",
-    "loading_user_data": "Caricamento dati utente...",
-    "error_message": "Errore",
-    "success_message": "Operazione completata con successo"
+    }
   },
   "modify_profile": {
     "title": "Modifica il tuo profilo",

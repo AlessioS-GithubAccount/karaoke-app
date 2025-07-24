@@ -125,10 +125,11 @@ button:disabled {
   transition: color 0.3s ease;
 }
 
+/* Bottone Torna al Profilo */
 .btn-back-profile {
-  display: inline-block;
-  margin: 0 0 1.5rem 1rem;
-  padding: 8px 16px;
+  display: block;             /* blocco per margine auto */
+  margin: 0 auto 1.5rem auto; /* centrato orizzontalmente, margine sotto */
+  padding: 8px 20px;          /* padding più stretto */
   border-radius: 30px;
   font-weight: 700;
   font-size: 0.9rem;
@@ -138,6 +139,9 @@ button:disabled {
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
+  max-width: 200px;           /* larghezza max contenuta */
+  text-align: center;
+  white-space: nowrap;
 }
 
 .btn-back-profile:hover {
@@ -201,6 +205,11 @@ button:disabled {
     font-size: 1rem;
     padding: 12px 0;
   }
+
+  .btn-back-profile {
+    max-width: 180px;
+    padding: 8px 18px;
+  }
 }
 
 @media screen and (max-width: 480px) {
@@ -231,5 +240,11 @@ button:disabled {
   button {
     font-size: 0.9rem;
     padding: 10px 0;
+  }
+
+  .btn-back-profile {
+    max-width: 160px;
+    padding: 7px 16px;
+    font-size: 0.85rem;
   }
 }

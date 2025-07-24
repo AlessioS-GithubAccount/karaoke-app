@@ -217,16 +217,7 @@
       "nome_madre": "What is your mother’s name?",
       "animale_preferito": "What is your favorite animal?",
       "codicepin": "What is your PIN code?"
-    },
-    "change_password_old": "Change Password with Old Password",
-    "old_password": "Old Password",
-    "new_password": "New Password",
-    "change_password_secret": "Change Password with Secret Question Answer",
-    "secret_answer": "Answer to the secret question",
-    "submit": "Change Password",
-    "loading_user_data": "Loading user data...",
-    "error_message": "Error",
-    "success_message": "Operation completed successfully"
+    }
   },
   "modify_profile": {
     "title": "Modify your profile",

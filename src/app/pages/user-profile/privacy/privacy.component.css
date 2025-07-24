@@ -33,6 +33,7 @@ h2 {
   opacity: 0;
   transform: translateY(20px);
   transition: color 0.3s ease;
+  text-align: left;
 }
 
 form {
@@ -121,5 +122,78 @@ button:disabled {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Media queries con animazioni */
+
+@media screen and (max-width: 768px) {
+  .privacy-container {
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 24px 20px;
+    animation: fadeSlideIn 1s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.8s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+    animation-delay: 0.1s;
+    text-align: center;
+  }
+
+  p {
+    font-size: 0.95rem;
+  }
+
+  input {
+    font-size: 0.95rem;
+    padding: 10px 10px;
+  }
+
+  button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px 0;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .privacy-container {
+    max-width: 95%;
+    margin: 15px auto;
+    padding: 20px 15px;
+    animation: fadeSlideIn 1s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    animation: fadeInUp 0.8s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+    animation-delay: 0.1s;
+    text-align: center;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  input {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+
+  button {
+    font-size: 0.85rem;
+    padding: 10px 0;
   }
 }
