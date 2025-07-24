@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-modify-profile',
@@ -20,7 +21,8 @@ export class ModifyProfileComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private fb: FormBuilder,
-    private translate: TranslateService
+    private translate: TranslateService, 
+    private router: Router
   ) {
     this.formOldPassword = this.fb.group({
       vecchiaPassword: ['', Validators.required],
@@ -80,4 +82,9 @@ export class ModifyProfileComponent implements OnInit {
         }
       });
   }
+
+  goBackToProfile() {
+  // Logica per tornare al profilo, es. navigare a un'altra route
+  this.router.navigate(['/user-profile']);
+}
 }

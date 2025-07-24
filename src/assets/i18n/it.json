@@ -235,6 +235,7 @@
     "new_password": "Nuova password",
     "submit": "Invia",
     "change_password_secret": "Cambia password con la risposta segreta",
-    "secret_answer": "Risposta segreta"
+    "secret_answer": "Risposta segreta",
+    "back_to_profile": "Ritorna al profilo"
   }
 }

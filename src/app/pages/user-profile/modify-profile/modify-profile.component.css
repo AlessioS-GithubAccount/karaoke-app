@@ -10,9 +10,9 @@
 }
 
 .modify-profile-container {
-  max-width: 600px;
+  max-width: 520px;       /* leggermente più stretto */
   margin: 40px auto;
-  padding: 20px;
+  padding: 30px 40px;     /* più padding orizzontale */
   border-radius: 16px;
   background-color: var(--background-color);
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.12), 0 0 16px var(--glow-color);
@@ -40,10 +40,6 @@ form {
   align-items: center; /* centra i button */
   gap: 0.5rem;
 }
-
-
-
-
 
 .form-section {
   background-color: var(--background-color);
@@ -129,6 +125,26 @@ button:disabled {
   transition: color 0.3s ease;
 }
 
+.btn-back-profile {
+  display: inline-block;
+  margin: 0 0 1.5rem 1rem;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: var(--text-color);
+  box-shadow: 0 0 10px var(--glow-color);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.btn-back-profile:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
 /* Animazioni */
 @keyframes fadeSlideIn {
   0% {
@@ -147,4 +163,73 @@ button:disabled {
     transform: translateY(0);
   }
 }
- 
+
+/* Media queries */
+
+@media screen and (max-width: 768px) {
+  .modify-profile-container {
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 20px 30px;
+    animation: fadeSlideIn 1s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  h2 {
+    margin-left: 0.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+    animation-delay: 0.1s;
+  }
+
+  form {
+    gap: 1rem;
+  }
+
+  input[type="password"],
+  input[type="text"] {
+    font-size: 1rem;
+    padding: 12px 14px;
+  }
+
+  button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px 0;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .modify-profile-container {
+    max-width: 95%;
+    margin: 15px auto;
+    padding: 16px 20px;
+    animation: fadeSlideIn 1s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    margin-left: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+    transform: translateY(20px);
+    opacity: 0;
+    animation-delay: 0.1s;
+  }
+
+  input[type="password"],
+  input[type="text"] {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+
+  button {
+    font-size: 0.9rem;
+    padding: 10px 0;
+  }
+}
