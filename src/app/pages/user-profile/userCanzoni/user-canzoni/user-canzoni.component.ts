@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../../services/auth.service';
 import { Router } from '@angular/router';
@@ -28,12 +28,19 @@ export class UserCanzoniComponent implements OnInit {
   esibizioni: Esibizione[] = [];
   wishlist: any[] = [];
   userId!: number;
+  isMobile = false;
 
   private backendUrl = 'http://localhost:3000/api';
 
-  constructor(private http: HttpClient, private auth: AuthService,private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
+    this.checkWindowSize();
+
     this.auth.getUtenteLoggato().subscribe(user => {
       if (user && user.id) {
         this.userId = user.id;
@@ -41,6 +48,15 @@ export class UserCanzoniComponent implements OnInit {
         this.loadWishlist();
       }
     });
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkWindowSize();
+  }
+
+  private checkWindowSize() {
+    this.isMobile = window.innerWidth <= 768; // breakpoint per mobile
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -128,9 +144,8 @@ export class UserCanzoniComponent implements OnInit {
   }
 
   ritornaAlProfilo() {
-  this.router.navigate(['/user-profile']); // oppure l'URL corretto del tuo profilo
-}
-
+    this.router.navigate(['/user-profile']); // o percorso corretto del profilo
+  }
 
   // Mappa emoji testuali a classi FontAwesome per icone
   getFaIconClass(emoji: string): string {
@@ -140,11 +155,10 @@ export class UserCanzoniComponent implements OnInit {
       case '❤️': return 'fa-heart';
       case '🔥': return 'fa-fire';
       case '😊': return 'fa-smile';
-      case '😢': return 'fa-face-sad-tear'; // FontAwesome 6 pro, potresti sostituire se non disponibile
+      case '😢': return 'fa-face-sad-tear'; // FontAwesome 6 pro, modifica se necessario
       case '⭐': return 'fa-star';
       case '🎵': return 'fa-music';
       default:
-        // fallback: se l’emoji non è mappata, usa un’icona generica
         return 'fa-circle';
     }
   }

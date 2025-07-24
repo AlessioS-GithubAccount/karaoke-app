@@ -9,8 +9,11 @@
 
   <h2 class="animated-title">{{ 'performance_history.title' | translate }}</h2>
 
-  <div *ngIf="esibizioni.length > 0; else noEsibizioni">
-    <div class="table-wrapper">
+  <!-- CONTENUTO CON ESIBIZIONI -->
+  <ng-container *ngIf="esibizioni && esibizioni.length > 0; else noEsibizioni">
+
+    <!-- DESKTOP VIEW -->
+    <div *ngIf="!isMobile" class="table-wrapper">
       <table class="my-zebra-table">
         <thead>
           <tr>
@@ -36,15 +39,16 @@
                 <span>{{ 'performance_history.dash' | translate }}</span>
               </ng-template>
             </td>
-            <td>
-              <div *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
-                <div *ngFor="let voto of canzone.voti" class="emoji-voto">
-                  <div class="emoji">
+            <td class="votes-cell">
+              <span class="votes-label">{{ 'performance_history.votes' | translate }}:</span>
+              <span class="votes-wrapper" *ngIf="canzone.voti && canzone.voti.length > 0; else noVoti">
+                <span *ngFor="let voto of canzone.voti" class="emoji-voto">
+                  <span class="emoji">
                     <i class="fa-solid" [ngClass]="getFaIconClass(voto.emoji)"></i>
-                  </div>
-                  <div class="count">{{ voto.count }}</div>
-                </div>
-              </div>
+                  </span>
+                  <span class="count">{{ voto.count }}</span>
+                </span>
+              </span>
               <ng-template #noVoti>
                 <span>{{ 'performance_history.dash' | translate }}</span>
               </ng-template>
@@ -59,10 +63,51 @@
         </tbody>
       </table>
     </div>
-  </div>
 
+    <!-- MOBILE VIEW -->
+    <div *ngIf="isMobile" class="mobile-card-wrapper">
+      <div *ngFor="let canzone of esibizioni" class="mobile-card">
+        <div><strong>{{ 'performance_history.song' | translate }}:</strong> {{ canzone.canzone }}</div>
+        <div><strong>{{ 'performance_history.artist' | translate }}:</strong> {{ canzone.artista }}</div>
+        <div><strong>{{ 'performance_history.key' | translate }}:</strong> {{ canzone.tonalita || ('performance_history.dash' | translate) }}</div>
+        <div><strong>{{ 'performance_history.sang_with' | translate }}:</strong>
+          <span *ngIf="canzone.partecipante_2 || canzone.partecipante_3; else noCollabMobile">
+            {{ canzone.partecipante_2 || '' }}<span *ngIf="canzone.partecipante_2 && canzone.partecipante_3">, </span>{{ canzone.partecipante_3 || '' }}
+          </span>
+          <ng-template #noCollabMobile>
+            <span>{{ 'performance_history.dash' | translate }}</span>
+          </ng-template>
+        </div>
+        <div>
+          <strong>{{ 'performance_history.votes' | translate }}:</strong>
+          <ng-container *ngIf="canzone.voti && canzone.voti.length > 0; else noVotiMobile">
+            <span class="votes-wrapper">
+              <span class="emoji-voto" *ngFor="let voto of canzone.voti">
+                <span class="emoji">
+                  <i class="fa-solid" [ngClass]="getFaIconClass(voto.emoji)"></i>
+                </span>
+                <span class="count">{{ voto.count }}</span>
+              </span>
+            </span>
+          </ng-container>
+          <ng-template #noVotiMobile>
+            <span>{{ 'performance_history.dash' | translate }}</span>
+          </ng-template>
+        </div>
+        <div><strong>{{ 'performance_history.date' | translate }}:</strong> {{ canzone.data_esibizione | date: 'dd/MM/yyyy HH:mm' }}</div>
+        <div class="mobile-card-actions">
+          <button (click)="eliminaCanzone(canzone.esibizione_id)">
+            {{ 'performance_history.delete_button' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- NO ESIBIZIONI -->
   <ng-template #noEsibizioni>
-    <div class="alert alert-info mt-3">
+    <div class="alert alert-info mt-3 text-center">
       {{ 'performance_history.no_performances' | translate }}
     </div>
   </ng-template>

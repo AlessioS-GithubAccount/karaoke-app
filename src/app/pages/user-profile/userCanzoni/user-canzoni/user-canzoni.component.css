@@ -6,6 +6,7 @@
   font-family: 'Montserrat', sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .animated-title {
@@ -47,23 +48,31 @@
 
 .my-zebra-table tbody tr {
   background: var(--odd-color);
-  box-shadow: none; /* rimosso il glow fisso */
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
   border-radius: 12px;
   backdrop-filter: blur(4px);
   animation: fadeSlideIn 1.5s ease forwards;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.my-zebra-table tbody tr:nth-child(even) {
+  background: var(--even-color);
 }
 
 .my-zebra-table tbody tr:hover {
   transform: scale(1.01);
   box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover);
+  opacity: 1 !important;
 }
 
 .my-zebra-table tbody tr:focus,
 .my-zebra-table tbody tr:active {
   outline: none;
-  box-shadow: none;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
   transform: none;
+  opacity: 1 !important;
 }
 
 .my-zebra-table tbody tr td:first-child {
@@ -76,24 +85,48 @@
   border-bottom-right-radius: 12px;
 }
 
+/* Sistema voti emoji */
+.votes-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* allinea a sinistra per evitare sovrapposizioni */
+  gap: 10px; /* spazio fra label e emoji */
+  white-space: nowrap; /* evita a capo */
+  min-width: 150px; /* larghezza minima */
+  overflow-x: auto; /* scroll orizzontale se necessario */
+}
+
+.votes-label {
+  flex-shrink: 0; /* non si restringe */
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.votes-wrapper {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto; /* scroll emoji orizzontale */
+  -webkit-overflow-scrolling: touch; /* scorrimento fluido su mobile */
+}
+
 .emoji-voto {
-  display: inline-block;
-  margin-right: 10px;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.5em;
+  user-select: none;
 }
 
 .emoji-voto .emoji {
-  font-size: 1.5em;
+  line-height: 1;
 }
 
 .emoji-voto .count {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1;
 }
 
-.light-mode button {
-  color: white !important;
-}
-
+/* Bottone base */
 button {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
@@ -126,12 +159,55 @@ button:hover {
   color: #fff;
   border: none;
   transition: background-color 0.3s;
+  max-width: 220px;
+  width: 100%;
+  box-shadow: none;
 }
 
 .center-btn button:hover {
   background-color: #555;
+  box-shadow: none;
+  transform: none;
 }
 
+/* MOBILE CARD VIEW */
+.mobile-card-wrapper {
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mobile-card {
+  background: var(--odd-color);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 0 10px var(--glow-color);
+  backdrop-filter: blur(6px);
+  color: var(--text-color);
+  user-select: none;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  animation: fadeSlideIn 1.5s ease forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.mobile-card:hover {
+  box-shadow: 0 0 14px var(--glow-color), 0 0 28px var(--accent-hover);
+  transform: translateY(-3px);
+}
+
+.mobile-card div {
+  font-size: 0.9rem;
+}
+
+.mobile-card-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Animazioni */
 @keyframes fadeSlideIn {
   0% {
     opacity: 0;
@@ -147,5 +223,99 @@ button:hover {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .animated-title {
+    margin-left: 2rem;
+    font-size: 1.4rem;
+  }
+
+  .table-wrapper {
+    padding: 2rem;
+  }
+
+  .my-zebra-table {
+    font-size: 0.85rem;
+  }
+
+  .emoji-voto .emoji {
+    font-size: 1.3em;
+  }
+
+  .emoji-voto .count {
+    font-size: 0.75rem;
+  }
+
+  button {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .center-btn button {
+    padding: 5px 14px;
+    font-size: 13px;
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .center-btn button {
+    padding: 4px 12px;
+    font-size: 12px;
+    max-width: 140px;
+  }
+
+  .animated-title {
+    margin-left: 0;
+    font-size: 1.2rem;
+    text-align: center; /* centra h2 su mobile */
+  }
+
+  .table-wrapper {
+    padding: 1rem;
+  }
+
+  /* Nascondi la tabella in smartphone */
+  .table-wrapper table.my-zebra-table {
+    display: none;
+  }
+
+  .mobile-card-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-card {
+    background: var(--odd-color);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    backdrop-filter: blur(4px);
+    /* box-shadow con colore accent-color */
+    box-shadow: 0 0 10px var(--accent-hover);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    color: var(--text-color);
+    animation: fadeSlideIn 1.5s ease forwards;
+    opacity: 0;
+    animation-fill-mode: forwards;
+  }
+
+  button {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    width: 100%;
+    border-radius: 12px;
+    background-color: #333;
+    color: #fff;
+    box-shadow: none;
+  }
+
+  button:hover {
+    background-color: #555;
+    box-shadow: none;
+    transform: none;
   }
 }

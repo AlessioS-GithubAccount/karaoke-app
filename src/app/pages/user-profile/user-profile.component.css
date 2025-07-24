@@ -13,8 +13,8 @@
   background-repeat: no-repeat;
   background-attachment: fixed; /* opzionale se vuoi effetto parallax */
   position: relative; /* o nulla, se non serve */
-  z-index: -1;
 }
+
 
 .profile-title{
   margin-top: 8rem;
@@ -199,58 +199,3 @@
 }
 
 
-@media (max-width: 768px) {
-  :host {
-    background-attachment: scroll; /* fallback per parallax su tablet */
-  }
-
-  .profile-title {
-    margin-top: 4rem;
-    font-size: 1.6rem;
-  }
-
-  .user-profile-container {
-    padding: 1.5rem;
-  }
-
-  .profile-card-grid {
-    gap: 1rem;
-  }
-
-  .profile-card {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  :host {
-    background-attachment: scroll; /* fallback per parallax su smartphone */
-  }
-
-  .profile-title {
-    margin-top: 2.5rem;
-    font-size: 1.4rem;
-  }
-
-  .user-profile-container {
-    padding: 1rem;
-  }
-
-  .profile-card-grid {
-    grid-template-columns: 1fr; /* una card per riga */
-    gap: 0.8rem;
-  }
-
-  .profile-card {
-    padding: 0.8rem;
-    min-height: 180px;
-  }
-
-  .profile-card h3 {
-    font-size: 1.1rem;
-  }
-
-  .profile-card p {
-    font-size: 0.85rem;
-  }
-}
