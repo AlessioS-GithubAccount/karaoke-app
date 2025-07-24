@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
-
 :host {
   display: block;
   padding-top: 60px;
@@ -22,10 +21,9 @@
   gap: 8px;
 }
 
-.wishlist-header-buttons-2{
+.wishlist-header-buttons-2 {
   margin-bottom: 3rem;
 }
-
 
 h2 {
   margin-left: 4rem;
@@ -57,7 +55,8 @@ h2 {
   letter-spacing: 1px;
 }
 
-.my-zebra-table th, .my-zebra-table td {
+.my-zebra-table th,
+.my-zebra-table td {
   text-align: center;
   padding: 0.75rem;
 }
@@ -136,7 +135,7 @@ h2 {
 }
 
 body.light-mode .btn-crud {
-  color: var( --background-color)!important;
+  color: var(--background-color) !important;
 }
 
 button {
@@ -249,18 +248,18 @@ button:disabled {
     font-size: 0.75rem;
   }
 
- .wishlist-mobile-card {
-  background-color: var(--card-background, rgba(255, 255, 255, 0.05));
-  padding: 1rem;
-  margin: 1rem auto;      /* margin auto orizzontale per centrare */
-  border-radius: 16px;
-  box-shadow: 0 0 12px var(--accent-hover);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-width: 90%;        /* restringi un po' la larghezza */
-  /* oppure max-width: 400px; se vuoi un limite fisso */
-}
+  .wishlist-mobile-card {
+    background-color: var(--card-background, rgba(255, 255, 255, 0.05));
+    padding: 1rem;
+    margin: 1rem auto; /* margin auto orizzontale per centrare */
+    border-radius: 16px;
+    box-shadow: 0 0 12px var(--accent-hover);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 90%; /* restringi un po' la larghezza */
+    animation: fadeSlideIn 1.5s ease forwards; /* animazione aggiunta */
+  }
 
   .mobile-card-actions {
     display: flex;
@@ -298,24 +297,21 @@ button:disabled {
     margin: 0.4rem auto;
   }
 
- .wishlist-mobile-card {
-  background-color: var(--card-background, rgba(255, 255, 255, 0.05));
-  padding: 1rem;
-  margin: 1rem auto;      /* margin auto orizzontale per centrare */
-  border-radius: 16px;
-  box-shadow: 0 0 12px var(--accent-hover);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-width: 90%;        /* restringi un po' la larghezza */
-  /* oppure max-width: 400px; se vuoi un limite fisso */
-}
+  .wishlist-mobile-card {
+    background-color: var(--card-background, rgba(255, 255, 255, 0.05));
+    padding: 1rem;
+    margin: 1rem auto;
+    border-radius: 16px;
+    box-shadow: 0 0 12px var(--accent-hover);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 90%;
+    animation: fadeSlideIn 1.5s ease forwards; /* animazione anche qui */
+  }
 
   .mobile-card-actions {
     gap: 0.5rem;
     margin-top: 0.4rem;
   }
 }
-
-
-
