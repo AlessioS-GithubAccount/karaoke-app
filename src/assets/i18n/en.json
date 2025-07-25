@@ -210,6 +210,7 @@
     "title": "Privacy Settings",
     "username": "Username",
     "role": "Role",
+    "btn-back profile":"Back to profile",
     "secret_question_label": "Secret question",
     "secret_questions": {
       "nome_animale_domestico": "What is the name of your pet?",
@@ -217,6 +218,7 @@
       "nome_madre": "What is your mother’s name?",
       "animale_preferito": "What is your favorite animal?",
       "codicepin": "What is your PIN code?"
+
     }
   },
   "modify_profile": {

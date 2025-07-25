@@ -21,6 +21,28 @@
   transform: translateY(20px);
   opacity: 0;
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+  /* --- WRAPPING TESTO --- */
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto;
+  overflow-x: hidden;
+}
+
+.privacy-container p,
+.privacy-container strong,
+.privacy-container div {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto;
+}
+
+.privacy-container button {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 h2 {

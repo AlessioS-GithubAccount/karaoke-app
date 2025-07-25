@@ -12,8 +12,14 @@
     <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
   </div>
 
-  <ng-template #loadingOrError>
+    <ng-template #loadingOrError>
     <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
     <div *ngIf="!errorMessage">{{ 'privacy.loading_user_data' | translate }}</div>
   </ng-template>
 </div>
+<!-- Pulsante per tornare al profilo -->
+    <div class="back-to-profile-btn text-center mt-3">
+      <a routerLink="/user-profile" class="btn btn-primary">
+        {{ 'privacy.btn-back profile' | translate }}
+      </a>
+    </div>
