@@ -1,6 +1,5 @@
 <h2 class="fade-text">Canzoni in coda</h2>
-<table class="table my-zebra-table">
-  <thead>
+<table *ngIf="!isMobileView && !isTabletView && canzoni.length > 0" class="table my-zebra-table">  <thead>
     <tr>
       <th class="fade-text">{{ 'song_list.labels.status' | translate }}</th>
       <th class="fade-text">#</th>
@@ -151,3 +150,82 @@
     </tr>
   </tbody>
 </table>
+
+<!-- template mobile cards -->
+<div class="mobile-cards" *ngIf="isMobileView && canzoni.length > 0">
+  <div class="mobile-card" *ngFor="let canzone of canzoni; let i = index" style="margin-bottom: 1rem; padding: 1rem; border-radius: 12px; background: var(--even-color); box-shadow: var(--box-shadow);">
+    <div><strong>{{ 'song_list.labels.status' | translate }}:</strong>
+      <button (click)="isAdmin && toggleCantata(i)"
+              class="btn btn-sm"
+              [disabled]="!isAdmin"
+              [ngClass]="canzoni[i].cantata ? 'btn-cantata' : 'btn-dacantare'">
+        {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
+      </button>
+    </div>
+    <div><strong>#:</strong> {{ i + 1 }}</div>
+    <div><strong>{{ 'song_list.labels.name' | translate }}:</strong> {{ canzone.nome }}</div>
+    <div><strong>{{ 'song_list.labels.artist' | translate }}:</strong> {{ canzone.artista }}</div>
+    <div><strong>{{ 'song_list.labels.song' | translate }}:</strong> {{ canzone.canzone }}</div>
+    <div *ngIf="isAdmin"><strong>{{ 'song_list.labels.key' | translate }}:</strong> {{ canzone.tonalita }}</div>
+    <div *ngIf="isAdmin"><strong>{{ 'song_list.labels.notes' | translate }}:</strong> {{ canzone.note }}</div>
+
+    <div>
+      <div class="card-btn-group">
+        <button class="btn btn-success"
+                [disabled]="!puoPartecipare || partecipazioneCompleta(canzone) || !canzone.accetta_partecipanti"
+                (click)="partecipaAllaCanzone(canzone)">
+          {{ 'song_list.labels.join' | translate }}
+        </button>
+        <button class="btn wishlist-btn" (click)="aggiungiAWishlist(canzone)">
+          <i [ngClass]="canzone.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
+        </button>
+      </div>
+
+      <div *ngIf="mostraInputPartecipazione[canzone.id]" class="mt-1">
+        <input type="text"
+               [(ngModel)]="nomePartecipanteMap[canzone.id]"
+               placeholder="Il tuo nome"
+               class="form-control form-control-sm mb-1" />
+        <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">Invia</button>
+        <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">Annulla</button>
+      </div>
+      <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
+        {{ 'song_list.participation.full' | translate }}
+      </div>
+      <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
+        {{ 'song_list.participation.not_available' | translate }}
+      </div>
+    </div>
+
+    <div *ngIf="canEditOrDelete(canzone)">
+      <button *ngIf="editingIndex !== i" class="btn btn-sm btn-warning me-1 btncrud" (click)="modifica(i)">
+        {{ 'song_list.actions.edit' | translate }}
+      </button>
+      <button *ngIf="editingIndex === i" class="btn btn-sm btn-success me-1 btncrud" (click)="salvaModifica(i)">
+        {{ 'song_list.actions.save' | translate }}
+      </button>
+      <button *ngIf="editingIndex === i" class="btn btn-sm btn-secondary me-1 btncrud" (click)="annullaModifica()">
+        {{ 'song_list.actions.cancel' | translate }}
+      </button>
+      <button class="btn btn-sm btn-danger btncrud" (click)="eliminaCanzone(canzone.id, i)">
+        {{ 'song_list.actions.delete' | translate }}
+      </button>
+    </div>
+
+    <div class="emoji_box">
+      <span *ngFor="let emoji of emojisVoto"
+            (click)="votaCanzone(i, emoji.label)"
+            [class.glow]="canzoni[i].votoEmoji === emoji.label"
+            class="vote-icon"
+            [title]="'song_list.labels.vote' | translate:{ emoji: emoji.label }">
+        <i [ngClass]="'fa-solid ' + emoji.icon"></i>
+      </span>
+    </div>
+  </div>
+</div>
+
+<ng-template #noSongs>
+  <div class="alert alert-info mt-3">
+    {{ 'song_list.messages.no_songs_found' | translate }}
+  </div>
+</ng-template>

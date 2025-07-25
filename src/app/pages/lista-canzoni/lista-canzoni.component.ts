@@ -44,6 +44,8 @@ export class ListaCanzoniComponent implements OnInit {
   nomePartecipanteMap: { [id: number]: string } = {};
   mostraInputPartecipazione: { [id: number]: boolean } = {};
   isLoading = true;
+  isMobileView: boolean = false;  // <= 480px
+  isTabletView: boolean = false;  // >480px e <=768p
 
   emojisVoto = [
     { icon: 'fa-thumbs-up', label: '👍' },
@@ -69,6 +71,11 @@ export class ListaCanzoniComponent implements OnInit {
     this.guestId = this.authService.getGuestId();
     this.puoPartecipare = this.authService.canPartecipate();
 
+    this.checkViewport();  // chiamata iniziale per settare isMobileView e isTabletView
+    window.addEventListener('resize', () => {
+    this.checkViewport();
+    });
+
     this.route.queryParams.subscribe(params => {
       this.scrollToId = params['scrollToId'] ? +params['scrollToId'] : null;
     });
@@ -76,6 +83,13 @@ export class ListaCanzoniComponent implements OnInit {
     this.caricaCanzoni();
     this.caricaTop20();
   }
+
+  checkViewport() {
+  const w = window.innerWidth;
+  this.isMobileView = w <= 480;
+  this.isTabletView = w > 480 && w <= 768;
+}
+
 
   onDrop(event: CdkDragDrop<Canzone[]>): void {
     if (!this.isAdmin) return; // ⛔ Blocca se non admin
