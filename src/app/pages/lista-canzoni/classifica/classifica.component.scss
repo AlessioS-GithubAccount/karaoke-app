@@ -82,6 +82,14 @@ h2 {
 }
 
 /* Reset focus/active per evitare glow persistente */
+
+.my-zebra-table th,
+.my-zebra-table td {
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
 .my-zebra-table tbody tr:focus,
 .my-zebra-table tbody tr:active {
   outline: none;
@@ -119,17 +127,19 @@ button, .btn {
   box-shadow: 0 0 10px var(--glow-color);
   transition: transform 0.2s ease, box-shadow 0.3s ease;
   font-size: 0.85rem;
+  margin-bottom: 2rem;
 }
 
 button:hover, .btn:hover {
   transform: scale(1.05);
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+  color: var(--text-color);
 }
 
 /* Link stile bottone outline chiaro */
 a.btn-outline-light {
   display: inline-block;
-  color: var(--accent-color);
+  color: var(--text-color);
   border: 2px solid var(--accent-color);
   border-radius: 30px;
   padding: 0.5rem 1.25rem;
@@ -171,4 +181,89 @@ thead tr th {
     transform: translateY(0);
   }
 }
+
+/* 🎯 Schermi medi: tablet e piccoli laptop */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .my-zebra-table {
+    font-size: 0.95rem;
+    border-spacing: 0 10px;
+  }
+
+  .my-zebra-table thead th {
+    padding: 0.6rem 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  .my-zebra-table tbody td {
+    padding: 0.6rem 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  button, .btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  a.btn-outline-light {
+    padding: 0.5rem 1.1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* 📱 Schermi piccoli: smartphone */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .my-zebra-table {
+    font-size: 0.85rem;
+    border-spacing: 0 8px;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .my-zebra-table thead th,
+  .my-zebra-table tbody td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  button, .btn {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  a.btn-outline-light {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  /* Assicura layout corretto nelle tabelle scrollabili */
+  .my-zebra-table thead,
+  .my-zebra-table tbody,
+  .my-zebra-table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+
+}
+
 

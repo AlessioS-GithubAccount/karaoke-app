@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { KaraokeService } from '../../../services/karaoke.service';
-import { AuthService } from '../../../services/auth.service'; // se ce l'hai
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-classifica',
@@ -10,16 +10,41 @@ import { AuthService } from '../../../services/auth.service'; // se ce l'hai
 export class ClassificaComponent implements OnInit {
   topCanzoni: any[] = [];
   topNum: number = 30;
+
+  // ruoli
   isAdmin: boolean = false;
+  isUser: boolean = false;
+  isGuest: boolean = false;
+  canUseActions: boolean = false;
+
+  // responsive
+  isMobileView: boolean = false;
 
   constructor(
     private karaokeService: KaraokeService,
-    private authService: AuthService  // supponendo ci sia
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.isAdmin = this.authService.getRole() === 'admin';  // o altro modo
+    const ruolo = this.authService.getRole();
+    console.log('Ruolo utente:', ruolo);
+
+    this.isAdmin = ruolo === 'admin';
+    this.isUser = ruolo === 'user' || ruolo === 'client';
+    this.isGuest = ruolo === 'guest';
+    this.canUseActions = this.isAdmin || this.isUser;
+
+    this.checkViewport();
     this.caricaClassifica();
+  }
+
+  @HostListener('window:resize', [])
+  onResize() {
+    this.checkViewport();
+  }
+
+  checkViewport() {
+    this.isMobileView = window.innerWidth <= 768;
   }
 
   caricaClassifica(): void {
@@ -45,7 +70,7 @@ export class ClassificaComponent implements OnInit {
   }
 
   eliminaCanzone(id: number): void {
-    if (!this.isAdmin) return; // sicurezza extra
+    if (!this.isAdmin) return;
 
     if (confirm('Sei sicuro di voler eliminare questa canzone dalla classifica?')) {
       this.karaokeService.deleteFromClassifica(id).subscribe({
@@ -59,12 +84,6 @@ export class ClassificaComponent implements OnInit {
       });
     }
   }
-
-  logId(id: any) {
-  console.log('ID della canzone:', id);
-  return '';
-}
-
 
   private capitalizeWords(str: string): string {
     if (!str) return '';
