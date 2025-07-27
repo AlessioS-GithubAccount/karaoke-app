@@ -2,6 +2,8 @@ import { Component, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
@@ -13,16 +15,22 @@ export class RegisterComponent {
   password: string = '';
   domandaRecupero: string = '';
   rispostaRecupero: string = '';
-  keypass: string = '';  // campo PIN admin
+  keypass: string = ''; // campo PIN admin
 
   @ViewChild('registerForm') registerForm!: NgForm;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private toastrService: ToastrService,
+    private translate: TranslateService
+  ) {}
 
   register() {
-    // Controllo campi obbligatori
     if (!this.username || !this.password || !this.domandaRecupero || !this.rispostaRecupero) {
-      alert("⚠️ Compila tutti i campi obbligatori!");
+      this.translate.get(['REGISTER.FILL_REQUIRED_FIELDS', 'toast.ERROR']).subscribe(translations => {
+        this.toastrService.error(translations['REGISTER.FILL_REQUIRED_FIELDS'], translations['toast.ERROR']);
+      });
       return;
     }
 
@@ -36,23 +44,33 @@ export class RegisterComponent {
 
     this.http.post('http://localhost:3000/api/auth/register', payload).subscribe({
       next: (res: any) => {
-        alert("✅ Registrazione completata con ruolo: " + (res.message || 'utente registrato'));
+        const msgKey = res.message ? 'REGISTER.SUCCESS_ROLE' : 'REGISTER.SUCCESS_DEFAULT';
+        this.translate.get([msgKey, 'toast.SUCCESS'], { role: res.message }).subscribe(translations => {
+          this.toastrService.success(translations[msgKey], translations['toast.SUCCESS']);
+        });
 
-        // Reset form solo dopo successo
         this.registerForm.resetForm();
-
-        // Naviga al login
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        console.error('Errore registrazione:', err);
-
         if (err.status === 409) {
-          alert('❌ Username già in uso. Scegli un altro username.');
+          this.translate.get(['REGISTER.USERNAME_TAKEN', 'toast.ERROR']).subscribe(translations => {
+            this.toastrService.error(translations['REGISTER.USERNAME_TAKEN'], translations['toast.ERROR']);
+          });
         } else if (err.error?.message) {
-          alert(`❌ Errore: ${err.error.message}`);
+          this.translate.get([err.error.message, 'toast.ERROR']).subscribe(translations => {
+            if (translations[err.error.message] !== err.error.message) {
+              this.toastrService.error(translations[err.error.message], translations['toast.ERROR']);
+            } else {
+              this.translate.get(['REGISTER.ERROR_GENERIC', 'toast.ERROR']).subscribe(fallback => {
+                this.toastrService.error(fallback['REGISTER.ERROR_GENERIC'], fallback['toast.ERROR']);
+              });
+            }
+          });
         } else {
-          alert('❌ Errore durante la registrazione. Riprova più tardi.');
+          this.translate.get(['REGISTER.ERROR_GENERIC', 'toast.ERROR']).subscribe(translations => {
+            this.toastrService.error(translations['REGISTER.ERROR_GENERIC'], translations['toast.ERROR']);
+          });
         }
       }
     });

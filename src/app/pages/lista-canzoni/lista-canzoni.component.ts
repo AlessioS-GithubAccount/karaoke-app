@@ -9,6 +9,10 @@ import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 interface Canzone {
   id: number;
@@ -44,8 +48,8 @@ export class ListaCanzoniComponent implements OnInit {
   nomePartecipanteMap: { [id: number]: string } = {};
   mostraInputPartecipazione: { [id: number]: boolean } = {};
   isLoading = true;
-  isMobileView: boolean = false;  // <= 480px
-  isTabletView: boolean = false;  // >480px e <=768p
+  isMobileView: boolean = false;
+  isTabletView: boolean = false;
 
   emojisVoto = [
     { icon: 'fa-thumbs-up', label: '👍' },
@@ -62,7 +66,10 @@ export class ListaCanzoniComponent implements OnInit {
     private karaokeService: KaraokeService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastr: ToastrService,
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -71,9 +78,9 @@ export class ListaCanzoniComponent implements OnInit {
     this.guestId = this.authService.getGuestId();
     this.puoPartecipare = this.authService.canPartecipate();
 
-    this.checkViewport();  // chiamata iniziale per settare isMobileView e isTabletView
-    window.addEventListener('resize', () => {
     this.checkViewport();
+    window.addEventListener('resize', () => {
+      this.checkViewport();
     });
 
     this.route.queryParams.subscribe(params => {
@@ -85,18 +92,16 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   checkViewport() {
-  const w = window.innerWidth;
-  this.isMobileView = w <= 480;
-  this.isTabletView = w > 480 && w <= 768;
-}
-
+    const w = window.innerWidth;
+    this.isMobileView = w <= 480;
+    this.isTabletView = w > 480 && w <= 768;
+  }
 
   onDrop(event: CdkDragDrop<Canzone[]>): void {
-    if (!this.isAdmin) return; // ⛔ Blocca se non admin
+    if (!this.isAdmin) return;
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
     this.salvaOrdine();
 
-    // Forza repaint per animazioni
     setTimeout(() => {
       this.righeCanzoni.forEach((riga: ElementRef) => {
         const el = riga.nativeElement as HTMLElement;
@@ -114,10 +119,10 @@ export class ListaCanzoniComponent implements OnInit {
     }));
 
     this.karaokeService.riordinaCanzoni(nuovaLista).subscribe({
-      next: () => alert('Ordine salvato con successo ✅'),
+      next: () => this.toastr.success('Ordine salvato con successo ✅'),
       error: (err) => {
         console.error('Errore salvataggio ordine:', err);
-        alert('Errore nel salvataggio del nuovo ordine');
+        this.toastr.error('Errore nel salvataggio del nuovo ordine');
       }
     });
   }
@@ -145,6 +150,7 @@ export class ListaCanzoniComponent implements OnInit {
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
         this.isLoading = false;
+        this.toastr.error('Errore nel recupero delle canzoni');
       }
     });
   }
@@ -152,7 +158,10 @@ export class ListaCanzoniComponent implements OnInit {
   caricaTop20(): void {
     this.karaokeService.getTop20().subscribe({
       next: (data) => this.top20 = data,
-      error: (err) => console.error('Errore nel recupero della Top 20:', err)
+      error: (err) => {
+        console.error('Errore nel recupero della Top 20:', err);
+        this.toastr.error('Errore nel recupero della Top 20');
+      }
     });
   }
 
@@ -167,7 +176,7 @@ export class ListaCanzoniComponent implements OnInit {
       },
       error: (err) => {
         console.error('Errore aggiornamento cantata:', err);
-        alert('Errore durante l\'aggiornamento dello stato cantata');
+        this.toastr.error('Errore durante l\'aggiornamento dello stato cantata');
       }
     });
   }
@@ -181,12 +190,12 @@ export class ListaCanzoniComponent implements OnInit {
     if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
       this.karaokeService.resetLista('karaokeadmin').subscribe({
         next: () => {
-          alert('Lista resettata con successo');
+          this.toastr.success('Lista resettata con successo');
           this.caricaCanzoni();
         },
         error: (error) => {
           console.error('Errore nel reset:', error);
-          alert('Errore durante il reset della lista');
+          this.toastr.error('Errore durante il reset della lista');
         }
       });
     }
@@ -194,12 +203,12 @@ export class ListaCanzoniComponent implements OnInit {
 
   partecipaAllaCanzone(canzone: Canzone): void {
     if (!this.authService.canPartecipate()) {
-      alert('Devi essere loggato o registrato come ospite per partecipare!');
+      this.toastr.info('Devi essere loggato o registrato come ospite per partecipare!');
       return;
     }
 
     if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
-      alert('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
+      this.toastr.warning('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
       return;
     }
 
@@ -210,30 +219,30 @@ export class ListaCanzoniComponent implements OnInit {
 
     const nome = this.nomePartecipanteMap[canzone.id]?.trim();
     if (!nome || nome.length === 0) {
-      alert('Nome non valido.');
+      this.toastr.warning('Nome non valido.');
       return;
     }
 
     if (canzone.partecipanti_add >= 3) {
-      alert('Questa canzone ha già 3 partecipanti.');
+      this.toastr.warning('Questa canzone ha già 3 partecipanti.');
       return;
     }
 
     if (!canzone.accetta_partecipanti) {
-      alert('Questa canzone non accetta altri partecipanti.');
+      this.toastr.warning('Questa canzone non accetta altri partecipanti.');
       return;
     }
 
     this.karaokeService.aggiungiPartecipanteCompleto(canzone.id, nome).subscribe({
       next: () => {
-        alert(`Partecipazione registrata con successo!`);
+        this.toastr.success(`Partecipazione registrata con successo! Canterai con ${canzone.nome}`);
         this.mostraInputPartecipazione[canzone.id] = false;
         this.nomePartecipanteMap[canzone.id] = '';
         this.caricaCanzoni();
       },
       error: (err) => {
         console.error('Errore nella partecipazione:', err);
-        alert(err.error?.message || 'Errore durante la partecipazione ❌');
+        this.toastr.error(err.error?.message || 'Errore durante la partecipazione ❌');
       }
     });
   }
@@ -243,20 +252,32 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   eliminaCanzone(id: number, index: number): void {
-    if (!this.canEditOrDelete(this.canzoni[index])) return;
-    if (confirm('Sei sicuro di voler eliminare questa canzone?')) {
-      this.karaokeService.deleteCanzone(id).subscribe({
-        next: () => {
-          alert('Canzone eliminata con successo');
-          this.canzoni.splice(index, 1);
-        },
-        error: (err) => {
-          console.error('Errore eliminazione canzone:', err);
-          alert('Errore durante l\'eliminazione della canzone');
-        }
-      });
-    }
-  }
+  if (!this.canEditOrDelete(this.canzoni[index])) return;
+
+  this.translate.get('toast.confermaEliminazione').subscribe(translatedMessage => {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        message: translatedMessage
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.karaokeService.deleteCanzone(id).subscribe({
+          next: () => {
+            this.toastr.success(this.translate.instant('toast.SUCCESS')); // opzionale traduzione
+            this.canzoni.splice(index, 1);
+          },
+          error: (err) => {
+            console.error('Errore eliminazione canzone:', err);
+            this.toastr.error(this.translate.instant('toast.ERROR')); // opzionale traduzione
+          }
+        });
+      }
+    });
+  });
+}
+
 
   modifica(index: number): void {
     if (!this.canEditOrDelete(this.canzoni[index])) return;
@@ -278,11 +299,11 @@ export class ListaCanzoniComponent implements OnInit {
         this.canzoni[index] = { ...this.editedCanzone! };
         this.editingIndex = null;
         this.editedCanzone = null;
-        alert('Modifica salvata con successo');
+        this.toastr.success('Modifica salvata con successo');
       },
       error: (err) => {
         console.error('Errore durante il salvataggio:', err);
-        alert('Errore durante il salvataggio della canzone');
+        this.toastr.error('Errore durante il salvataggio della canzone');
       }
     });
   }
@@ -298,7 +319,7 @@ export class ListaCanzoniComponent implements OnInit {
 
   votaCanzone(index: number, emoji: string): void {
     if (!this.userId) {
-      alert('Devi essere loggato per votare!');
+      this.toastr.info('Devi essere loggato per votare!');
       return;
     }
 
@@ -306,18 +327,18 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
       next: () => {
         canzone.votoEmoji = emoji;
-        console.log(`Hai votato ${emoji} per "${canzone.nome}"`);
+        this.toastr.success(`Hai votato ${emoji} per "${canzone.nome}"`);
       },
       error: (err) => {
         console.error('Errore nel salvataggio del voto emoji:', err);
-        alert('Errore nel salvataggio del voto emoji');
+        this.toastr.error('Errore nel salvataggio del voto emoji');
       }
     });
   }
 
   aggiungiAWishlist(canzone: Canzone): void {
     if (!this.userId) {
-      alert('Devi essere loggato per aggiungere alla wishlist.');
+      this.toastr.info('Devi essere loggato per aggiungere la canzone in wishlist.');
       return;
     }
 
@@ -329,14 +350,14 @@ export class ListaCanzoniComponent implements OnInit {
       canzone: canzone.canzone
     }).subscribe({
       next: () =>
-        alert(
+        this.toastr.success(
           canzone.inWishlist
             ? 'Canzone aggiunta alla wishlist! ✅'
             : 'Canzone rimossa dalla wishlist! ❌'
         ),
       error: (err) => {
         console.error('Errore wishlist:', err);
-        alert('Errore durante l\'aggiunta alla wishlist ❌');
+        this.toastr.error('Errore durante l\'aggiunta alla wishlist ❌');
         canzone.inWishlist = !canzone.inWishlist;
       }
     });

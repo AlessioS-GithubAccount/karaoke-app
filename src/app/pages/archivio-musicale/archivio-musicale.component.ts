@@ -1,7 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core'; 
 import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-archivio-musicale',
@@ -19,15 +23,17 @@ export class ArchivioMusicaleComponent implements OnInit {
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService,
+    private translate: TranslateService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     const ruolo = this.authService.getRole();
-    console.log('Ruolo utente:', ruolo); // DEBUG
 
     this.isAdmin = ruolo === 'admin';
-    this.isUser = ruolo === 'user' || ruolo === 'client';  // client = user
+    this.isUser = ruolo === 'user' || ruolo === 'client';
     this.isGuest = ruolo === 'guest';
     this.canUseActions = this.isAdmin || this.isUser;
 
@@ -39,14 +45,33 @@ export class ArchivioMusicaleComponent implements OnInit {
           )
         );
       },
-      error: (err) => console.error('Errore nel caricamento archivio:', err)
+      error: (err) => {
+        this.translate.get('toast.erroreCaricamentoArchivio').subscribe(msg => {
+          this.toastr.error(msg);
+        });
+      }
     });
   }
 
   aggiungiAWishlist(item: any): void {
-    this.karaokeService.aggiungiAWishlist({ user_id: item.id, artista: item.artista, canzone: item.canzone }).subscribe({
-      next: () => alert(`"${item.canzone}" di ${item.artista} aggiunta alla wishlist!`),
-      error: (err) => console.error('Errore aggiungendo alla wishlist:', err)
+    this.karaokeService.aggiungiAWishlist({
+      user_id: item.id,
+      artista: item.artista,
+      canzone: item.canzone
+    }).subscribe({
+      next: () => {
+        this.translate.get('toast.canzoneAggiunta', {
+          canzone: item.canzone,
+          artista: item.artista
+        }).subscribe(msg => {
+          this.toastr.success(msg);
+        });
+      },
+      error: (err) => {
+        this.translate.get('toast.erroreWishlist').subscribe(msg => {
+          this.toastr.error(msg);
+        });
+      }
     });
   }
 
@@ -60,19 +85,39 @@ export class ArchivioMusicaleComponent implements OnInit {
     });
   }
 
-  eliminaCanzone(id: number): void {
-    if (confirm('Sei sicuro di voler eliminare questa canzone dall\'archivio?')) {
-      this.karaokeService.deleteFromArchivio(id).subscribe({
-        next: () => {
-          this.archivio = this.archivio.filter(c => c.id !== id);
-        },
-        error: (err) => console.error('Errore durante l\'eliminazione dall\'archivio:', err)
-      });
-    }
-  }
+ eliminaCanzone(id: number): void {
+  this.translate.get('Sei sicuro di voler eliminare?').subscribe(traduzione => {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: { message: traduzione }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.karaokeService.deleteFromArchivio(id).subscribe({
+          next: () => {
+            this.archivio = this.archivio.filter(c => c.id !== id);
+            this.translate.get('toast.canzoneEliminata').subscribe(msg => {
+              this.toastr.success(msg);
+            });
+          },
+          error: () => {
+            this.translate.get('toast.erroreEliminazione').subscribe(msg => {
+              this.toastr.error(msg);
+            });
+          }
+        });
+      }
+    });
+  });
+}
+
 
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+    this.translate.get('toast.logoutSuccesso').subscribe(msg => {
+      this.toastr.info(msg);
+    });
   }
 }

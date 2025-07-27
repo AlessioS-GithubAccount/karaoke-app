@@ -1,4 +1,27 @@
 {
+  "toast": {
+    "loginSuccess": "Bentornato! Accesso effettuato con successo.",
+    "loginError": "Credenziali non valide. Riprova.",
+    "loginGuest": "Accesso come ospite riuscito.",
+    "SUCCESS": "Login effettuato",
+    "ERROR": "Errore",
+    "INFO": "Informazione",
+
+    "confermaEliminazione": "Sei sicuro di voler eliminare questa canzone?"
+  },
+  "CONFIRM": {
+    "TITLE": "Conferma",
+    "CANCEL": "Annulla",
+    "OK": "Conferma"
+  },
+  "REGISTER": {
+    "FILL_REQUIRED_FIELDS": "Compila tutti i campi obbligatori.",
+    "SUCCESS_ROLE": "Registrazione completata con ruolo: {{role}}!",
+    "SUCCESS_DEFAULT": "Registrazione completata con successo!",
+    "USERNAME_TAKEN": "Nome utente già esistente. Scegline un altro.",
+    "ERROR_GENERIC": "Errore durante la registrazione. Riprova."
+  },
+
   "navbar": {
     "title": "Karaoke App",
     "menu": "Menù",
@@ -230,4 +253,6 @@
     "secret_answer": "Risposta segreta",
     "back_to_profile": "Ritorna al profilo"
   }
+  
 }
+

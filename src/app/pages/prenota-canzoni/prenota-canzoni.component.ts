@@ -4,6 +4,7 @@ import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-prenota-canzoni',
@@ -35,7 +36,8 @@ export class PrenotaCanzoniComponent implements OnInit {
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -104,7 +106,7 @@ export class PrenotaCanzoniComponent implements OnInit {
 
       this.karaokeService.addCanzone(canzonePayload).subscribe({
         next: (response) => {
-          alert(`Ciao ${this.formData.nome}, la canzone è in coda! 🎤`);
+          this.toastr.success('Buon divertimento!', `Ciao ${this.formData.nome}, la canzone è in coda! `);
           form.resetForm({
             num_microfoni: 1,
             accetta_partecipanti: false
@@ -118,11 +120,11 @@ export class PrenotaCanzoniComponent implements OnInit {
         },
         error: (err) => {
           console.error('Errore durante l\'invio dei dati', err);
-          alert('Errore durante il salvataggio. Riprova.');
+          this.toastr.error('Errore durante il salvataggio. Riprova.', 'Errore');
         }
       });
     } else {
-      alert('Per favore, inserisci un numero di microfoni valido da 1 a 3 e compila tutti i campi obbligatori.');
+      this.toastr.warning('Per favore, inserisci un numero di microfoni valido da 1 a 3 e compila tutti i campi obbligatori.', 'Attenzione');
     }
   }
 

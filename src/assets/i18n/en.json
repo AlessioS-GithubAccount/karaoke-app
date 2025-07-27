@@ -1,4 +1,27 @@
 {
+  "toast": {
+    "loginSuccess": "Welcome back! Login successful.",
+    "loginError": "Invalid credentials. Please try again.",
+    "loginGuest": "Guest access successful.",
+    "SUCCESS": "You logged in.",
+    "ERROR": "Error",
+    "INFO": "Information",
+
+    "confermaEliminazione": "Are you sure you want to delete this song?"
+  },
+  "CONFIRM": {
+    "TITLE": "Confirmation",
+    "CANCEL": "Cancel",
+    "OK": "Confirm"
+  },
+  "REGISTER": {
+    "FILL_REQUIRED_FIELDS": "Please fill in all required fields.",
+    "SUCCESS_ROLE": "Registration completed with role: {{role}}!",
+    "SUCCESS_DEFAULT": "Registration completed successfully!",
+    "USERNAME_TAKEN": "Username already exists. Please choose another one.",
+    "ERROR_GENERIC": "Error during registration. Please try again."
+  },
+  
   "navbar": {
     "title": "Karaoke App",
     "menu": "Menu",

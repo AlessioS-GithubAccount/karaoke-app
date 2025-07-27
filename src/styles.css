@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+
+
 
 /* 🌑 DARK MODE (default) */
 body.dark-mode {
@@ -136,4 +139,231 @@ button:hover {
   max-width: 300px;
   pointer-events: none;
   z-index: 1000 !important;
+}
+
+
+/*dialog*/
+.mat-mdc-dialog-container {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px var(--accent-hover) !important;
+  padding: 1.5rem 2rem !important;
+  min-width: 320px !important;
+  max-width: 90vw !important;
+  text-align: center !important;
+  animation: fadeInScale 0.3s ease-out !important;
+}
+
+.mat-mdc-dialog-surface{
+      background-color: #000 !important;
+
+}
+
+.mat-mdc-dialog-content {
+    background-color: #000 !important;
+
+  color: #fff !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  padding: 0.5rem 0 1rem 0 !important;
+}
+
+.mat-mdc-dialog-title,
+h2[mat-dialog-title] {
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  color: #fff !important;
+  margin-bottom: 1rem !important;
+}
+
+.mat-mdc-dialog-actions {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 1rem !important;
+  margin-top: 1.5rem !important;
+}
+
+.mat-mdc-dialog-actions button[mat-button] {
+  font-family: 'Montserrat', sans-serif !important;
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2)) !important;
+  border-radius: 30px !important;
+  padding: 0.5rem 1.2rem !important;
+  box-shadow: 0 0 10px var(--glow-color) !important;
+  transition: transform 0.2s ease, box-shadow 0.3s ease !important;
+  color: var(--text-color) !important;
+  border: none !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  min-width: 80px !important;
+}
+.mat-mdc-dialog-title{
+      background-color: #000 !important;
+
+}
+
+.mat-mdc-dialog-actions button[mat-button]:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover) !important;
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+/* ===================== */
+/* ngx-toastr styles and animations */
+/* ===================== */
+
+/* Contenitore toast */
+.toast {
+  background-color: var(--background-color);
+  border-radius: 20px !important;
+  box-shadow: 0 0 12px var(--accent-color) !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 600;
+  padding: 12px 20px !important;
+  padding-top: 20px !important; 
+  min-width: 280px;
+  max-width: 400px;
+  word-wrap: break-word; /* fa andare il testo a capo */
+  position: relative;
+  color: var(--text-color);
+}
+
+/* Toast success */
+.toast-success {
+  background: var(--background-color);
+  color: var(--text-color);
+  border-radius: 20px !important;
+    box-shadow: 0 0 12px var(--accent-hover) !important;
+    padding: 20px 30px !important;
+padding-top: 20px !important; 
+    padding-bottom: 20px !important;
+
+}
+
+/* Toast error */
+.toast-error {
+  background: var(--background-color);
+  color: var(--text-color);
+    border-radius: 20px !important;
+      box-shadow: 0 0 12px var(--accent-hover) !important;
+padding: 20px 30px !important;
+padding-top: 20px !important; 
+    padding-bottom: 20px !important;
+
+}
+
+/* Toast warning */
+.toast-warning {
+  background: var(--background-color);
+  color: var(--text-color);
+    border-radius: 20px !important;
+  box-shadow: 0 0 12px var(--accent-hover) !important;
+padding: 20px 30px !important;
+padding-top: 20px !important; 
+    padding-bottom: 20px !important;
+
+}
+
+/* Toast info */
+.toast-info {
+  background: var(--background-color);
+  color: var(--text-color);
+    border-radius: 20px !important;
+  box-shadow: 0 0 12px var(--accent-hover) !important;
+padding: 20px 30px !important;
+padding-top: 20px !important; 
+    padding-bottom: 20px !important;
+
+}
+
+/* Pulsante chiudi */
+.toast-close-button {
+  position: absolute !important;
+  top: 12px !important;       /* distanza dal bordo superiore */
+  left: 50% !important;       /* centro orizzontale del toast */
+  transform: translateX(-50%) !important; /* sposta indietro metà larghezza per centrare */
+  opacity: 0.9;
+  font-weight: bold;
+  cursor: pointer;
+  color: var(--text-color) !important; /* o bianco, come preferisci */
+  margin-bottom: 30px;
+}
+
+
+/* Barra progresso */
+.toast-progress {
+ display: none !important;
+}
+
+/* Testo toast */
+.toast-message {
+  white-space: normal !important; /* consente il testo multilinea */
+  font-size: 1rem;
+  line-height: 1.3;
+  }
+
+/* Animazioni personalizzate per ngx-toastr */
+
+/* Fade in + slide dal basso */
+@keyframes toast-fade-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade out + slide verso l’alto */
+@keyframes toast-fade-slide-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+/* Applichiamo le animazioni al toast */
+.toast {
+  animation-name: toast-fade-slide-in;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+/* Quando il toast scompare (classe .toast-hide è aggiunta da ngx-toastr) */
+.toast.toast-hide {
+  animation-name: toast-fade-slide-out;
+  animation-duration: 0.4s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+/* Posizione toast: centro basso */
+.toast-center-bottom {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 20px !important;
+  transform: translateX(-50%) !important;
+  z-index: 12000 !important;
+  width: auto !important;
+  max-width: 400px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 0 12px var(--glow-color) !important;
 }

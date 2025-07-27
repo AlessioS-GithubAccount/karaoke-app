@@ -10,6 +10,8 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { CapitalizeWordsPipe } from './capitalize-words.pipe';
 
+import { ToastrModule } from 'ngx-toastr';
+
 import { AppComponent } from './app.component';
 import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
@@ -32,7 +34,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TokenInterceptor  } from './Authguards/Interceptor';
 import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';
 import { WishlistComponent } from './pages/user-profile/wishlist/wishlist.component';
-import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';  
+import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';
+import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';  
+import { MatDialogModule } from '@angular/material/dialog';
 
 // Factory function per HttpLoader
 export function HttpLoaderFactory(http: HttpClient) {
@@ -55,7 +59,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     UserCanzoniComponent,
     PrivacyComponent,
     WishlistComponent,
-    ModifyProfileComponent  
+    ModifyProfileComponent,
+    ConfirmDialogComponent  
   ],
   imports: [
     BrowserModule,
@@ -64,6 +69,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    MatDialogModule,
     DragDropModule,
     // ngx-translate module
     TranslateModule.forRoot({
@@ -72,6 +78,13 @@ export function HttpLoaderFactory(http: HttpClient) {
         useFactory: HttpLoaderFactory,
         deps: [HttpClient]
       }
+    }),
+     ToastrModule.forRoot({
+      positionClass: 'toast-center-bottom', // puoi cambiare posizione
+      timeOut: 5000,
+      progressBar: true,
+      closeButton: false,
+      preventDuplicates: true,
     }),
   ],
   providers: [
