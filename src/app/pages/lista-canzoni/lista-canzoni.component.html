@@ -1,4 +1,12 @@
-<h2 class="fade-text">Canzoni in coda</h2>
+<h2 class="fade-text">{{ 'song_list.title' | translate }}</h2>
+<div class="deleteList">
+  <button *ngIf="isAdmin"
+        class="btn btn-danger mb-3"
+        (click)="resetLista()">
+   <i class="fa fa-trash"></i> {{ 'song_list.actions.reset_list' | translate }}
+  </button>
+</div>
+
 <table *ngIf="!isMobileView && !isTabletView && canzoni.length > 0" class="table my-zebra-table">  <thead>
     <tr>
       <th class="fade-text">{{ 'song_list.labels.status' | translate }}</th>
@@ -77,10 +85,10 @@
         <div *ngIf="mostraInputPartecipazione[canzone.id]" class="mt-1">
           <input type="text"
                  [(ngModel)]="nomePartecipanteMap[canzone.id]"
-                 placeholder="Il tuo nome"
+                 [placeholder]="'song_list.placeholders.your_name' | translate"
                  class="form-control form-control-sm mb-1" />
-          <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">Invia</button>
-          <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">Annulla</button>
+          <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">{{ 'song_list.actions.send' | translate }}</button>
+          <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">{{ 'song_list.actions.cancel' | translate }}</button>
         </div>
         <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
           {{ 'song_list.participation.full' | translate }}
@@ -184,10 +192,10 @@
       <div *ngIf="mostraInputPartecipazione[canzone.id]" class="mt-1">
         <input type="text"
                [(ngModel)]="nomePartecipanteMap[canzone.id]"
-               placeholder="Il tuo nome"
+               [placeholder]="'song_list.placeholders.your_name' | translate"
                class="form-control form-control-sm mb-1" />
-        <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">Invia</button>
-        <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">Annulla</button>
+        <button class="btn btn-primary btn-sm me-1" (click)="partecipaAllaCanzone(canzone)">{{ 'song_list.actions.send' | translate }}</button>
+        <button class="btn btn-secondary btn-sm" (click)="mostraInputPartecipazione[canzone.id] = false">{{ 'song_list.actions.cancel' | translate }}</button>
       </div>
       <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
         {{ 'song_list.participation.full' | translate }}

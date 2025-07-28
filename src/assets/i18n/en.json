@@ -7,8 +7,42 @@
     "ERROR": "Error",
     "INFO": "Information",
 
-    "confermaEliminazione": "Are you sure you want to delete this song?"
-  },
+    "confermaEliminazione": "Are you sure you want to delete this song?",
+
+    "SUCCESS_LIST": "Operation completed successfully ",
+    "ERROR_LIST": "An error occurred ",
+    "ORDER_SAVED": "Order saved successfully ",
+    "ORDER_SAVE_ERROR": "Error saving the new order",
+    "FETCH_SONGS_ERROR": "Error fetching songs",
+    "TOP20_ERROR": "Error fetching the Top 20",
+    "CANTATA_UPDATE_ERROR": "Error updating song status",
+    "LIST_RESET_SUCCESS": "List successfully reset",
+    "LIST_RESET_ERROR": "Error resetting the list",
+    "LOGIN_REQUIRED": "You must be logged in or registered as a guest to participate!",
+    "GUEST_FORBIDDEN": "You can't participate in this song because you're not the guest who created it.",
+    "INVALID_NAME": "Invalid name.",
+    "MAX_PARTICIPANTS": "This song already has 3 participants.",
+    "NO_MORE_PARTICIPANTS": "This song does not accept more participants.",
+    "JOIN_SUCCESS": "Participation recorded successfully! You will sing with {{name}}",
+    "SAVE_SUCCESS": "Edit saved successfully",
+    "SAVE_ERROR": "Error saving the song",
+    "VOTE_LOGIN_REQUIRED": "You must be logged in to vote!",
+    "VOTE_SUCCESS": "You voted {{emoji}} for \"{{song}}\"",
+    "VOTE_ERROR": "Error saving emoji vote",
+    "WISHLIST_LOGIN": "You must be logged in to add a song to wishlist.",
+    "WISHLIST_ADD": "Song added to wishlist! ",
+    "WISHLIST_REMOVE": "Song removed from wishlist! ",
+    "WISHLIST_ERROR": "Error adding to wishlist",
+    "DELETE_CONFIRM": "Are you sure you want to delete this song?",
+    "RESET_LIST_CONFIRM": "Do you want to reset the list?."
+ },
+    "messages": {
+      "no_songs_found": "Nessuna canzone trovata"
+    },
+    "placeholders": {
+      "your_name": "Il tuo nome"
+    },
+  
   "CONFIRM": {
     "TITLE": "Confirmation",
     "CANCEL": "Cancel",
@@ -39,8 +73,10 @@
   "music_archive": {
     "title": "Music Archive",
     "song": "Song",
-    "artist": "Artist"
+    "artist": "Artist",
+    "wishlist": "Wishlist"
   },
+
   "chart": {
     "title": "Top 30 Most Requested Songs Ranking",
     "position": "#",
@@ -129,7 +165,12 @@
       "edit": "Edit",
       "save": "Save",
       "cancel": "Cancel",
-      "delete": "Delete"
+      "delete": "Delete",
+      "send": "Send",
+      "reset_list": "Reset list"
+    },
+     "placeholders": {
+      "your_name": "Insert your name"
     }
   },
   "login": {

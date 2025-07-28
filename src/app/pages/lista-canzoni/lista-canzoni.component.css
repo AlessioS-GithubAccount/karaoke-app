@@ -26,6 +26,12 @@ body {
   animation-delay: 0.2s;
 }
 
+/*btn reset list*/
+.deleteList{
+  margin-top: 2rem;
+  margin-left: 2.5rem;
+}
+
 @keyframes fadeSlideIn {
   0% {
     opacity: 0;

@@ -79,9 +79,7 @@ export class ListaCanzoniComponent implements OnInit {
     this.puoPartecipare = this.authService.canPartecipate();
 
     this.checkViewport();
-    window.addEventListener('resize', () => {
-      this.checkViewport();
-    });
+    window.addEventListener('resize', () => this.checkViewport());
 
     this.route.queryParams.subscribe(params => {
       this.scrollToId = params['scrollToId'] ? +params['scrollToId'] : null;
@@ -119,24 +117,23 @@ export class ListaCanzoniComponent implements OnInit {
     }));
 
     this.karaokeService.riordinaCanzoni(nuovaLista).subscribe({
-      next: () => this.toastr.success('Ordine salvato con successo ✅'),
+      next: () => {
+        this.translate.get('toast.ORDER_SAVED').subscribe(msg => this.toastr.success(msg));
+      },
       error: (err) => {
         console.error('Errore salvataggio ordine:', err);
-        this.toastr.error('Errore nel salvataggio del nuovo ordine');
+        this.translate.get('toast.ORDER_SAVE_ERROR').subscribe(msg => this.toastr.error(msg));
       }
     });
   }
 
   caricaCanzoni(): void {
     this.isLoading = true;
-
     this.karaokeService.getCanzoni().subscribe({
       next: (data: Canzone[]) => {
         this.canzoni = data;
-
         setTimeout(() => {
           this.isLoading = false;
-
           if (this.scrollToId !== null) {
             const el = document.getElementById('canzone-' + this.scrollToId);
             if (el) {
@@ -149,8 +146,8 @@ export class ListaCanzoniComponent implements OnInit {
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
+        this.translate.get('toast.FETCH_SONGS_ERROR').subscribe(msg => this.toastr.error(msg));
         this.isLoading = false;
-        this.toastr.error('Errore nel recupero delle canzoni');
       }
     });
   }
@@ -160,7 +157,7 @@ export class ListaCanzoniComponent implements OnInit {
       next: (data) => this.top20 = data,
       error: (err) => {
         console.error('Errore nel recupero della Top 20:', err);
-        this.toastr.error('Errore nel recupero della Top 20');
+        this.translate.get('toast.TOP20_ERROR').subscribe(msg => this.toastr.error(msg));
       }
     });
   }
@@ -169,80 +166,66 @@ export class ListaCanzoniComponent implements OnInit {
     if (!this.isAdmin) return;
     const canzone = this.canzoni[index];
     const nuovoStato = !canzone.cantata;
-
     this.karaokeService.aggiornaCantata(canzone.id, nuovoStato).subscribe({
-      next: () => {
-        this.canzoni[index].cantata = nuovoStato;
-      },
+      next: () => canzone.cantata = nuovoStato,
       error: (err) => {
         console.error('Errore aggiornamento cantata:', err);
-        this.toastr.error('Errore durante l\'aggiornamento dello stato cantata');
+        this.translate.get('toast.CANTATA_UPDATE_ERROR').subscribe(msg => this.toastr.error(msg));
       }
     });
   }
 
-  numeroCantate(): number {
-    return this.canzoni.filter(c => c.cantata).length;
-  }
-
   resetLista(): void {
     if (!this.isAdmin) return;
-    if (confirm('Sei sicuro di voler resettare la lista giornaliera?')) {
-      this.karaokeService.resetLista('karaokeadmin').subscribe({
-        next: () => {
-          this.toastr.success('Lista resettata con successo');
-          this.caricaCanzoni();
-        },
-        error: (error) => {
-          console.error('Errore nel reset:', error);
-          this.toastr.error('Errore durante il reset della lista');
-        }
-      });
-    }
+    this.translate.get('toast.RESET_LIST_CONFIRM').subscribe(confirmMsg => {
+      if (confirm(confirmMsg)) {
+        this.karaokeService.resetLista('karaokeadmin').subscribe({
+          next: () => this.translate.get('toast.LIST_RESET_SUCCESS').subscribe(msg => this.toastr.success(msg)),
+          error: (err) => {
+            console.error('Errore nel reset:', err);
+            this.translate.get('toast.LIST_RESET_ERROR').subscribe(msg => this.toastr.error(msg));
+          }
+        });
+      }
+    });
   }
 
   partecipaAllaCanzone(canzone: Canzone): void {
     if (!this.authService.canPartecipate()) {
-      this.toastr.info('Devi essere loggato o registrato come ospite per partecipare!');
+      this.translate.get('toast.LOGIN_REQUIRED').subscribe(msg => this.toastr.info(msg));
       return;
     }
-
     if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
-      this.toastr.warning('Non puoi partecipare a questa canzone perché non sei il guest che l\'ha creata.');
+      this.translate.get('toast.GUEST_FORBIDDEN').subscribe(msg => this.toastr.warning(msg));
       return;
     }
-
     if (!this.mostraInputPartecipazione[canzone.id]) {
       this.mostraInputPartecipazione[canzone.id] = true;
       return;
     }
-
     const nome = this.nomePartecipanteMap[canzone.id]?.trim();
     if (!nome || nome.length === 0) {
-      this.toastr.warning('Nome non valido.');
+      this.translate.get('toast.INVALID_NAME').subscribe(msg => this.toastr.warning(msg));
       return;
     }
-
     if (canzone.partecipanti_add >= 3) {
-      this.toastr.warning('Questa canzone ha già 3 partecipanti.');
+      this.translate.get('toast.MAX_PARTICIPANTS').subscribe(msg => this.toastr.warning(msg));
       return;
     }
-
     if (!canzone.accetta_partecipanti) {
-      this.toastr.warning('Questa canzone non accetta altri partecipanti.');
+      this.translate.get('toast.NO_MORE_PARTICIPANTS').subscribe(msg => this.toastr.warning(msg));
       return;
     }
-
     this.karaokeService.aggiungiPartecipanteCompleto(canzone.id, nome).subscribe({
       next: () => {
-        this.toastr.success(`Partecipazione registrata con successo! Canterai con ${canzone.nome}`);
+        this.translate.get('toast.JOIN_SUCCESS', { name: canzone.nome }).subscribe(msg => this.toastr.success(msg));
         this.mostraInputPartecipazione[canzone.id] = false;
         this.nomePartecipanteMap[canzone.id] = '';
         this.caricaCanzoni();
       },
       error: (err) => {
         console.error('Errore nella partecipazione:', err);
-        this.toastr.error(err.error?.message || 'Errore durante la partecipazione ❌');
+        this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(err.error?.message || msg));
       }
     });
   }
@@ -252,32 +235,24 @@ export class ListaCanzoniComponent implements OnInit {
   }
 
   eliminaCanzone(id: number, index: number): void {
-  if (!this.canEditOrDelete(this.canzoni[index])) return;
-
-  this.translate.get('toast.confermaEliminazione').subscribe(translatedMessage => {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        message: translatedMessage
-      }
+    if (!this.canEditOrDelete(this.canzoni[index])) return;
+    this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        data: { message: translatedMessage }
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.karaokeService.deleteCanzone(id).subscribe({
+            next: () => this.translate.get('toast.SUCCESS_LIST').subscribe(msg => this.toastr.success(msg)),
+            error: (err) => {
+              console.error('Errore eliminazione canzone:', err);
+              this.translate.get('toast.ERROR_LIST').subscribe(msg => this.toastr.error(msg));
+            }
+          });
+        }
+      });
     });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.karaokeService.deleteCanzone(id).subscribe({
-          next: () => {
-            this.toastr.success(this.translate.instant('toast.SUCCESS')); // opzionale traduzione
-            this.canzoni.splice(index, 1);
-          },
-          error: (err) => {
-            console.error('Errore eliminazione canzone:', err);
-            this.toastr.error(this.translate.instant('toast.ERROR')); // opzionale traduzione
-          }
-        });
-      }
-    });
-  });
-}
-
+  }
 
   modifica(index: number): void {
     if (!this.canEditOrDelete(this.canzoni[index])) return;
@@ -293,17 +268,16 @@ export class ListaCanzoniComponent implements OnInit {
   salvaModifica(index: number): void {
     if (!this.canEditOrDelete(this.canzoni[index])) return;
     if (!this.editedCanzone) return;
-
     this.karaokeService.aggiornaCanzone(this.editedCanzone.id, this.editedCanzone).subscribe({
       next: () => {
         this.canzoni[index] = { ...this.editedCanzone! };
         this.editingIndex = null;
         this.editedCanzone = null;
-        this.toastr.success('Modifica salvata con successo');
+        this.translate.get('toast.SAVE_SUCCESS').subscribe(msg => this.toastr.success(msg));
       },
       error: (err) => {
         console.error('Errore durante il salvataggio:', err);
-        this.toastr.error('Errore durante il salvataggio della canzone');
+        this.translate.get('toast.SAVE_ERROR').subscribe(msg => this.toastr.error(msg));
       }
     });
   }
@@ -319,26 +293,25 @@ export class ListaCanzoniComponent implements OnInit {
 
   votaCanzone(index: number, emoji: string): void {
     if (!this.userId) {
-      this.toastr.info('Devi essere loggato per votare!');
+      this.translate.get('toast.VOTE_LOGIN_REQUIRED').subscribe(msg => this.toastr.info(msg));
       return;
     }
-
     const canzone = this.canzoni[index];
     this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
       next: () => {
         canzone.votoEmoji = emoji;
-        this.toastr.success(`Hai votato ${emoji} per "${canzone.nome}"`);
+        this.translate.get('toast.VOTE_SUCCESS', { emoji: emoji, song: canzone.nome }).subscribe(msg => this.toastr.success(msg));
       },
       error: (err) => {
         console.error('Errore nel salvataggio del voto emoji:', err);
-        this.toastr.error('Errore nel salvataggio del voto emoji');
+        this.translate.get('toast.VOTE_ERROR').subscribe(msg => this.toastr.error(msg));
       }
     });
   }
 
   aggiungiAWishlist(canzone: Canzone): void {
     if (!this.userId) {
-      this.toastr.info('Devi essere loggato per aggiungere la canzone in wishlist.');
+      this.translate.get('toast.WISHLIST_LOGIN').subscribe(msg => this.toastr.info(msg));
       return;
     }
 
@@ -349,15 +322,13 @@ export class ListaCanzoniComponent implements OnInit {
       artista: canzone.artista,
       canzone: canzone.canzone
     }).subscribe({
-      next: () =>
-        this.toastr.success(
-          canzone.inWishlist
-            ? 'Canzone aggiunta alla wishlist! ✅'
-            : 'Canzone rimossa dalla wishlist! ❌'
-        ),
+      next: () => {
+        const chiave = canzone.inWishlist ? 'toast.WISHLIST_ADD' : 'toast.WISHLIST_REMOVE';
+        this.translate.get(chiave).subscribe(msg => this.toastr.success(msg));
+      },
       error: (err) => {
         console.error('Errore wishlist:', err);
-        this.toastr.error('Errore durante l\'aggiunta alla wishlist ❌');
+        this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
         canzone.inWishlist = !canzone.inWishlist;
       }
     });
