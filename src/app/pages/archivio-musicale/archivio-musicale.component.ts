@@ -105,7 +105,7 @@ scrollToBottom(): void {
         this.karaokeService.deleteFromArchivio(id).subscribe({
           next: () => {
             this.archivio = this.archivio.filter(c => c.id !== id);
-            this.translate.get('toast.DELETE_CONFIRM').subscribe(msg => {
+            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => {
               this.toastr.success(msg);
             });
           },

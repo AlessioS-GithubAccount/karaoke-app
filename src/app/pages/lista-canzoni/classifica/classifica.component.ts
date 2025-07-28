@@ -92,7 +92,7 @@ export class ClassificaComponent implements OnInit {
         this.karaokeService.deleteFromClassifica(id).subscribe({
           next: () => {
             this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
-            this.translate.get('toast.DELETE_CONFIRM').subscribe(msg => this.toast.success(msg));
+            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toast.success(msg));
           },
           error: (err) => {
             console.error('Errore durante eliminazione dalla classifica:', err);
