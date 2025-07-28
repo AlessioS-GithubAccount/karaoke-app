@@ -13,11 +13,11 @@
 <table class="table my-zebra-table desktop-table" *ngIf="archivioFiltrato.length > 0; else noCanzoni">
   <thead>
     <tr>
-      <th>{{ 'song_archive.columns.artist' | translate }}</th>
+      <th class="border-radius-left">{{ 'song_archive.columns.artist' | translate }}</th>
       <th>{{ 'song_archive.columns.song' | translate }}</th>
       <th>{{ 'song_archive.columns.total_requests' | translate }}</th>
       <th>{{ 'song_archive.columns.add on wishlist' | translate }}</th>
-      <th *ngIf="canUseActions">{{ 'song_archive.columns.actions' | translate }}</th>
+      <th class="border-radius-right" *ngIf="canUseActions">{{ 'song_archive.columns.actions' | translate }}</th>
     </tr>
   </thead>
   <tbody>

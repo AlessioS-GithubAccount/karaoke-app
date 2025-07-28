@@ -4,11 +4,11 @@
   <table class="table my-zebra-table" *ngIf="topCanzoni.length > 0; else noData">
     <thead>
       <tr>
-        <th>{{ 'chart.position' | translate }}</th>
+        <th class="border-radius-left">{{ 'chart.position' | translate }}</th>
         <th>{{ 'chart.song' | translate }}</th>
         <th>{{ 'chart.artist' | translate }}</th>
         <th>{{ 'chart.requests' | translate }}</th>
-        <th *ngIf="isAdmin">{{ 'chart.wishlist' | translate }}</th>
+        <th class="border-radius-right" *ngIf="isAdmin">{{ 'chart.wishlist' | translate }}</th>
       </tr>
     </thead>
     <tbody>

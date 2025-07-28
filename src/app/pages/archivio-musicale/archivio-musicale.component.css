@@ -96,6 +96,16 @@ h2{
   border-bottom-right-radius: 12px;
 }
 
+.border-radius-left{
+  border-top-left-radius: 12px;
+ border-bottom-left-radius: 12px ;
+}
+
+.border-radius-right{
+  border-top-right-radius: 12px;
+ border-bottom-right-radius: 12px ;
+}
+
 
 /*scroll btn*/
 /*scrool btn*/
