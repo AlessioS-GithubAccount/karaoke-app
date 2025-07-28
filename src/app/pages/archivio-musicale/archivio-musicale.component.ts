@@ -46,12 +46,20 @@ export class ArchivioMusicaleComponent implements OnInit {
         );
       },
       error: (err) => {
-        this.translate.get('toast.erroreCaricamentoArchivio').subscribe(msg => {
+        this.translate.get('toast.ERROR_CHARGING').subscribe(msg => {
           this.toastr.error(msg);
         });
       }
     });
   }
+
+    scrollToTop(): void {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+scrollToBottom(): void {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
 
   aggiungiAWishlist(item: any): void {
     this.karaokeService.aggiungiAWishlist({
@@ -60,7 +68,7 @@ export class ArchivioMusicaleComponent implements OnInit {
       canzone: item.canzone
     }).subscribe({
       next: () => {
-        this.translate.get('toast.canzoneAggiunta', {
+        this.translate.get('toast.WISHLIST_ADD', {
           canzone: item.canzone,
           artista: item.artista
         }).subscribe(msg => {
@@ -68,7 +76,7 @@ export class ArchivioMusicaleComponent implements OnInit {
         });
       },
       error: (err) => {
-        this.translate.get('toast.erroreWishlist').subscribe(msg => {
+        this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => {
           this.toastr.error(msg);
         });
       }
@@ -86,7 +94,7 @@ export class ArchivioMusicaleComponent implements OnInit {
   }
 
  eliminaCanzone(id: number): void {
-  this.translate.get('Sei sicuro di voler eliminare?').subscribe(traduzione => {
+  this.translate.get('toast.DELETE_CONFIRM').subscribe(traduzione => {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: { message: traduzione }
@@ -97,12 +105,12 @@ export class ArchivioMusicaleComponent implements OnInit {
         this.karaokeService.deleteFromArchivio(id).subscribe({
           next: () => {
             this.archivio = this.archivio.filter(c => c.id !== id);
-            this.translate.get('toast.canzoneEliminata').subscribe(msg => {
+            this.translate.get('toast.DELETE_CONFIRM').subscribe(msg => {
               this.toastr.success(msg);
             });
           },
           error: () => {
-            this.translate.get('toast.erroreEliminazione').subscribe(msg => {
+            this.translate.get('toast.ERROR_LIST').subscribe(msg => {
               this.toastr.error(msg);
             });
           }

@@ -96,6 +96,49 @@ h2{
   border-bottom-right-radius: 12px;
 }
 
+
+/*scroll btn*/
+/*scrool btn*/
+.scroll-buttons {
+  position: fixed;
+  top: 50%;
+  right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.scroll-btn {
+  background-color: #444;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: background 0.3s ease;
+}
+
+.scroll-btn i {
+  display: block;       /* per far sì che occupi tutta la larghezza del bottone */
+  width: 100%;          /* larghezza piena */
+  height: 100%;         /* altezza piena */
+  text-align: center;   /* centratura orizzontale */
+  line-height: 30px;    /* allinea verticalmente (uguale all'altezza del bottone) */
+  pointer-events: none;
+}
+
+.scroll-btn:hover {
+  background-color: #666;
+}
+
+.scroll-btn i {
+  pointer-events: none;
+}
+
 /* Pulsanti arrotondati e gradiente come lista canzoni */
 button, .btn {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
@@ -213,7 +256,76 @@ thead tr th {
   padding: 0.35rem 0.8rem;
 }
 
-/* --- MEDIA QUERY --- */
+/* --- MEDIA QUERY  confirm-dialog --- */
+/* Styles di base (già dati da te) */
+/* ... */
+
+/* Media query per schermi fino a 768px */
+@media (max-width: 768px) {
+  .mat-mdc-dialog-container {
+    padding: 1rem 1.5rem !important;
+    min-width: 280px !important;
+    max-width: 95vw !important;
+  }
+
+  .mat-mdc-dialog-content {
+    font-size: 0.9rem !important;
+    padding: 0.4rem 0 0.8rem 0 !important;
+  }
+
+  .mat-mdc-dialog-title,
+  h2[mat-dialog-title] {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.8rem !important;
+  }
+
+  .mat-mdc-dialog-actions {
+    gap: 0.8rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .mat-mdc-dialog-actions button[mat-button] {
+    padding: 0.4rem 1rem !important;
+    min-width: 70px !important;
+    font-size: 0.9rem !important;
+  }
+}
+
+/* Media query per schermi fino a 480px */
+@media (max-width: 480px) {
+  .mat-mdc-dialog-container {
+    padding: 0.8rem 1rem !important;
+    min-width: 240px !important;
+    max-width: 98vw !important;
+  }
+
+  .mat-mdc-dialog-content {
+    font-size: 0.85rem !important;
+    padding: 0.3rem 0 0.6rem 0 !important;
+  }
+
+  .mat-mdc-dialog-title,
+  h2[mat-dialog-title] {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  .mat-mdc-dialog-actions {
+    flex-direction: column !important; /* per i bottoni uno sotto l'altro su mobile molto piccolo */
+    gap: 0.6rem !important;
+    margin-top: 0.8rem !important;
+  }
+
+  .mat-mdc-dialog-actions button[mat-button] {
+    padding: 0.4rem 1rem !important;
+    min-width: 100% !important; /* bottoni larghi tutto lo spazio */
+    font-size: 0.85rem !important;
+  }
+}
+
+
+
+/* --- MEDIA QUERY  table --- */
 
 @media screen and (max-width: 768px) {
   .my-zebra-table {

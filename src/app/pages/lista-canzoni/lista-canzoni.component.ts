@@ -110,6 +110,15 @@ export class ListaCanzoniComponent implements OnInit {
     }, 10);
   }
 
+  scrollToTop(): void {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+scrollToBottom(): void {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+
   salvaOrdine(): void {
     const nuovaLista = this.canzoni.map((c, index) => ({
       id: c.id,
@@ -175,20 +184,34 @@ export class ListaCanzoniComponent implements OnInit {
     });
   }
 
-  resetLista(): void {
-    if (!this.isAdmin) return;
-    this.translate.get('toast.RESET_LIST_CONFIRM').subscribe(confirmMsg => {
-      if (confirm(confirmMsg)) {
+resetLista(): void {
+  if (!this.isAdmin) return;
+
+  this.translate.get('toast.RESET_LIST_CONFIRM').subscribe(confirmMsg => {
+    // Apri il dialog passando il messaggio tradotto
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: { message: confirmMsg },
+      width: '400px' // puoi personalizzare larghezza se vuoi
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Se utente conferma
         this.karaokeService.resetLista('karaokeadmin').subscribe({
-          next: () => this.translate.get('toast.LIST_RESET_SUCCESS').subscribe(msg => this.toastr.success(msg)),
+          next: () => {
+            this.translate.get('toast.LIST_RESET_SUCCESS').subscribe(msg => this.toastr.success(msg));
+          },
           error: (err) => {
             console.error('Errore nel reset:', err);
             this.translate.get('toast.LIST_RESET_ERROR').subscribe(msg => this.toastr.error(msg));
           }
         });
       }
+      // se result è falso o undefined -> annullato, non fare nulla
     });
-  }
+  });
+}
+
 
   partecipaAllaCanzone(canzone: Canzone): void {
     if (!this.authService.canPartecipate()) {

@@ -5,6 +5,7 @@
     "loginGuest": "Guest access successful.",
     "SUCCESS": "You logged in.",
     "ERROR": "Error",
+     "ERROR_CHARGING": "Error on loading page",
     "INFO": "Information",
 
     "confermaEliminazione": "Are you sure you want to delete this song?",
@@ -34,7 +35,8 @@
     "WISHLIST_REMOVE": "Song removed from wishlist! ",
     "WISHLIST_ERROR": "Error adding to wishlist",
     "DELETE_CONFIRM": "Are you sure you want to delete this song?",
-    "RESET_LIST_CONFIRM": "Do you want to reset the list?."
+    "RESET_LIST_CONFIRM": "Do you want to reset the list?.",
+    "CONFIRM_DELETE": "The song has been deleted successfully"
  },
     "messages": {
       "no_songs_found": "Nessuna canzone trovata"
@@ -83,6 +85,8 @@
     "song": "Song",
     "artist": "Artist",
     "requests": "Requests",
+    "wishlist": "Add on wishlist",
+    "delete": "Delete",
     "back_to_list": "Back to Song List"
   },
   "password_recovery": {

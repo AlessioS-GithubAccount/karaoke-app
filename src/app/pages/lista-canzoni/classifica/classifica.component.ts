@@ -1,6 +1,12 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { KaraokeService } from '../../../services/karaoke.service';
 import { AuthService } from '../../../services/auth.service';
+import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
+import { MatDialog } from '@angular/material/dialog';
+import { ToastrService } from 'ngx-toastr';
+
+
 
 @Component({
   selector: 'app-classifica',
@@ -22,7 +28,10 @@ export class ClassificaComponent implements OnInit {
 
   constructor(
     private karaokeService: KaraokeService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService,
+    private dialog: MatDialog,
+    private toast: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -70,20 +79,32 @@ export class ClassificaComponent implements OnInit {
   }
 
   eliminaCanzone(id: number): void {
-    if (!this.isAdmin) return;
+  if (!this.isAdmin) return;
 
-    if (confirm('Sei sicuro di voler eliminare questa canzone dalla classifica?')) {
-      this.karaokeService.deleteFromClassifica(id).subscribe({
-        next: () => {
-          this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
-        },
-        error: (err) => {
-          console.error('Errore durante eliminazione dalla classifica:', err);
-          alert('Errore durante l\'eliminazione');
-        }
-      });
-    }
-  }
+  this.translate.get('toast.DELETE_CONFIRM').subscribe(confirmMsg => {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { message: confirmMsg }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.karaokeService.deleteFromClassifica(id).subscribe({
+          next: () => {
+            this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
+            this.translate.get('toast.DELETE_CONFIRM').subscribe(msg => this.toast.success(msg));
+          },
+          error: (err) => {
+            console.error('Errore durante eliminazione dalla classifica:', err);
+            this.translate.get('toast.ERROR_LIST').subscribe(msg => this.toast.error(msg));
+          }
+        });
+      }
+    });
+  });
+}
+
+
 
   private capitalizeWords(str: string): string {
     if (!str) return '';
