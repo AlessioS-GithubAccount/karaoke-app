@@ -125,6 +125,12 @@ h2 {
  border-bottom-right-radius: 12px ;
 }
 
+/*cards*/
+.card{
+    background: var(--card-bg);
+
+}
+
 /* Pulsanti arrotondati e gradiente come lista canzoni */
 button, .btn {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));

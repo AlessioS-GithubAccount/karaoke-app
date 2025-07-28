@@ -2,6 +2,10 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../../services/auth.service';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../../shared/confirm-dialog/confirm-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 interface VotoEmoji {
   emoji: string;
@@ -35,7 +39,10 @@ export class UserCanzoniComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService,
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -97,44 +104,32 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
-  eliminaCanzone(id: number): void {
-    if (confirm('Sei sicuro di voler eliminare questa esibizione?')) {
-      this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
-        headers: this.getAuthHeaders()
-      }).subscribe({
-        next: () => {
-          alert('Esibizione eliminata con successo!');
-          this.loadEsibizioni(this.userId);
-        },
-        error: err => {
-          console.error('Errore durante l\'eliminazione:', err);
-          alert('Errore durante l\'eliminazione dell\'esibizione.');
-        }
-      });
-    }
-  }
-
-  salvaWishlist(song: any): void {
-    this.http.post(`${this.backendUrl}/wishlist`, song, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: () => this.loadWishlist(),
-      error: err => console.error('Errore salvataggio wishlist:', err)
+eliminaCanzone(id: number): void {
+  this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { message: translatedMessage },
+      width: '400px'
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
+          headers: this.getAuthHeaders()
+        }).subscribe({
+          next: () => {
+            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toastr.success(msg));
+            this.loadEsibizioni(this.userId);
+          },
+          error: err => {
+            console.error('Errore durante l\'eliminazione:', err);
+            this.translate.get('toast.ERROR_DELETE').subscribe(msg => this.toastr.error(msg));
+          }
+        });
+      }
     });
-  }
+  });
+}
 
-  rimuoviWishlist(id: number): void {
-    if (!confirm('Sei sicuro di voler eliminare questa canzone dalla wishlist?')) return;
 
-    this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: () => this.loadWishlist(),
-      error: err => console.error('Errore rimozione wishlist:', err)
-    });
-  }
-
-  aggiungiRiga(): void {
+ aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
   }
 
@@ -148,18 +143,34 @@ export class UserCanzoniComponent implements OnInit {
   }
 
   // Mappa emoji testuali a classi FontAwesome per icone
-  getFaIconClass(emoji: string): string {
-    switch (emoji) {
-      case '👍': return 'fa-thumbs-up';
-      case '👎': return 'fa-thumbs-down';
-      case '❤️': return 'fa-heart';
-      case '🔥': return 'fa-fire';
-      case '😊': return 'fa-smile';
-      case '😢': return 'fa-face-sad-tear'; // FontAwesome 6 pro, modifica se necessario
-      case '⭐': return 'fa-star';
-      case '🎵': return 'fa-music';
-      default:
-        return 'fa-circle';
-    }
+getFaIconClass(emoji: string): string {
+  if (!emoji) return 'fa-circle';
+
+  // Rimuove spazi e variation selector-16 (fe0f)
+   const normalized = emoji
+    .replace(/\s/g, '')       // rimuove spazi
+    .replace(/\uFE0F/g, '')   // rimuove variation selector-16
+    .trim(); 
+
+    console.log('Emoji originale:', emoji);
+  console.log('Emoji normalizzata:', normalized);
+
+  switch (normalized) {
+    case '👍':
+      return 'fa-thumbs-up';
+
+    case '😐':
+      return 'fa-face-meh';
+
+    case '😂':
+      return 'fa-face-laugh-squint';
+
+    case '❤':
+    case '❤️':
+      return 'fa-heart';
+
+    default:
+      return 'fa-circle';
   }
+}
 }

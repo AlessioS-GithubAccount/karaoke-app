@@ -3,6 +3,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../../services/auth.service';
 import { Router } from '@angular/router';
 import { ViewEncapsulation } from '@angular/core';
+import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-wishlist',
@@ -22,7 +26,10 @@ export class WishlistComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService,
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -68,17 +75,30 @@ export class WishlistComponent implements OnInit {
     });
   }
 
-  rimuoviWishlist(id: number): void {
-    const conferma = confirm('Sei sicuro di voler eliminare questa canzone dalla wishlist?');
-    if (!conferma) return;
-
-    this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: () => this.loadWishlist(),
-      error: err => console.error('Errore rimozione wishlist:', err)
+rimuoviWishlist(id: number): void {
+  this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { message: translatedMessage },
+      width: '400px'
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
+          headers: this.getAuthHeaders()
+        }).subscribe({
+          next: () => {
+            this.translate.get('toast.WISHLIST_REMOVE').subscribe(msg => this.toastr.success(msg));
+            this.loadWishlist();
+          },
+          error: err => {
+            console.error('Errore rimozione wishlist:', err);
+            this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
+          }
+        });
+      }
     });
-  }
+  });
+}
+
 
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });

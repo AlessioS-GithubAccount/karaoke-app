@@ -1,7 +1,8 @@
 <div class="container mt-5">
   <h2>{{ 'chart.title' | translate }}</h2>
 
-  <table class="table my-zebra-table" *ngIf="topCanzoni.length > 0; else noData">
+  <!-- Tabella solo su schermi larghi -->
+  <table class="table my-zebra-table d-none d-md-table" *ngIf="topCanzoni.length > 0; else noData">
     <thead>
       <tr>
         <th class="border-radius-left">{{ 'chart.position' | translate }}</th>
@@ -17,16 +18,39 @@
         <td>{{ c.canzone }}</td>
         <td>{{ c.artista }}</td>
         <td>{{ c.num_richieste }}</td>
-        <td *ngIf="isAdmin">
-          <button
-            class="btn btn-danger btn-sm"
-            (click)="eliminaCanzone(c.id)">
+        <td *ngIf="isAdmin" class="text-center align-middle">
+          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(c.id)">
             {{ 'chart.delete' | translate }}
           </button>
         </td>
       </tr>
     </tbody>
   </table>
+
+  <!-- Modalità card per mobile -->
+  <div class="d-md-none" *ngIf="topCanzoni.length > 0">
+    <div
+      class="card mb-3"
+      *ngFor="let c of topCanzoni; let i = index"
+    >
+      <div class="card-body text-center">
+        <h5 class="card-title">
+          {{ i + 1 }}. {{ c.canzone }}
+        </h5>
+        <p class="card-text mb-1">
+          <strong>{{ 'chart.artist' | translate }}:</strong> {{ c.artista }}
+        </p>
+        <p class="card-text mb-1">
+          <strong>{{ 'chart.requests' | translate }}:</strong> {{ c.num_richieste }}
+        </p>
+        <div *ngIf="isAdmin" class="text-end mt-2 text-center">
+          <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(c.id)">
+            {{ 'chart.delete' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <ng-template #noData>
     <div class="alert alert-info mt-3">

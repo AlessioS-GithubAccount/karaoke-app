@@ -36,7 +36,8 @@
     "WISHLIST_ERROR": "Errore durante l'aggiunta alla wishlist",
     "DELETE_CONFIRM": "Sei sicuro di voler eliminare questa canzone?",
     "RESET_LIST_CONFIRM": "Vuoi rettare la lista canzoni? Operazione irreversibile.",
-    "CONFIRM_DELETE": "Canzone eliminata con successo"
+    "CONFIRM_DELETE": "Canzone eliminata con successo",
+    "ERROR_DELETE": "Errore nell' eliminazione canzone."
   },
    "messages": {
       "no_songs_found": "Nessuna canzone trovata"
@@ -278,12 +279,15 @@
     "role": "Ruolo",
     "btn-back profile":"Ritorna al profilo",
     "secret_question_label": "Domanda segreta",
+    "error_fill_fields": "Compila tutti i campi richiesti.",
+     "success_password_changed": "Password modificata con successo.",
+    "error_password_change": "Errore durante la modifica della password.",
     "secret_questions": {
       "nome_animale_domestico": "Qual è il nome del tuo animale domestico?",
       "città_preferita": "Qual è la tua città preferita?",
       "nome_madre": "Qual è il nome di tua madre?",
       "animale_preferito": "Qual è il tuo animale preferito?",
-      "codicepin": "Qual è il tuo codice PIN?"
+      "codicepin": "Qual è il tuo codice PIN?"      
     }
   },
   "modify_profile": {

@@ -36,7 +36,8 @@
     "WISHLIST_ERROR": "Error adding to wishlist",
     "DELETE_CONFIRM": "Are you sure you want to delete this song?",
     "RESET_LIST_CONFIRM": "Do you want to reset the list?.",
-    "CONFIRM_DELETE": "The song has been deleted successfully"
+    "CONFIRM_DELETE": "The song has been deleted successfully",
+     "ERROR_DELETE": "Error on deleting song."
  },
     "messages": {
       "no_songs_found": "Nessuna canzone trovata"
@@ -280,13 +281,15 @@
     "role": "Role",
     "btn-back profile":"Back to profile",
     "secret_question_label": "Secret question",
+    "error_fill_fields": "Please fill in all required fields.",
+    "success_password_changed": "Password changed successfully.",
+    "error_password_change": "An error occurred while changing the password.",
     "secret_questions": {
       "nome_animale_domestico": "What is the name of your pet?",
       "città_preferita": "What is your favorite city?",
       "nome_madre": "What is your mother’s name?",
       "animale_preferito": "What is your favorite animal?",
       "codicepin": "What is your PIN code?"
-
     }
   },
   "modify_profile": {

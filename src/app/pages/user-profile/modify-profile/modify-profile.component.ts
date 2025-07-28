@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-modify-profile',
@@ -21,8 +23,10 @@ export class ModifyProfileComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private fb: FormBuilder,
-    private translate: TranslateService, 
-    private router: Router
+    private translate: TranslateService,
+    private router: Router,
+    private toastr: ToastrService,
+    private dialog: MatDialog
   ) {
     this.formOldPassword = this.fb.group({
       vecchiaPassword: ['', Validators.required],
@@ -39,8 +43,7 @@ export class ModifyProfileComponent implements OnInit {
 
   changePasswordByOld() {
     if (this.formOldPassword.invalid) {
-      this.errorMessage = this.translate.instant('privacy.error_fill_fields');
-      this.successMessage = '';
+      this.toastr.error(this.translate.instant('privacy.error_fill_fields'));
       return;
     }
 
@@ -49,21 +52,20 @@ export class ModifyProfileComponent implements OnInit {
     this.http.post(`${this.apiUrl}/user/change-password/by-old`, payload)
       .subscribe({
         next: (res: any) => {
-          this.successMessage = res.message || this.translate.instant('privacy.success_password_changed');
-          this.errorMessage = '';
+          const msg = res.message || this.translate.instant('privacy.success_password_changed');
+          this.toastr.success(msg);
           this.formOldPassword.reset();
         },
         error: (err) => {
-          this.errorMessage = err.error?.message || this.translate.instant('privacy.error_password_change');
-          this.successMessage = '';
+          const msg = err.error?.message || this.translate.instant('privacy.error_password_change');
+          this.toastr.error(msg);
         }
       });
   }
 
   changePasswordBySecret() {
     if (this.formSecretAnswer.invalid) {
-      this.errorMessage = this.translate.instant('privacy.error_fill_fields');
-      this.successMessage = '';
+      this.toastr.error(this.translate.instant('privacy.error_fill_fields'));
       return;
     }
 
@@ -72,19 +74,18 @@ export class ModifyProfileComponent implements OnInit {
     this.http.post(`${this.apiUrl}/user/change-password/by-secret`, payload)
       .subscribe({
         next: (res: any) => {
-          this.successMessage = res.message || this.translate.instant('privacy.success_password_changed');
-          this.errorMessage = '';
+          const msg = res.message || this.translate.instant('privacy.success_password_changed');
+          this.toastr.success(msg);
           this.formSecretAnswer.reset();
         },
         error: (err) => {
-          this.errorMessage = err.error?.message || this.translate.instant('privacy.error_password_change');
-          this.successMessage = '';
+          const msg = err.error?.message || this.translate.instant('privacy.error_password_change');
+          this.toastr.error(msg);
         }
       });
   }
 
   goBackToProfile() {
-  // Logica per tornare al profilo, es. navigare a un'altra route
-  this.router.navigate(['/user-profile']);
-}
+    this.router.navigate(['/user-profile']);
+  }
 }
