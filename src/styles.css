@@ -2,7 +2,6 @@
 @import "@angular/material/prebuilt-themes/indigo-pink.css";
 
 
-
 /* 🌑 DARK MODE (default) */
 body.dark-mode {
   --background-color: #0d0d0d;
