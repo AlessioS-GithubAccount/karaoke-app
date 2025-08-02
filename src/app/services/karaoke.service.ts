@@ -64,24 +64,23 @@ export class KaraokeService {
     });
   }
 
-deleteFromArchivio(id: number): Observable<any> {
-  const token = localStorage.getItem('token') || '';
-  return this.http.delete(`${this.archivioUrl}/${id}`, {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    })
-  });
-}
+  deleteFromArchivio(id: number): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.delete(`${this.archivioUrl}/${id}`, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    });
+  }
 
-deleteFromClassifica(id: number): Observable<any> {
-  const token = localStorage.getItem('token') || '';
-  return this.http.delete(`http://localhost:3000/api/classifica/${id}`, {
-    headers: new HttpHeaders({
-      Authorization: `Bearer ${token}`
-    })
-  });
-}
-
+  deleteFromClassifica(id: number): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.delete(`${this.baseUrl}/classifica/${id}`, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    });
+  }
 
   aggiornaCanzone(id: number, dati: { nome: string, artista: string, canzone: string, tonalita?: string, note?: string, accetta_partecipanti?: boolean }): Observable<any> {
     const token = localStorage.getItem('token');
@@ -101,40 +100,38 @@ deleteFromClassifica(id: number): Observable<any> {
     return this.nomeUtente;
   }
 
-   // Metodo per inviare o aggiornare un voto emoji
+  // Metodo per inviare o aggiornare un voto emoji
   votaEmoji(canzoneId: number, voterId: number, emoji: string): Observable<any> {
     const body = { canzone_id: canzoneId, voter_id: voterId, emoji };
-    return this.http.post('http://localhost:3000/api/voti', body);
+    return this.http.post(`${this.baseUrl}/voti`, body);
   }
 
+  getTopN(n: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/classifica/top?n=${n}`);
+  }
 
- getTopN(n: number): Observable<any[]> {
-  return this.http.get<any[]>(`http://localhost:3000/api/classifica/top?n=${n}`);
-}
+  riordinaCanzoni(listaOrdinata: { id: number; posizione: number }[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/canzoni/riordina`, listaOrdinata);
+  }
 
-riordinaCanzoni(listaOrdinata: { id: number; posizione: number }[]): Observable<any> {
-  return this.http.post('http://localhost:3000/api/canzoni/riordina', listaOrdinata);
-}
-
-aggiungiPartecipanteCompleto(idCanzone: number, nomePartecipante: string): Observable<any> {
-  const token = localStorage.getItem('token') || '';
-  return this.http.post(`http://localhost:3000/api/canzoni/${idCanzone}/aggiungi-partecipante`, 
-    { nomePartecipante },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
+  aggiungiPartecipanteCompleto(idCanzone: number, nomePartecipante: string): Observable<any> {
+    const token = localStorage.getItem('token') || '';
+    return this.http.post(`${this.baseUrl}/canzoni/${idCanzone}/aggiungi-partecipante`, 
+      { nomePartecipante },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
-    }
-  );
+    );
+  }
+
+  aggiungiAWishlist(data: {
+    user_id: number;
+    artista: string;
+    canzone: string;
+  }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/wishlist`, data);
+  }
 }
 
-aggiungiAWishlist(data: {
-  user_id: number;
-  artista: string;
-  canzone: string;
-}): Observable<any> {
-  return this.http.post('http://localhost:3000/api/wishlist', data);
-}
-
-
-}
