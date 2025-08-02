@@ -6,12 +6,14 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class KaraokeService {
-  private apiUrl = 'http://localhost:3000/api/canzoni';
-  private resetUrl = 'http://localhost:3000/api/reset-canzoni';
-  private top20Url = 'http://localhost:3000/api/top20';
-  private archivioUrl = 'http://localhost:3000/api/archivio-musicale';
-  private classificaUrl = 'http://localhost:3000/api/classifica';
-    private votiUrl = 'http://localhost:3000/api/voti';  
+  private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
+
+  private apiUrl = `${this.baseUrl}/canzoni`;
+  private resetUrl = `${this.baseUrl}/reset-canzoni`;
+  private top20Url = `${this.baseUrl}/top20`;
+  private archivioUrl = `${this.baseUrl}/archivio-musicale`;
+  private classificaUrl = `${this.baseUrl}/classifica`;
+  private votiUrl = `${this.baseUrl}/voti`;
 
   private nomeUtente: string = '';
 
