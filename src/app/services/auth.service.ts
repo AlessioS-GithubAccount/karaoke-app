@@ -1,23 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { jwtDecode } from 'jwt-decode';
-
-interface LoginResponse {
-  message: string;
-  token: string;
-  refreshToken: string;
-  ruolo: string;
-}
+import jwtDecode from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-private loginUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/login';
-private logoutUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/logout';
-private refreshUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/token';
+  private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
 
+  private loginUrl = `${this.baseUrl}/auth/login`;
+  private logoutUrl = `${this.baseUrl}/auth/logout`;
+  private refreshUrl = `${this.baseUrl}/auth/token`;
 
   private loggedIn = new BehaviorSubject<boolean>(this.hasValidToken());
   public isLoggedIn$ = this.loggedIn.asObservable();
@@ -32,8 +26,8 @@ private refreshUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/token';
   private loadUserFromStorage() {
     const username = localStorage.getItem('username');
     if (username && this.hasValidToken()) {
-      this.http.get<any>(`http://localhost:3000/api/users/by-username/${username}`).subscribe({
-        next: user => this.currentUserSubject.next(user),
+      this.http.get<any>(`${this.baseUrl}/users/by-username/${username}`).subscribe({
+        next: (user) => this.currentUserSubject.next(user),
         error: () => this.currentUserSubject.next(null),
       });
     } else {
@@ -49,10 +43,10 @@ private refreshUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/token';
     this.loadUserFromStorage();
   }
 
-  login(username: string, password: string): Observable<LoginResponse> {
-    console.log('Invio richiesta login a backend', { username, password }); // <-- Rimuovere in produzione
-    return new Observable<LoginResponse>((observer) => {
-      this.http.post<LoginResponse>(this.loginUrl, { username, password }).subscribe({
+  login(username: string, password: string): Observable<any> {
+    console.log('Invio richiesta login a backend', { username, password }); // <-- rimuovere in produzione
+    return new Observable<any>((observer) => {
+      this.http.post<any>(this.loginUrl, { username, password }).subscribe({
         next: (res) => {
           localStorage.setItem('token', res.token);
           localStorage.setItem('refresh_token', res.refreshToken);
@@ -95,14 +89,14 @@ private refreshUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/token';
       const decoded: any = jwtDecode(token);
       const now = Date.now().valueOf() / 1000;
       if (decoded.exp && decoded.exp < now) {
-        this.clearStorage(); // ⛔ Token scaduto, rimuovilo
+        this.clearStorage(); // token scaduto
         this.loggedIn.next(false);
         this.currentUserSubject.next(null);
         return false;
       }
       return true;
     } catch (err) {
-      this.clearStorage(); // ⛔ Token malformato
+      this.clearStorage(); // token malformato
       this.loggedIn.next(false);
       this.currentUserSubject.next(null);
       return false;
