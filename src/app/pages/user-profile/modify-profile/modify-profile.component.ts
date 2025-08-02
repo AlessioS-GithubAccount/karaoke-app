@@ -12,7 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrls: ['./modify-profile.component.css']
 })
 export class ModifyProfileComponent implements OnInit {
-  apiUrl = 'http://localhost:3000/api';
+  apiUrl = 'https://karaoke-app-6byu.onrender.com/api';  // aggiornata
 
   formOldPassword: FormGroup;
   formSecretAnswer: FormGroup;

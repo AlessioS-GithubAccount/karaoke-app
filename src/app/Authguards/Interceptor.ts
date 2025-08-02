@@ -15,6 +15,8 @@ export class TokenInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
+  private authUrl = 'https://karaoke-app-6byu.onrender.com/api/auth';
+
   constructor(private http: HttpClient) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -47,7 +49,7 @@ export class TokenInterceptor implements HttpInterceptor {
       this.refreshTokenSubject.next(null);
 
       const refreshToken = localStorage.getItem('refresh_token');
-      return this.http.post<any>('http://localhost:3000/api/auth/token', { refreshToken }).pipe(
+      return this.http.post<any>(`${this.authUrl}/token`, { refreshToken }).pipe(
         switchMap((res) => {
           this.isRefreshing = false;
           localStorage.setItem('token', res.token);
@@ -57,24 +59,24 @@ export class TokenInterceptor implements HttpInterceptor {
         catchError((err) => {
           this.isRefreshing = false;
 
-          // ⛔ Fallimento nel refresh token: effettua logout anche sul backend se possibile
+          // Logout backend se possibile
           const username = localStorage.getItem('username');
           if (username) {
-            this.http.post('http://localhost:3000/api/auth/logout', { username }).subscribe({
+            this.http.post(`${this.authUrl}/logout`, { username }).subscribe({
               next: () => console.log('Logout notificato al backend dopo refresh fallito'),
               error: (e) => console.error('Errore logout backend dopo refresh fallito:', e)
             });
           }
 
-          // ⛔ Pulizia totale del localStorage
+          // Pulizia storage
           localStorage.removeItem('token');
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('role');
           localStorage.removeItem('username');
           localStorage.removeItem('guestId');
 
-          // 👉 opzionale: forzare logout frontend o reindirizzamento
-          // window.location.href = '/login'; // o router.navigate(['/login'])
+          // Opzionale: forzare logout o redirect
+          // window.location.href = '/login';
 
           return throwError(() => err);
         })

@@ -34,7 +34,7 @@ export class UserCanzoniComponent implements OnInit {
   userId!: number;
   isMobile = false;
 
-  private backendUrl = 'http://localhost:3000/api';
+  private backendUrl = 'https://karaoke-app-6byu.onrender.com/api';  // aggiornata
 
   constructor(
     private http: HttpClient,
@@ -104,32 +104,31 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
-eliminaCanzone(id: number): void {
-  this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { message: translatedMessage },
-      width: '400px'
-    }).afterClosed().subscribe(result => {
-      if (result) {
-        this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
-          headers: this.getAuthHeaders()
-        }).subscribe({
-          next: () => {
-            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toastr.success(msg));
-            this.loadEsibizioni(this.userId);
-          },
-          error: err => {
-            console.error('Errore durante l\'eliminazione:', err);
-            this.translate.get('toast.ERROR_DELETE').subscribe(msg => this.toastr.error(msg));
-          }
-        });
-      }
+  eliminaCanzone(id: number): void {
+    this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
+      this.dialog.open(ConfirmDialogComponent, {
+        data: { message: translatedMessage },
+        width: '400px'
+      }).afterClosed().subscribe(result => {
+        if (result) {
+          this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
+            headers: this.getAuthHeaders()
+          }).subscribe({
+            next: () => {
+              this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toastr.success(msg));
+              this.loadEsibizioni(this.userId);
+            },
+            error: err => {
+              console.error('Errore durante l\'eliminazione:', err);
+              this.translate.get('toast.ERROR_DELETE').subscribe(msg => this.toastr.error(msg));
+            }
+          });
+        }
+      });
     });
-  });
-}
+  }
 
-
- aggiungiRiga(): void {
+  aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
   }
 
@@ -139,38 +138,34 @@ eliminaCanzone(id: number): void {
   }
 
   ritornaAlProfilo() {
-    this.router.navigate(['/user-profile']); // o percorso corretto del profilo
+    this.router.navigate(['/user-profile']);
   }
 
   // Mappa emoji testuali a classi FontAwesome per icone
-getFaIconClass(emoji: string): string {
-  if (!emoji) return 'fa-circle';
+  getFaIconClass(emoji: string): string {
+    if (!emoji) return 'fa-circle';
 
-  // Rimuove spazi e variation selector-16 (fe0f)
-   const normalized = emoji
-    .replace(/\s/g, '')       // rimuove spazi
-    .replace(/\uFE0F/g, '')   // rimuove variation selector-16
-    .trim(); 
+    // Rimuove spazi e variation selector-16 (fe0f)
+    const normalized = emoji
+      .replace(/\s/g, '')
+      .replace(/\uFE0F/g, '')
+      .trim();
 
     console.log('Emoji originale:', emoji);
-  console.log('Emoji normalizzata:', normalized);
+    console.log('Emoji normalizzata:', normalized);
 
-  switch (normalized) {
-    case '👍':
-      return 'fa-thumbs-up';
-
-    case '😐':
-      return 'fa-face-meh';
-
-    case '😂':
-      return 'fa-face-laugh-squint';
-
-    case '❤':
-    case '❤️':
-      return 'fa-heart';
-
-    default:
-      return 'fa-circle';
+    switch (normalized) {
+      case '👍':
+        return 'fa-thumbs-up';
+      case '😐':
+        return 'fa-face-meh';
+      case '😂':
+        return 'fa-face-laugh-squint';
+      case '❤':
+      case '❤️':
+        return 'fa-heart';
+      default:
+        return 'fa-circle';
+    }
   }
-}
 }

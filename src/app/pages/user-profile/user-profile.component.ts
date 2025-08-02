@@ -3,7 +3,6 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 
-
 interface Esibizione {
   esibizione_id: number;
   artista: string;
@@ -19,6 +18,8 @@ interface Esibizione {
   styleUrls: ['./user-profile.component.css']
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
+  private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
+
   username: string | null = null; 
   esibizioni: Esibizione[] = [];
   loading = true;
@@ -59,10 +60,10 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
   private fetchEsibizioni(userId: number): void {
     this.loading = true;
-    this.http.get<Esibizione[]>(`http://localhost:3000/api/esibizioni/user/${userId}`).subscribe({
+    this.http.get<Esibizione[]>(`${this.baseUrl}/esibizioni/user/${userId}`).subscribe({
       next: (esibizioni) => {
         const votiRequests = esibizioni.map(e =>
-          this.http.get<{ emoji: string; count: number }[]>(`http://localhost:3000/api/esibizioni/${e.esibizione_id}/voti`).toPromise()
+          this.http.get<{ emoji: string; count: number }[]>(`${this.baseUrl}/esibizioni/${e.esibizione_id}/voti`).toPromise()
             .catch(() => [])  // Gestisci voti assenti o errori come array vuoto
         );
 

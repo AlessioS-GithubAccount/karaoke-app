@@ -15,61 +15,61 @@ export class ForgotPasswordComponent {
   errorMessage = '';
   successMessage = '';
 
+  private apiUrl = 'https://karaoke-app-6byu.onrender.com/api/auth';
+
   constructor(private http: HttpClient) {}
 
- cercaDomanda() {
-  this.errorMessage = '';
-  this.successMessage = '';
-  if (!this.username) {
-    this.errorMessage = "Inserisci lo username.";
-    return;
-  }
-  this.http.get<{ domanda: string }>(`http://localhost:3000/api/auth/forgot-password/question/${this.username}`)
-    .subscribe({
-      next: (res) => {
-        this.domanda = res.domanda;
-        if (this.domanda) {
-          this.step = 2;
-        } else {
-          this.errorMessage = "Domanda segreta assente.";
+  cercaDomanda() {
+    this.errorMessage = '';
+    this.successMessage = '';
+    if (!this.username) {
+      this.errorMessage = "Inserisci lo username.";
+      return;
+    }
+    this.http.get<{ domanda: string }>(`${this.apiUrl}/forgot-password/question/${this.username}`)
+      .subscribe({
+        next: (res) => {
+          this.domanda = res.domanda;
+          if (this.domanda) {
+            this.step = 2;
+          } else {
+            this.errorMessage = "Domanda segreta assente.";
+          }
+        },
+        error: () => {
+          this.errorMessage = "Utente non trovato o errore server.";
         }
-      },
-      error: () => {
-        this.errorMessage = "Utente non trovato o errore server.";
-      }
-    });
-}
-
-
-verificaRisposta() {
-  this.errorMessage = '';
-  this.successMessage = '';
-
-  if (!this.risposta) {
-    this.errorMessage = "Inserisci la risposta.";
-    return;
+      });
   }
 
-  const payload = {
-    username: this.username,
-    risposta: this.risposta
-  };
+  verificaRisposta() {
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  this.http.post<{ valid: boolean }>('http://localhost:3000/api/auth/forgot-password/verify', payload)
-    .subscribe({
-      next: (res) => {
-        if (res.valid) {
-          this.step = 3;
-        } else {
-          this.errorMessage = "Risposta errata.";
+    if (!this.risposta) {
+      this.errorMessage = "Inserisci la risposta.";
+      return;
+    }
+
+    const payload = {
+      username: this.username,
+      risposta: this.risposta
+    };
+
+    this.http.post<{ valid: boolean }>(`${this.apiUrl}/forgot-password/verify`, payload)
+      .subscribe({
+        next: (res) => {
+          if (res.valid) {
+            this.step = 3;
+          } else {
+            this.errorMessage = "Risposta errata.";
+          }
+        },
+        error: () => {
+          this.errorMessage = "Errore durante la verifica della risposta.";
         }
-      },
-      error: () => {
-        this.errorMessage = "Errore durante la verifica della risposta.";
-      }
-    });
-}
-
+      });
+  }
 
   aggiornaPassword() {
     this.errorMessage = '';
@@ -79,7 +79,7 @@ verificaRisposta() {
       return;
     }
     const payload = { username: this.username, nuovaPassword: this.nuovaPassword };
-    this.http.post<{ message: string }>('http://localhost:3000/api/auth/forgot-password/reset', payload)
+    this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password/reset`, payload)
       .subscribe({
         next: (res) => {
           this.successMessage = res.message || "Password aggiornata con successo!";

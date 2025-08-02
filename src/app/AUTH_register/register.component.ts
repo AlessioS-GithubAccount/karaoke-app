@@ -19,6 +19,8 @@ export class RegisterComponent {
 
   @ViewChild('registerForm') registerForm!: NgForm;
 
+  private authUrl = 'https://karaoke-app-6byu.onrender.com/api/auth';
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -42,7 +44,7 @@ export class RegisterComponent {
       keypass: this.keypass
     };
 
-    this.http.post('http://localhost:3000/api/auth/register', payload).subscribe({
+    this.http.post(`${this.authUrl}/register`, payload).subscribe({
       next: (res: any) => {
         const msgKey = res.message ? 'REGISTER.SUCCESS_ROLE' : 'REGISTER.SUCCESS_DEFAULT';
         this.translate.get([msgKey, 'toast.SUCCESS'], { role: res.message }).subscribe(translations => {

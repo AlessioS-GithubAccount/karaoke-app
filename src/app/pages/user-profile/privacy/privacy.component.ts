@@ -10,7 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
   styleUrls: ['./privacy.component.css']
 })
 export class PrivacyComponent implements OnInit {
-  apiUrl = 'http://localhost:3000/api'; 
+  apiUrl = 'https://karaoke-app-6byu.onrender.com/api';  // aggiornato
   userData: any = null;
   errorMessage = '';
   successMessage = '';

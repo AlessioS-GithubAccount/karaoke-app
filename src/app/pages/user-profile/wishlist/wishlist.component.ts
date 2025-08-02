@@ -17,9 +17,9 @@ import { TranslateService } from '@ngx-translate/core';
 export class WishlistComponent implements OnInit {
 
   wishlist: any[] = [];
-  private backendUrl = 'http://localhost:3000/api';
+  private backendUrl = 'https://karaoke-app-6byu.onrender.com/api';  // aggiornata
 
-  isMobile: boolean = false;  // <-- aggiunta
+  isMobile: boolean = false;
 
   @ViewChild('bottom') bottom!: ElementRef;
 
@@ -33,18 +33,17 @@ export class WishlistComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.checkScreenSize();   // Controlla subito la dimensione
+    this.checkScreenSize();
     this.loadWishlist();
   }
 
-  // Listener per aggiornare la variabile al resize
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.checkScreenSize();
   }
 
   private checkScreenSize(): void {
-    this.isMobile = window.innerWidth <= 768;  // breakpoint comune per mobile
+    this.isMobile = window.innerWidth <= 768;
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -75,34 +74,32 @@ export class WishlistComponent implements OnInit {
     });
   }
 
-rimuoviWishlist(id: number): void {
-  this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { message: translatedMessage },
-      width: '400px'
-    }).afterClosed().subscribe(result => {
-      if (result) {
-        this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
-          headers: this.getAuthHeaders()
-        }).subscribe({
-          next: () => {
-            this.translate.get('toast.WISHLIST_REMOVE').subscribe(msg => this.toastr.success(msg));
-            this.loadWishlist();
-          },
-          error: err => {
-            console.error('Errore rimozione wishlist:', err);
-            this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
-          }
-        });
-      }
+  rimuoviWishlist(id: number): void {
+    this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
+      this.dialog.open(ConfirmDialogComponent, {
+        data: { message: translatedMessage },
+        width: '400px'
+      }).afterClosed().subscribe(result => {
+        if (result) {
+          this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
+            headers: this.getAuthHeaders()
+          }).subscribe({
+            next: () => {
+              this.translate.get('toast.WISHLIST_REMOVE').subscribe(msg => this.toastr.success(msg));
+              this.loadWishlist();
+            },
+            error: err => {
+              console.error('Errore rimozione wishlist:', err);
+              this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
+            }
+          });
+        }
+      });
     });
-  });
-}
-
+  }
 
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
-
     setTimeout(() => this.scrollToBottom(), 100);
   }
 
