@@ -14,9 +14,10 @@ interface LoginResponse {
   providedIn: 'root',
 })
 export class AuthService {
-  private loginUrl = 'http://localhost:3000/api/auth/login';
-  private logoutUrl = 'http://localhost:3000/api/auth/logout';
-  private refreshUrl = 'http://localhost:3000/api/auth/token';
+private loginUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/login';
+private logoutUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/logout';
+private refreshUrl = 'https://karaoke-app-6byu.onrender.com/api/auth/token';
+
 
   private loggedIn = new BehaviorSubject<boolean>(this.hasValidToken());
   public isLoggedIn$ = this.loggedIn.asObservable();
