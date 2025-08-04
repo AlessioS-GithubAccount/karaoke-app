@@ -125,9 +125,12 @@ h2 {
 
 /*cards*/
 .card{
-
-
+    background: var(--card-bg);
+    color: var(--text-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px var(--accent-hover);
 }
+
 
 /* Pulsanti arrotondati e gradiente come lista canzoni */
 button, .btn {
