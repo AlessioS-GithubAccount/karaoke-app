@@ -104,7 +104,7 @@
         <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
           {{ 'song_list.participation.full' | translate }}
         </div>
-        <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
+        <div *ngIf="!canzone.accetta_partecipanti" class="small mt-1">
           {{ 'song_list.participation.not_available' | translate }}
         </div>
       </td>
@@ -229,7 +229,7 @@
       <div *ngIf="partecipazioneCompleta(canzone)" class="text-warning small mt-1">
         {{ 'song_list.participation.full' | translate }}
       </div>
-      <div *ngIf="!canzone.accetta_partecipanti" class="text-muted small mt-1">
+      <div *ngIf="!canzone.accetta_partecipanti" class="small mt-1">
         {{ 'song_list.participation.not_available' | translate }}
       </div>
     </div>
