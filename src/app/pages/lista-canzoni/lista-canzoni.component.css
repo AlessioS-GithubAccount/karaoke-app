@@ -348,15 +348,15 @@ button:hover {
   }
 
   .scroll-buttons {
-  position: fixed;
-  top: 5rem;
-  right: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  z-index: 1000;
-  margin-bottom: 100px;
-}
+    position: fixed;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+  }
 
 .up{
   margin-bottom: 2rem;
