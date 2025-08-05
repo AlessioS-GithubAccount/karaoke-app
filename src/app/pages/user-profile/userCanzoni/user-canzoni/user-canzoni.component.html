@@ -29,7 +29,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let canzone of paginatedEsibizioni">
+          <tr *ngFor="let canzone of esibizioni">
             <td>{{ canzone.canzone }}</td>
             <td>{{ canzone.artista }}</td>
             <td>{{ canzone.tonalita || ('performance_history.dash' | translate) }}</td>
@@ -66,7 +66,7 @@
       </table>
       <div class="pagination-controls" *ngIf="totalPages > 1">
         <button (click)="changePage(-1)" [disabled]="currentPage === 1">◄</button>
-        <span>{{ 'performance_history.currentPage' | translate}} / {{ totalPages }}</span>
+         <span>{{ 'performance_history.currentPage' | translate }} {{ currentPage }} / {{ totalPages }}</span>
         <button (click)="changePage(1)" [disabled]="currentPage === totalPages">►</button>
       </div>
 
@@ -74,7 +74,7 @@
 
     <!-- MOBILE VIEW -->
     <div *ngIf="isMobile" class="mobile-card-wrapper">
-      <div *ngFor="let canzone of paginatedEsibizioni" class="mobile-card">
+      <div *ngFor="let canzone of esibizioni" class="mobile-card">
         <div><strong>{{ 'performance_history.song' | translate }}:</strong> {{ canzone.canzone }}</div>
         <div><strong>{{ 'performance_history.artist' | translate }}:</strong> {{ canzone.artista }}</div>
         <div><strong>{{ 'performance_history.key' | translate }}:</strong> {{ canzone.tonalita || ('performance_history.dash' | translate) }}</div>
@@ -112,7 +112,7 @@
 
       <div class="pagination-controls" *ngIf="totalPages > 1">
         <button (click)="changePage(-1)" [disabled]="currentPage === 1">◄</button>
-        <span>{{ 'performance_history.currentPage' | translate}}</span>
+        <span>{{ 'performance_history.currentPage' | translate }} {{ currentPage }} / {{ totalPages }}</span>
         <button (click)="changePage(1)" [disabled]="currentPage === totalPages">►</button>
       </div>
     </div>
