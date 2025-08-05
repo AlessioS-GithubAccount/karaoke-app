@@ -128,6 +128,7 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
+
   aggiungiRiga(): void {
     this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
   }
@@ -143,7 +144,7 @@ export class UserCanzoniComponent implements OnInit {
 
   // Mappa emoji testuali a classi FontAwesome per icone
   getFaIconClass(emoji: string): string {
-    if (!emoji) return 'fa-circle';
+  if (!emoji) return 'fa-circle';
 
     // Rimuove spazi e variation selector-16 (fe0f)
     const normalized = emoji
@@ -154,18 +155,43 @@ export class UserCanzoniComponent implements OnInit {
     console.log('Emoji originale:', emoji);
     console.log('Emoji normalizzata:', normalized);
 
-    switch (normalized) {
-      case '👍':
-        return 'fa-thumbs-up';
-      case '😐':
-        return 'fa-face-meh';
-      case '😂':
-        return 'fa-face-laugh-squint';
-      case '❤':
-      case '❤️':
-        return 'fa-heart';
-      default:
-        return 'fa-circle';
+  switch (normalized) {
+    case '👍':
+      return 'fa-thumbs-up';
+
+    case '😐':
+      return 'fa-face-meh';
+
+    case '😂':
+      return 'fa-face-laugh-squint';
+
+    case '❤':
+    case '❤️':
+      return 'fa-heart';
+
+    default:
+      return 'fa-circle';
+  }
+}
+
+
+  //function di paginazione per lazy-loading
+  pageSize = 8;
+  currentPage = 1;
+
+  get paginatedEsibizioni(): Esibizione[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.esibizioni.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.esibizioni.length / this.pageSize);
+  }
+
+  changePage(delta: number): void {
+    const nextPage = this.currentPage + delta;
+    if (nextPage >= 1 && nextPage <= this.totalPages) {
+      this.currentPage = nextPage;
     }
   }
 }

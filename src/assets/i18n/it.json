@@ -271,7 +271,9 @@
     "go_to_booking": "Vai a Prenota Canzoni",
     "wishlist_empty": "La tua lista dei desideri è vuota.",
     "back_to_profile": "Ritorna al Profilo",
-    "add_song": "+ Aggiungi Canzone"
+    "add_song": "+ Aggiungi Canzone",
+    "currentPage": "Pagina",
+    "of": "di"
   },
   "privacy": {
     "title": "Impostazioni Privacy",
