@@ -195,7 +195,7 @@ app.post('/api/user/change-password/by-secret', verifyToken, async (req, res) =>
 });
 
 
-
+//inizializzazione leoProfanity
 const leoProfanity = require('leo-profanity');
 leoProfanity.add(leoProfanity.getDictionary('en'));
 leoProfanity.add(leoProfanity.getDictionary('it'));
@@ -203,6 +203,7 @@ const customBadWords = require('./utils/profanityList');
 // Aggiungo le parole personalizzate dalla lista esterna
 leoProfanity.add(customBadWords);
 
+//func per aggiungere partecipante a un esibizione
 app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (req, res) => {
   console.log('=== Debug POST aggiungi partecipante ===');
   console.log('Authorization header:', req.headers.authorization);
@@ -283,13 +284,32 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
   }
 });
 
-
-// get nomi partecipanti per user-canzoni component
+//func per recuperare lo storico canzoni dello user
 app.get('/api/esibizioni/user/:id', async (req, res) => {
   const userId = req.params.id;
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 8;
+  const offset = (page - 1) * pageSize;
 
   try {
-    // Recupera tutte le esibizioni di quell'utente
+    // Conta tutte le esibizioni dell'utente
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) as total FROM user_storico_esibizioni WHERE user_id = ?`,
+      [userId]
+    );
+
+    if (total === 0) {
+      return res.json({
+        esibizioni: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: page
+      });
+    }
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    // Recupera solo le esibizioni della pagina richiesta
     const [esibizioni] = await db.query(
       `SELECT 
          id, 
@@ -303,51 +323,47 @@ app.get('/api/esibizioni/user/:id', async (req, res) => {
          partecipante_3
        FROM user_storico_esibizioni
        WHERE user_id = ?
-       ORDER BY data_esibizione DESC`,
-      [userId]
+       ORDER BY data_esibizione DESC
+       LIMIT ? OFFSET ?`,
+      [userId, pageSize, offset]
     );
 
-    if (esibizioni.length === 0) {
-      return res.json([]);
-    }
-
-    // Estrai gli id esibizione per la query successiva sui voti
     const esibizioneIds = esibizioni.map(e => e.esibizione_id).filter(id => id != null);
 
-    if (esibizioneIds.length === 0) {
-      // Nessun esibizione con id valido, aggiungi voti vuoti e ritorna
-      esibizioni.forEach(e => e.voti = []);
-      return res.json(esibizioni);
+    let votiPerEsibizione = {};
+
+    if (esibizioneIds.length > 0) {
+      const [voti] = await db.query(
+        `SELECT esibizione_id, emoji, COUNT(*) AS count
+         FROM voti_emoji
+         WHERE esibizione_id IN (${esibizioneIds.map(() => '?').join(',')})
+         GROUP BY esibizione_id, emoji`,
+        esibizioneIds
+      );
+
+      voti.forEach(v => {
+        if (!votiPerEsibizione[v.esibizione_id]) votiPerEsibizione[v.esibizione_id] = [];
+        votiPerEsibizione[v.esibizione_id].push({ emoji: v.emoji, count: v.count });
+      });
     }
 
-    // Recupera i voti per tutte le esibizioni dell'utente
-    const [voti] = await db.query(
-      `SELECT esibizione_id, emoji, COUNT(*) AS count
-       FROM voti_emoji
-       WHERE esibizione_id IN (${esibizioneIds.map(() => '?').join(',')})
-       GROUP BY esibizione_id, emoji`,
-      esibizioneIds
-    );
-
-    // Mappa i voti per ogni esibizione
-    const votiPerEsibizione = {};
-    voti.forEach(v => {
-      if (!votiPerEsibizione[v.esibizione_id]) votiPerEsibizione[v.esibizione_id] = [];
-      votiPerEsibizione[v.esibizione_id].push({ emoji: v.emoji, count: v.count });
-    });
-
-    // Aggiungi i voti a ogni esibizione
     esibizioni.forEach(e => {
       e.voti = votiPerEsibizione[e.esibizione_id] || [];
     });
 
-    res.json(esibizioni);
+    res.json({
+      esibizioni,
+      totalItems: total,
+      totalPages,
+      currentPage: page
+    });
 
   } catch (err) {
     console.error('Errore recupero esibizioni:', err);
     res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
   }
 });
+
 
 
 
@@ -389,7 +405,7 @@ app.post('/api/voti', async (req, res) => {
 
 
 
-
+//mapping domande di sicurezza e recupero password
 const mapDomande = {
   nome_animale_domestico: "Qual è il nome del tuo animale domestico?",
   "città_preferita": "Qual è la tua città preferita?",
@@ -398,7 +414,7 @@ const mapDomande = {
   codicepin: "Crea il tuo codice PIN di recupero"
 };
 
-
+//func get domanda segreta inserita da user, per recupero password
 app.get('/api/auth/forgot-password/question/:username', async (req, res) => {
   const { username } = req.params;
   try {
@@ -524,7 +540,7 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 
-// registra dati user creando un account
+// func register: registra dati user creando un account
 app.post('/api/auth/register', async (req, res) => {
   const { username, password, domandaRecupero, rispostaRecupero, keypass } = req.body;
   if (!username || !password || !domandaRecupero || !rispostaRecupero) {
@@ -550,7 +566,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-
+// func per recupero dati user
 app.get('/api/users/by-username/:username', async (req, res) => {
   const { username } = req.params;
   try {
@@ -563,7 +579,7 @@ app.get('/api/users/by-username/:username', async (req, res) => {
 });
 
 
-
+//func per recupero canzoni prenotate
 app.get('/api/canzoni', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM canzoni ORDER BY id ASC');
@@ -635,7 +651,7 @@ app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
   }
 });
 
-
+// func per prenotare canzoni in lista
 app.post('/api/canzoni', async (req, res) => {
   let { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
@@ -709,7 +725,7 @@ app.post('/api/canzoni', async (req, res) => {
 
 
 
-
+// func per recuperare i voti di ogni esibizione user
 app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
   const esibizioneId = req.params.esibizioneId;
 
@@ -779,7 +795,7 @@ app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
 });
 
 
-
+// func aggiorna status canzone cantata/da cantare
 app.put('/api/canzoni/:id/cantata', async (req, res) => {
   const { id } = req.params;
   const { cantata } = req.body;
@@ -791,6 +807,7 @@ app.put('/api/canzoni/:id/cantata', async (req, res) => {
   }
 });
 
+//func aggiunta partecipante , calcola numero partecipanti tot / disponibili
 app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   const { id } = req.params;
   try {
@@ -802,6 +819,7 @@ app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   }
 });
 
+// func recupera nome partecipante
 app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   const { id } = req.params;
   try {
@@ -812,6 +830,7 @@ app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   }
 });
 
+//func per reset lista canzoni (solo admin)
 app.post('/api/reset-canzoni', async (req, res) => {
   const { password } = req.body;
   if (password !== 'karaokeadmin') {
@@ -826,6 +845,7 @@ app.post('/api/reset-canzoni', async (req, res) => {
   }
 });
 
+// func per generare lista top list 20 max num
 app.get('/api/top20', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT canzone, artista, numero_richieste FROM canzoni ORDER BY numero_richieste DESC LIMIT 20');
@@ -835,6 +855,7 @@ app.get('/api/top20', async (req, res) => {
   }
 });
 
+//func genera lista archivio canzoni storico
 app.get('/api/archivio-musicale', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM raccolta_canzoni ORDER BY artista ASC');
@@ -844,6 +865,8 @@ app.get('/api/archivio-musicale', async (req, res) => {
   }
 });
 
+
+//func genera top list
 app.get('/api/classifica', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM classifica ORDER BY punteggio DESC');
@@ -853,6 +876,7 @@ app.get('/api/classifica', async (req, res) => {
   }
 });
 
+//func per modificare dati canzoni già in lista prenotate
 app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;
@@ -880,6 +904,7 @@ app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
   }
 });
 
+//func per cancellare canzone da archivio canzoni storico
 app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
@@ -902,7 +927,7 @@ app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
   }
 });
 
-
+//func per eliminare singola canzone da lista canzoni
 app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;
@@ -924,6 +949,7 @@ app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
   }
 });
 
+//func per eliminare singola canzone da user-canzoni
 app.delete('/api/esibizioni/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -940,8 +966,6 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
     res.status(500).json({ message: 'Errore interno del server' });
   }
 });
-
-
 
 
 (async () => {

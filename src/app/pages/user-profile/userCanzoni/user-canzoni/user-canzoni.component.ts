@@ -33,6 +33,8 @@ export class UserCanzoniComponent implements OnInit {
   wishlist: any[] = [];
   userId!: number;
   isMobile = false;
+  totalPages: number = 0;
+
 
   private backendUrl = 'http://localhost:3000/api';
 
@@ -51,8 +53,7 @@ export class UserCanzoniComponent implements OnInit {
     this.auth.getUtenteLoggato().subscribe(user => {
       if (user && user.id) {
         this.userId = user.id;
-        this.loadEsibizioni(this.userId);
-        this.loadWishlist();
+        this.loadEsibizioni(this.userId, 1);
       }
     });
   }
@@ -72,37 +73,35 @@ export class UserCanzoniComponent implements OnInit {
       Authorization: `Bearer ${token}`
     });
   }
+  
 
-  loadEsibizioni(id: number): void {
-    this.http.get<any[]>(`${this.backendUrl}/esibizioni/user/${id}`, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: res => {
-        this.esibizioni = res.map(e => ({
-          esibizione_id: e.id,
-          artista: e.artista,
-          canzone: e.canzone,
-          tonalita: e.tonalita,
-          data_esibizione: e.data_esibizione,
-          partecipante_2: e.partecipante_2,
-          partecipante_3: e.partecipante_3,
-          voti: Array.isArray(e.voti) ? e.voti : []
-        }));
-      },
-      error: err => {
-        console.error('Errore caricamento esibizioni:', err);
-      }
-    });
-  }
+  loadEsibizioni(id: number, page: number = 1): void {
+  const pageSize = this.pageSize;
 
-  loadWishlist(): void {
-    this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
-      headers: this.getAuthHeaders()
-    }).subscribe({
-      next: res => this.wishlist = res,
-      error: err => console.error('Errore caricamento wishlist:', err)
-    });
-  }
+  this.http.get<any>(`${this.backendUrl}/esibizioni/user/${id}?page=${page}&pageSize=${pageSize}`, {
+    headers: this.getAuthHeaders()
+  }).subscribe({
+    next: res => {
+      this.esibizioni = res.esibizioni.map((e: any) => ({
+        esibizione_id: e.id,
+        artista: e.artista,
+        canzone: e.canzone,
+        tonalita: e.tonalita,
+        data_esibizione: e.data_esibizione,
+        partecipante_2: e.partecipante_2,
+        partecipante_3: e.partecipante_3,
+        voti: Array.isArray(e.voti) ? e.voti : []
+      }));
+      
+      this.totalPages = res.totalPages;
+      this.currentPage = res.currentPage;
+    },
+    error: err => {
+      console.error('Errore caricamento esibizioni:', err);
+    }
+  });
+}
+
 
   eliminaCanzone(id: number): void {
     this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
@@ -128,10 +127,6 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
-
- aggiungiRiga(): void {
-    this.wishlist.push({ canzone: '', artista: '', tonalita: '' });
-  }
 
   formattaVoti(voti: VotoEmoji[]): string {
     if (!voti || voti.length === 0) return '—';
@@ -184,14 +179,12 @@ export class UserCanzoniComponent implements OnInit {
     return this.esibizioni.slice(start, start + this.pageSize);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.esibizioni.length / this.pageSize);
-  }
 
   changePage(delta: number): void {
-    const nextPage = this.currentPage + delta;
-    if (nextPage >= 1 && nextPage <= this.totalPages) {
-      this.currentPage = nextPage;
-    }
+  const nextPage = this.currentPage + delta;
+  if (nextPage >= 1 && nextPage <= this.totalPages) {
+    this.loadEsibizioni(this.userId, nextPage);
   }
+}
+
 }
