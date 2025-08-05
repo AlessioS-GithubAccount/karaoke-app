@@ -20,10 +20,8 @@ import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
 import { LoginComponent } from './AUTH_login/login.component';
 import { RegisterComponent } from './AUTH_register/register.component';
-import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
-import { UserCanzoniComponent } from './pages/user-profile/userCanzoni/user-canzoni/user-canzoni.component';
 
 // Import DragDropModule from Angular CDK
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -32,9 +30,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 // Import dell'interceptor
 import { TokenInterceptor  } from './Authguards/Interceptor';
-import { PrivacyComponent } from './pages/user-profile/privacy/privacy.component';
-import { WishlistComponent } from './pages/user-profile/wishlist/wishlist.component';
-import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';
 import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';  
 import { MatDialogModule } from '@angular/material/dialog';
 
@@ -53,13 +48,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     ArchivioMusicaleComponent,
     LoginComponent,
     RegisterComponent,
-    UserProfileComponent,
     HomepageComponent,
     ForgotPasswordComponent,
-    UserCanzoniComponent,
-    PrivacyComponent,
-    WishlistComponent,
-    ModifyProfileComponent,
     ConfirmDialogComponent  
   ],
   imports: [
