@@ -104,29 +104,29 @@ export class UserCanzoniComponent implements OnInit {
     });
   }
 
-eliminaCanzone(id: number): void {
-  this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { message: translatedMessage },
-      width: '400px'
-    }).afterClosed().subscribe(result => {
-      if (result) {
-        this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
-          headers: this.getAuthHeaders()
-        }).subscribe({
-          next: () => {
-            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toastr.success(msg));
-            this.loadEsibizioni(this.userId);
-          },
-          error: err => {
-            console.error('Errore durante l\'eliminazione:', err);
-            this.translate.get('toast.ERROR_DELETE').subscribe(msg => this.toastr.error(msg));
-          }
-        });
-      }
+  eliminaCanzone(id: number): void {
+    this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
+      this.dialog.open(ConfirmDialogComponent, {
+        data: { message: translatedMessage },
+        width: '400px'
+      }).afterClosed().subscribe(result => {
+        if (result) {
+          this.http.delete(`${this.backendUrl}/esibizioni/${id}`, {
+            headers: this.getAuthHeaders()
+          }).subscribe({
+            next: () => {
+              this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toastr.success(msg));
+              this.loadEsibizioni(this.userId);
+            },
+            error: err => {
+              console.error('Errore durante l\'eliminazione:', err);
+              this.translate.get('toast.ERROR_DELETE').subscribe(msg => this.toastr.error(msg));
+            }
+          });
+        }
+      });
     });
-  });
-}
+  }
 
 
  aggiungiRiga(): void {
@@ -143,7 +143,7 @@ eliminaCanzone(id: number): void {
   }
 
   // Mappa emoji testuali a classi FontAwesome per icone
-getFaIconClass(emoji: string): string {
+  getFaIconClass(emoji: string): string {
   if (!emoji) return 'fa-circle';
 
   // Rimuove spazi e variation selector-16 (fe0f)
@@ -173,4 +173,25 @@ getFaIconClass(emoji: string): string {
       return 'fa-circle';
   }
 }
+
+
+  //function di paginazione per lazy-loading
+  pageSize = 8;
+  currentPage = 1;
+
+  get paginatedEsibizioni(): Esibizione[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.esibizioni.slice(start, start + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.esibizioni.length / this.pageSize);
+  }
+
+  changePage(delta: number): void {
+    const nextPage = this.currentPage + delta;
+    if (nextPage >= 1 && nextPage <= this.totalPages) {
+      this.currentPage = nextPage;
+    }
+  }
 }

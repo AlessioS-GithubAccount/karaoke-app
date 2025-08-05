@@ -273,7 +273,9 @@
     "go_to_booking": "Go to Song Booking",
     "wishlist_empty": "Your wishlist is empty.",
     "back_to_profile": "Back to Profile",
-    "add_song": "+ Add Song"
+    "add_song": "+ Add Song",
+    "currentPage": "Page",
+    "of": "of"
   },
   "privacy": {
     "title": "Privacy Settings",

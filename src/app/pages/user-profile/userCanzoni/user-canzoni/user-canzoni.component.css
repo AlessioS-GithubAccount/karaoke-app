@@ -19,6 +19,7 @@
 
 .table-wrapper {
   padding: 4rem;
+  padding-top: 2rem;
 }
 
 .my-zebra-table {
@@ -205,6 +206,14 @@ button:hover {
   margin-top: 0.5rem;
   display: flex;
   justify-content: flex-start;
+}
+
+.pagination-controls{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem; /* Spazio tra i pulsanti e il testo */
+  margin: 1.5rem 0;
 }
 
 /* Animazioni */
