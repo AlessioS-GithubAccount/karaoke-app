@@ -7,7 +7,7 @@
 
     <div class="profile-card-grid">
       <!-- Card per lo storico delle canzoni -->
-      <div class="profile-card" [routerLink]="['/storico']" tabindex="0" role="button">
+      <div class="profile-card" [routerLink]="['storico']" tabindex="0" role="button">
         <h3>
           <i class="fas fa-scroll"></i><br />
           {{ 'profile.your_songs' | translate }}
@@ -16,7 +16,7 @@
       </div>
 
       <!-- Card wishlist -->
-      <div class="profile-card" [routerLink]="['/wishlist']" tabindex="0" role="button">
+      <div class="profile-card" [routerLink]="['wishlist']" tabindex="0" role="button">
         <h3>
           <i class="fas fa-heart"></i><br />
           {{ 'profile.wishlist' | translate }}
@@ -25,7 +25,7 @@
       </div>
 
       <!-- Card modifica profilo -->
-      <div class="profile-card" [routerLink]="['/modify-profile']" tabindex="0" role="button">
+      <div class="profile-card" [routerLink]="['modify-profile']" tabindex="0" role="button">
         <h3>
           <i class="fas fa-cog"></i><br />
           {{ 'profile.edit_profile' | translate }}
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Card privacy -->
-      <div class="profile-card" [routerLink]="['/privacy']" tabindex="0" role="button">
+      <div class="profile-card" [routerLink]="['privacy']" tabindex="0" role="button">
         <h3>
           <i class="fas fa-lock"></i><br />
           {{ 'profile.privacy' | translate }}
@@ -42,6 +42,9 @@
         <p>{{ 'profile.privacy_desc' | translate }}</p>
       </div>
     </div>
+
+    <!-- Router outlet per i componenti figli -->
+    <router-outlet></router-outlet>
   </div>
 </ng-container>
 
