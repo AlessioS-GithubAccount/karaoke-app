@@ -6,7 +6,7 @@ import { RegisterComponent } from './AUTH_register/register.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
-import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
+import { ClassificaComponent } from './pages/classifica/classifica.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';
 
@@ -29,11 +29,14 @@ const routes: Routes = [
   },
 
   {
-    path: 'archivio-musicale',
+    path: 'lista-canzoni',
     loadChildren: () =>
-      import('./pages/archivio-musicale/archivio-musicale-routing.module').then(
-        (m) => m.ArchivioMusicaleRoutingModule
-      ),
+      import('./pages/lista-canzoni/lista-canzoni.module').then(m => m.ListaCanzoniModule)
+  },
+
+  {
+    path: 'archivio-musicale',
+    loadChildren: () => import('./pages/archivio-musicale/archivio-musicale.module').then(m => m.ArchivioMusicaleModule)
   },
 
   { path: '**', redirectTo: '', pathMatch: 'full' }

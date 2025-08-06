@@ -14,9 +14,8 @@ import { ToastrModule } from 'ngx-toastr';
 
 import { AppComponent } from './app.component';
 import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
-import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
 import { KaraokeService } from './services/karaoke.service';
-import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
+import { ClassificaComponent } from './pages/classifica/classifica.component';
 import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
 import { LoginComponent } from './AUTH_login/login.component';
 import { RegisterComponent } from './AUTH_register/register.component';
@@ -43,7 +42,6 @@ export function HttpLoaderFactory(http: HttpClient) {
     AppComponent,
     CapitalizeWordsPipe,
     PrenotaCanzoniComponent,
-    ListaCanzoniComponent,
     ClassificaComponent,
     ArchivioMusicaleComponent,
     LoginComponent,
