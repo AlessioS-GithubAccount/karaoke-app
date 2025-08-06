@@ -6,8 +6,7 @@ import { RegisterComponent } from './AUTH_register/register.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
 import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
-import { ClassificaComponent } from './pages/lista-canzoni/classifica/classifica.component';
-import { ArchivioMusicaleComponent } from './pages/archivio-musicale/archivio-musicale.component';
+import { ClassificaComponent } from './pages/classifica/classifica.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';
 
@@ -19,7 +18,6 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'prenota-canzoni', component: PrenotaCanzoniComponent },
-  { path: 'lista-canzoni', component: ListaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
   { path: 'archivio-musicale', component: ArchivioMusicaleComponent },
   {path: 'modify-profile', component: ModifyProfileComponent},
@@ -29,6 +27,17 @@ const routes: Routes = [
     path: 'user-profile', 
     canActivate: [AuthGuard],
     loadChildren: () => import('./pages/user-profile/user-profile.module').then(m => m.UserProfileModule)
+  },
+
+  {
+    path: 'lista-canzoni',
+    loadChildren: () =>
+      import('./pages/lista-canzoni/lista-canzoni.module').then(m => m.ListaCanzoniModule)
+  },
+
+  {
+    path: 'archivio-musicale',
+    loadChildren: () => import('./pages/archivio-musicale/archivio-musicale.module').then(m => m.ArchivioMusicaleModule)
   },
 
   { path: '**', redirectTo: '', pathMatch: 'full' }
