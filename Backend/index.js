@@ -855,12 +855,48 @@ app.get('/api/top20', async (req, res) => {
   }
 });
 
+/*
 //func genera lista archivio canzoni storico
 app.get('/api/archivio-musicale', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM raccolta_canzoni ORDER BY artista ASC');
     res.json(rows);
   } catch (err) {
+    res.status(500).json({ message: 'Errore nell\'archivio musicale' });
+  }
+});
+*/
+
+// GET con paginazione
+app.get('/api/archivio-musicale', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // default: 1
+    const limit = parseInt(req.query.limit) || 10; // default: 10
+    const offset = (page - 1) * limit;
+
+    // Ottieni dati paginati
+    const [rows] = await db.query(
+      'SELECT * FROM raccolta_canzoni ORDER BY artista ASC LIMIT ? OFFSET ?',
+      [limit, offset]
+    );
+
+    // Conta il numero totale di righe
+    const [countResult] = await db.query('SELECT COUNT(*) as count FROM raccolta_canzoni');
+    const totalItems = countResult[0].count;
+    const totalPages = Math.ceil(totalItems / limit);
+
+    // Rispondi con i dati paginati
+    res.json({
+      data: rows,
+      pagination: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        limit
+      }
+    });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Errore nell\'archivio musicale' });
   }
 });

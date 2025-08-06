@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'; 
+import { Component, OnInit } from '@angular/core';
 import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
@@ -20,6 +20,12 @@ export class ArchivioMusicaleComponent implements OnInit {
   canUseActions: boolean = false;
   searchText: string = '';
 
+  // Paginazione
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  isLoading: boolean = false;
+
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
@@ -37,29 +43,48 @@ export class ArchivioMusicaleComponent implements OnInit {
     this.isGuest = ruolo === 'guest';
     this.canUseActions = this.isAdmin || this.isUser;
 
-    this.karaokeService.getArchivioMusicale().subscribe({
-      next: (data) => {
-        this.archivio = data.filter((item, index, self) =>
-          index === self.findIndex((t) =>
-            t.canzone === item.canzone && t.artista === item.artista
-          )
-        );
+    this.loadArchivio(this.currentPage);
+  }
+
+  loadArchivio(page: number): void {
+  this.isLoading = true;
+
+    this.karaokeService.getArchivioMusicalePaginated(page, this.pageSize).subscribe({
+      next: (res: any) => {
+        this.archivio = res.data;
+        this.totalPages = res.pagination.totalPages;
+        this.currentPage = res.pagination.currentPage;
+        this.isLoading = false;
       },
-      error: (err) => {
+      error: () => {
         this.translate.get('toast.ERROR_CHARGING').subscribe(msg => {
           this.toastr.error(msg);
         });
+        this.isLoading = false;
       }
     });
   }
 
-    scrollToTop(): void {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-scrollToBottom(): void {
-  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-}
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.loadArchivio(this.currentPage - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.loadArchivio(this.currentPage + 1);
+    }
+  }
+
+  scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  scrollToBottom(): void {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
 
   aggiungiAWishlist(item: any): void {
     this.karaokeService.aggiungiAWishlist({
@@ -75,7 +100,7 @@ scrollToBottom(): void {
           this.toastr.success(msg);
         });
       },
-      error: (err) => {
+      error: () => {
         this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => {
           this.toastr.error(msg);
         });
@@ -93,33 +118,32 @@ scrollToBottom(): void {
     });
   }
 
- eliminaCanzone(id: number): void {
-  this.translate.get('toast.DELETE_CONFIRM').subscribe(traduzione => {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: { message: traduzione }
-    });
+  eliminaCanzone(id: number): void {
+    this.translate.get('toast.DELETE_CONFIRM').subscribe(traduzione => {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: { message: traduzione }
+      });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        this.karaokeService.deleteFromArchivio(id).subscribe({
-          next: () => {
-            this.archivio = this.archivio.filter(c => c.id !== id);
-            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => {
-              this.toastr.success(msg);
-            });
-          },
-          error: () => {
-            this.translate.get('toast.ERROR_LIST').subscribe(msg => {
-              this.toastr.error(msg);
-            });
-          }
-        });
-      }
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true) {
+          this.karaokeService.deleteFromArchivio(id).subscribe({
+            next: () => {
+              this.archivio = this.archivio.filter(c => c.id !== id);
+              this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => {
+                this.toastr.success(msg);
+              });
+            },
+            error: () => {
+              this.translate.get('toast.ERROR_LIST').subscribe(msg => {
+                this.toastr.error(msg);
+              });
+            }
+          });
+        }
+      });
     });
-  });
-}
-
+  }
 
   logout(): void {
     this.authService.logout();

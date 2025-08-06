@@ -26,14 +26,14 @@
       <td>{{ item.canzone }}</td>
       <td>{{ item.num_richieste }}</td>
 
-      <!-- Nuova colonna per wishlist -->
+      <!-- Wishlist -->
       <td class="text-center">
         <button class="btn btn-sm btn-warning wishlist-btn" (click)="aggiungiAWishlist(item)">
           <i [ngClass]="item.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
         </button>
       </td>
 
-      <!-- Colonna azioni: solo per admin -->
+      <!-- Azioni admin -->
       <td *ngIf="canUseActions" class="text-center">
         <button class="btn btn-sm btn-danger" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
           {{ 'song_archive.buttons.delete' | translate }}
@@ -60,6 +60,20 @@
       </button>
     </div>
   </div>
+</div>
+<!-- Paginazione -->
+<div class="pagination-controls" *ngIf="totalPages > 1">
+  <button class="btn btn-primary" (click)="prevPage()" [disabled]="currentPage === 1">
+    {{ 'song_archive.buttons.prev_page' | translate }}
+  </button>
+  
+  <span class="page-info">
+    {{ 'song_archive.pagination.page' | translate }} {{ currentPage }} / {{ totalPages }}
+  </span>
+  
+  <button class="btn btn-primary" (click)="nextPage()" [disabled]="currentPage === totalPages">
+    {{ 'song_archive.buttons.next_page' | translate }}
+  </button>
 </div>
 
 <ng-template #noCanzoni>

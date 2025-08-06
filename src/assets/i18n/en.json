@@ -226,12 +226,17 @@
     },
     "buttons": {
       "add_to_wishlist": "Add to wishlist",
-      "delete": "Delete"
+      "delete": "Delete",
+       "prev_page": "◄",
+       "next_page": "►"
     },
     "messages": {
       "no_songs_found": "No songs found.",
       "confirm_delete": "Are you sure you want to delete this song from the archive?",
       "added_to_wishlist": "\"{{song}}\" by {{artist}} added to wishlist!"
+    },
+     "pagination": {
+    "page": "Page"
     }
   },
   "registration": {

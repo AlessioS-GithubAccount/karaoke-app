@@ -55,6 +55,11 @@ export class KaraokeService {
     return this.http.get<any[]>(this.archivioUrl);
   }
 
+  getArchivioMusicalePaginated(page: number, limit: number): Observable<any> {
+  return this.http.get<any>(`${this.archivioUrl}?page=${page}&limit=${limit}`);
+}
+
+
   deleteCanzone(id: number): Observable<any> {
     const token = localStorage.getItem('token');
     return this.http.delete(`${this.apiUrl}/${id}`, {
