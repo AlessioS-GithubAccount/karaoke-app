@@ -214,24 +214,29 @@
     "enter_guest": "Entra come Ospite"
   },
   "song_archive": {
-    "title": "Archivio Canzoni",
-    "columns": {
-      "artist": "Artista",
-      "song": "Canzone",
-      "total_requests": "Richieste totali",
-      "add on wishlist": "Aggiungi in wishlist",
-      "actions": "Azioni"
-    },
-    "buttons": {
-      "add_to_wishlist": "Aggiungi a wishlist",
-      "delete": "Elimina"
-    },
-    "messages": {
-      "no_songs_found": "Nessuna canzone trovata.",
-      "confirm_delete": "Sei sicuro di voler eliminare questa canzone dall'archivio?",
-      "added_to_wishlist": "\"{{song}}\" di {{artist}} aggiunta alla wishlist!"
-    }
+  "title": "Archivio Canzoni",
+  "columns": {
+    "artist": "Artista",
+    "song": "Canzone",
+    "total_requests": "Richieste totali",
+    "add on wishlist": "Aggiungi in wishlist",
+    "actions": "Azioni"
   },
+  "buttons": {
+    "add_to_wishlist": "Aggiungi a wishlist",
+    "delete": "Elimina",
+    "prev_page": "◄",
+    "next_page": "►"
+  },
+  "messages": {
+    "no_songs_found": "Nessuna canzone trovata.",
+    "confirm_delete": "Sei sicuro di voler eliminare questa canzone dall'archivio?",
+    "added_to_wishlist": "\"{{song}}\" di {{artist}} aggiunta alla wishlist!"
+  },
+  "pagination": {
+    "page": "Pagina"
+  }
+},
   "registration": {
     "title": "Registrazione Nuovo Utente",
     "username_label": "Username",

@@ -16,6 +16,10 @@ body {
   box-sizing: border-box;
 }
 
+h2{
+  padding-bottom: 1rem;
+}
+
 /* Fading titles */
 .fade-text {
   margin-top: 2rem;
@@ -89,6 +93,7 @@ body {
 
 .table {
   padding: 3rem;
+  padding-top: 0rem;
 }
 
 /* Links */
