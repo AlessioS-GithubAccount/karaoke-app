@@ -14,6 +14,7 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 })
 export class ArchivioMusicaleComponent implements OnInit {
   archivio: any[] = [];
+  archivioFiltrato: any[] = [];
   isAdmin: boolean = false;
   isUser: boolean = false;
   isGuest: boolean = false;
@@ -108,7 +109,7 @@ export class ArchivioMusicaleComponent implements OnInit {
     });
   }
 
-  get archivioFiltrato(): any[] {
+  get archivio_Filtrato(): any[] {
     const search = this.searchText.trim().toLowerCase();
     if (!search) return this.archivio;
 
