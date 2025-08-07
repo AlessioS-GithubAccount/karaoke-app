@@ -19,7 +19,6 @@ const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'prenota-canzoni', component: PrenotaCanzoniComponent },
   { path: 'classifica-top20', component: ClassificaComponent },
-  {path: 'modify-profile', component: ModifyProfileComponent},
 
   // Pagina profilo principale
   { 
