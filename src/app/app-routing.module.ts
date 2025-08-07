@@ -1,16 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './Authguards/auth.guard';
 
 import { LoginComponent } from './AUTH_login/login.component';
 import { RegisterComponent } from './AUTH_register/register.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 import { PrenotaCanzoniComponent } from './pages/prenota-canzoni/prenota-canzoni.component';
-import { ListaCanzoniComponent } from './pages/lista-canzoni/lista-canzoni.component';
 import { ClassificaComponent } from './pages/classifica/classifica.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
-import { ModifyProfileComponent } from './pages/user-profile/modify-profile/modify-profile.component';
-
-import { AuthGuard } from './Authguards/auth.guard';
 
 const routes: Routes = [
   { path: '', component: HomepageComponent },
