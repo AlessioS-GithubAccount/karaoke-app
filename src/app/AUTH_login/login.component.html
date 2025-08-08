@@ -6,7 +6,13 @@
       {{ 'login.title' | translate }}
     </h1>
 
-    <form (ngSubmit)="login('client')" #loginForm="ngForm" class="login-form">
+    <!-- Spinner di caricamento -->
+    <div *ngIf="isLoading" class="loading-spinner">
+      <i class="fa fa-spinner fa-spin fa-2x"></i>
+      <p>Accesso in corso...</p>
+    </div>
+
+    <form *ngIf="!isLoading" (ngSubmit)="login('client')" #loginForm="ngForm" class="login-form">
       
       <div class="form-group">
         <label for="username" class="glitch-text" attr.data-text="{{ 'login.username_label' | translate }}" style="animation-delay: 0.2s;">

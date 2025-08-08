@@ -14,6 +14,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   username: string = '';
   password: string = '';
+  isLoading: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -47,8 +48,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       localStorage.removeItem('guestId');
     }
 
+    this.isLoading = true;
+
     this.authService.login(this.username, this.password).subscribe({
       next: (res) => {
+        this.isLoading = false;
         this.translate.get(['toast.loginSuccess', 'toast.SUCCESS']).subscribe(translations => {
           this.toastr.success(translations['toast.loginSuccess'], translations['toast.SUCCESS']);
         });
@@ -60,6 +64,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
+        this.isLoading = false;
         this.translate.get(['toast.loginError', 'toast.ERROR']).subscribe(translations => {
           this.toastr.error(translations['toast.loginError'], translations['toast.ERROR']);
         });

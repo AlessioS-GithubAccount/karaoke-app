@@ -6,6 +6,7 @@ const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;  
+//const PORT = 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
 const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';

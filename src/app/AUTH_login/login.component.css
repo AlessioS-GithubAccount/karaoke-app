@@ -11,6 +11,14 @@
   }
 }
 
+.loading-spinner {
+  text-align: center;
+  margin-top: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+
 /* BODY GENERALE */
 body {
   margin: 0;
