@@ -9,8 +9,14 @@
   </button>
 </div>
 
+<!-- SPINNER -->
+<div *ngIf="isLoading" class="spinner-overlay">
+  <div class="spinner"></div>
+  <p>{{ 'common.loading' | translate }}</p>
+</div>
+
 <!-- Tabella desktop/tablet (visibile sopra 480px) -->
-<table class="table my-zebra-table desktop-table" *ngIf="archivio_Filtrato.length > 0; else noCanzoni">
+<table class="table my-zebra-table desktop-table" *ngIf="!isLoading && archivio_Filtrato.length > 0; else noCanzoni">
   <thead>
     <tr>
       <th class="border-radius-left">{{ 'song_archive.columns.artist' | translate }}</th>
@@ -44,7 +50,7 @@
 </table>
 
 <!-- Lista card smartphone (visibile sotto 480px) -->
-<div class="mobile-cards" *ngIf="archivio_Filtrato.length > 0">
+<div class="mobile-cards" *ngIf="!isLoading && archivio_Filtrato.length > 0">
   <div class="mobile-card" *ngFor="let item of archivio_Filtrato">
     <div><strong>{{ 'song_archive.columns.artist' | translate }}:</strong> {{ item.artista }}</div>
     <div><strong>{{ 'song_archive.columns.song' | translate }}:</strong> {{ item.canzone }}</div>
@@ -61,8 +67,9 @@
     </div>
   </div>
 </div>
+
 <!-- Paginazione -->
-<div class="pagination-controls" *ngIf="totalPages > 1">
+<div class="pagination-controls" *ngIf="!isLoading && totalPages > 1">
   <button class="btn btn-primary" (click)="prevPage()" [disabled]="currentPage === 1">
     {{ 'song_archive.buttons.prev_page' | translate }}
   </button>

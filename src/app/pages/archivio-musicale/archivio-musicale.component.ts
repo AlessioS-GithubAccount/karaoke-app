@@ -48,7 +48,7 @@ export class ArchivioMusicaleComponent implements OnInit {
   }
 
   loadArchivio(page: number): void {
-  this.isLoading = true;
+    this.isLoading = true;
 
     this.karaokeService.getArchivioMusicalePaginated(page, this.pageSize).subscribe({
       next: (res: any) => {
@@ -65,7 +65,6 @@ export class ArchivioMusicaleComponent implements OnInit {
       }
     });
   }
-
 
   prevPage(): void {
     if (this.currentPage > 1) {
