@@ -21,7 +21,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let item of archivioFiltrato">
+    <tr *ngFor="let item of archivio_Filtrato">
       <td>{{ item.artista }}</td>
       <td>{{ item.canzone }}</td>
       <td>{{ item.num_richieste }}</td>
@@ -44,8 +44,8 @@
 </table>
 
 <!-- Lista card smartphone (visibile sotto 480px) -->
-<div class="mobile-cards" *ngIf="archivioFiltrato.length > 0">
-  <div class="mobile-card" *ngFor="let item of archivioFiltrato">
+<div class="mobile-cards" *ngIf="archivio_Filtrato.length > 0">
+  <div class="mobile-card" *ngFor="let item of archivio_Filtrato">
     <div><strong>{{ 'song_archive.columns.artist' | translate }}:</strong> {{ item.artista }}</div>
     <div><strong>{{ 'song_archive.columns.song' | translate }}:</strong> {{ item.canzone }}</div>
     <div><strong>{{ 'song_archive.columns.total_requests' | translate }}:</strong> {{ item.num_richieste }}</div>
