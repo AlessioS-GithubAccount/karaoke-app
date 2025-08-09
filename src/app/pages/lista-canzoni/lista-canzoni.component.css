@@ -1,5 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
+/* Animazione di ingresso */
+.animated-fade-slide-in {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideIn 0.8s ease-out forwards;
+}
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spinner stile login */
+.loading-spinner {
+  text-align: center;
+  margin-top: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.loading-spinner i.fa-spinner {
+  font-size: 3rem; /* dimensione icona spinner */
+  color: #3498db;  /* colore blu */
+}
+
+
 html, body {
   overflow-x: hidden;
   padding: 0;

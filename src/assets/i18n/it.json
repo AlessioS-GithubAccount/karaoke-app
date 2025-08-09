@@ -59,6 +59,10 @@
     "ERROR_GENERIC": "Errore durante la registrazione. Riprova."
   },
 
+  "common": {
+    "loading": "Caricamento in corso..."
+  },
+
   "navbar": {
     "title": "Karaoke App",
     "menu": "Menù",

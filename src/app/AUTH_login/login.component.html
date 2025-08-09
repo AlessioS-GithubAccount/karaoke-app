@@ -9,7 +9,7 @@
     <!-- Spinner di caricamento -->
     <div *ngIf="isLoading" class="loading-spinner">
       <i class="fa fa-spinner fa-spin fa-2x"></i>
-      <p>Accesso in corso...</p>
+      <p>{{ 'common.loading' | translate }}</p>
     </div>
 
     <form *ngIf="!isLoading" (ngSubmit)="login('client')" #loginForm="ngForm" class="login-form">

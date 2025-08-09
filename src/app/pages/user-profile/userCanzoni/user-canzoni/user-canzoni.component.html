@@ -1,6 +1,9 @@
+<div *ngIf="isLoading" class="loading-spinner-overlay">
+  <i class="fa fa-spinner fa-spin fa-3x"></i>
+  <p>{{ 'common.loading' | translate }}</p>
+</div>
 
-
-<div class="userCanzoni-container">
+<div class="userCanzoni-container" *ngIf="!isLoading">
 
   <!-- Pulsante in alto -->
   <div class="center-btn">
@@ -66,10 +69,9 @@
       </table>
       <div class="pagination-controls" *ngIf="totalPages > 1">
         <button (click)="changePage(-1)" [disabled]="currentPage === 1">◄</button>
-         <span>{{ 'performance_history.currentPage' | translate }} {{ currentPage }} / {{ totalPages }}</span>
+        <span>{{ 'performance_history.currentPage' | translate }} {{ currentPage }} / {{ totalPages }}</span>
         <button (click)="changePage(1)" [disabled]="currentPage === totalPages">►</button>
       </div>
-
     </div>
 
     <!-- MOBILE VIEW -->

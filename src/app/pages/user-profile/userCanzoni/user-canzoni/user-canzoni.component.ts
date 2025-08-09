@@ -34,6 +34,7 @@ export class UserCanzoniComponent implements OnInit {
   userId!: number;
   isMobile = false;
   totalPages: number = 0;
+  isLoading: boolean = false;  // <-- aggiunto
 
   private backendUrl = 'https://karaoke-app-6byu.onrender.com/api'; // aggiornata
 
@@ -78,11 +79,11 @@ export class UserCanzoniComponent implements OnInit {
   }
 
   loadEsibizioni(id: number, page: number = 1): void {
+    this.isLoading = true;  // <-- inizio caricamento
     this.http.get<any>(`${this.backendUrl}/esibizioni/user/${id}?page=${page}&pageSize=${this.pageSize}`, {
       headers: this.getAuthHeaders()
     }).subscribe({
       next: res => {
-        // sovrascrivo sempre l'array con i dati della pagina corrente
         this.esibizioni = res.esibizioni.map((e: any) => ({
           esibizione_id: e.id,
           artista: e.artista,
@@ -96,9 +97,11 @@ export class UserCanzoniComponent implements OnInit {
 
         this.totalPages = res.totalPages;
         this.currentPage = res.currentPage;
+        this.isLoading = false;  // <-- fine caricamento
       },
       error: err => {
         console.error('Errore caricamento esibizioni:', err);
+        this.isLoading = false;  // <-- fine caricamento anche in caso di errore
       }
     });
   }
@@ -136,19 +139,13 @@ export class UserCanzoniComponent implements OnInit {
     this.router.navigate(['/user-profile']);
   }
 
-  // Mappa emoji testuali a classi FontAwesome per icone
   getFaIconClass(emoji: string): string {
     if (!emoji) return 'fa-circle';
 
-    // Rimuove spazi e variation selector-16 (fe0f)
     const normalized = emoji
       .replace(/\s/g, '')
       .replace(/\uFE0F/g, '')
       .trim();
-
-    // Se vuoi riattivare il debug, togli i commenti qui:
-    // console.log('Emoji originale:', emoji);
-    // console.log('Emoji normalizzata:', normalized);
 
     switch (normalized) {
       case '👍':

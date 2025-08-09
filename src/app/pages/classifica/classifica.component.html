@@ -1,8 +1,14 @@
-<div class="container mt-5">
+<div class="container mt-5 animated-fade-slide-in">
   <h2>{{ 'chart.title' | translate }}</h2>
 
+  <!-- SPINNER -->
+  <div *ngIf="isLoading" class="loading-spinner text-center my-4">
+    <i class="fa fa-spinner fa-spin fa-2x"></i>
+    <p>{{ 'common.loading' | translate }}</p>
+  </div>
+
   <!-- Tabella solo su schermi larghi -->
-  <table class="table my-zebra-table d-none d-md-table" *ngIf="topCanzoni.length > 0; else noData">
+  <table class="table my-zebra-table d-none d-md-table" *ngIf="!isLoading && topCanzoni.length > 0; else noData">
     <thead>
       <tr>
         <th class="border-radius-left">{{ 'chart.position' | translate }}</th>
@@ -28,7 +34,7 @@
   </table>
 
   <!-- Modalità card per mobile -->
-  <div class="d-md-none" *ngIf="topCanzoni.length > 0">
+  <div class="d-md-none" *ngIf="!isLoading && topCanzoni.length > 0">
     <div
       class="card mb-3"
       *ngFor="let c of topCanzoni; let i = index"

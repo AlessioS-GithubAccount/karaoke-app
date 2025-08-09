@@ -16,8 +16,15 @@
   </div>
 </div>
 
+<!-- SPINNER -->
+<div *ngIf="isLoading" class="loading-spinner">
+  <div class="spinner"></div>
+  <p>{{ 'common.loading' | translate }}</p>
+</div>
+
+
 <!-- DESKTOP TABLE -->
-<table class="my-zebra-table" *ngIf="!isMobile && wishlist.length > 0; else mobileView">
+<table class="my-zebra-table" *ngIf="!isMobile && wishlist.length > 0 && !isLoading; else mobileView">
   <thead>
     <tr>
       <th>{{ 'performance_history.song' | translate }}</th>
@@ -47,7 +54,7 @@
 
 <!-- MOBILE CARDS -->
 <ng-template #mobileView>
-  <div *ngIf="isMobile && wishlist.length > 0; else noWishlist">
+  <div *ngIf="isMobile && wishlist.length > 0 && !isLoading; else noWishlist">
     <div *ngFor="let song of wishlist" class="wishlist-mobile-card">
       <div><strong>{{ 'performance_history.song' | translate }}:</strong>
         <input class="wishlist-input" [(ngModel)]="song.canzone" />

@@ -9,6 +9,34 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.animated-fade-slide-in {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-spinner {
+  text-align: center;
+  margin-top: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.loading-spinner i.fa-spinner {
+  font-size: 2.5rem;   /* dimensione spinner coerente */
+  color: #666;         /* stesso colore del testo */
+  margin-bottom: 0.8rem;
+}
+
+
+
 .animated-title {
   margin-left: 4rem;
   opacity: 0;

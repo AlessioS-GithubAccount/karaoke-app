@@ -17,6 +17,8 @@ import { TranslateService } from '@ngx-translate/core';
 export class WishlistComponent implements OnInit {
 
   wishlist: any[] = [];
+  isLoading: boolean = false;
+
   private backendUrl = 'https://karaoke-app-6byu.onrender.com/api';  // aggiornata
 
   isMobile: boolean = false;
@@ -54,23 +56,35 @@ export class WishlistComponent implements OnInit {
   }
 
   loadWishlist(): void {
+    this.isLoading = true;
     this.http.get<any[]>(`${this.backendUrl}/wishlist`, {
       headers: this.getAuthHeaders()
     }).subscribe({
       next: res => {
         console.log('Wishlist caricata:', res);
         this.wishlist = res;
+        this.isLoading = false;
       },
-      error: err => console.error('Errore caricamento wishlist:', err)
+      error: err => {
+        console.error('Errore caricamento wishlist:', err);
+        this.isLoading = false;
+      }
     });
   }
 
   salvaWishlist(song: any): void {
+    this.isLoading = true;
     this.http.post(`${this.backendUrl}/wishlist`, song, {
       headers: this.getAuthHeaders()
     }).subscribe({
-      next: () => this.loadWishlist(),
-      error: err => console.error('Errore salvataggio wishlist:', err)
+      next: () => {
+        this.loadWishlist();
+        this.isLoading = false;
+      },
+      error: err => {
+        console.error('Errore salvataggio wishlist:', err);
+        this.isLoading = false;
+      }
     });
   }
 
@@ -81,16 +95,19 @@ export class WishlistComponent implements OnInit {
         width: '400px'
       }).afterClosed().subscribe(result => {
         if (result) {
+          this.isLoading = true;
           this.http.delete(`${this.backendUrl}/wishlist/${id}`, {
             headers: this.getAuthHeaders()
           }).subscribe({
             next: () => {
               this.translate.get('toast.WISHLIST_REMOVE').subscribe(msg => this.toastr.success(msg));
               this.loadWishlist();
+              this.isLoading = false;
             },
             error: err => {
               console.error('Errore rimozione wishlist:', err);
               this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
+              this.isLoading = false;
             }
           });
         }

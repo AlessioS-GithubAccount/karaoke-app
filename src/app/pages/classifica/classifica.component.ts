@@ -14,6 +14,7 @@ import { ToastrService } from 'ngx-toastr';
   styleUrls: ['./classifica.component.scss']
 })
 export class ClassificaComponent implements OnInit {
+  isLoading: boolean = false; 
   topCanzoni: any[] = [];
   topNum: number = 30;
 
@@ -57,9 +58,10 @@ export class ClassificaComponent implements OnInit {
   }
 
   caricaClassifica(): void {
+    this.isLoading = true;  // inizio caricamento
+
     this.karaokeService.getTopN(this.topNum).subscribe({
       next: (data: any[]) => {
-        console.log('Dati caricati da backend:', data);
         const uniqueMap = new Map<string, any>();
         data.forEach((item: any) => {
           const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
@@ -73,8 +75,12 @@ export class ClassificaComponent implements OnInit {
         });
         this.topCanzoni = Array.from(uniqueMap.values())
           .sort((a, b) => b.num_richieste - a.num_richieste);
+        this.isLoading = false;  // fine caricamento
       },
-      error: (err) => console.error('Errore nel caricamento della classifica:', err)
+      error: (err) => {
+        console.error('Errore nel caricamento della classifica:', err);
+        this.isLoading = false;  // anche in caso di errore, stop spinner
+      }
     });
   }
 

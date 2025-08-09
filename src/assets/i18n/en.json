@@ -239,6 +239,10 @@
     "page": "Page"
     }
   },
+  "common": {
+    "loading": "Loading..."
+  },
+  
   "registration": {
     "title": "New User Registration",
     "username_label": "Username",
