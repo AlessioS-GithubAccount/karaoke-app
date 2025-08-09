@@ -84,7 +84,6 @@
 }
 
 .alert-warning-custom.alert-animated {
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
 }
 
 @keyframes fadeSlideUp {

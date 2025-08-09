@@ -137,10 +137,9 @@
         </div>
       </ng-container>
 
-      <ng-template #accessPromptTemplate>
-        <div class="alert-warning-custom alert-animated text-center">
-          <h3>{{ 'booking.access_required' | translate }}</h3>
-          <p>
+      <ng-template #accessPromptTemplate class="text-center">
+          <h3 class="text-center">{{ 'booking.access_required' | translate }}</h3>
+          <p class="text-center">
             {{ 'booking.access_text' | translate }}
             <strong>{{ 'booking.logged_in' | translate }}</strong>
             {{ 'booking.or' | translate }}
@@ -149,7 +148,6 @@
           <div class="d-flex justify-content-center gap-3 mt-3">
             <button class="btn btn1" (click)="goToLogin()">{{ 'booking.go_to_login' | translate }}</button>
             <button class="btn btn1" (click)="enterAsGuest()">{{ 'booking.enter_guest' | translate }}</button>
-          </div>
         </div>
       </ng-template>
 
