@@ -35,8 +35,11 @@ export class UserCanzoniComponent implements OnInit {
   isMobile = false;
   totalPages: number = 0;
 
+  private backendUrl = 'https://karaoke-app-6byu.onrender.com/api'; // aggiornata
 
-  private backendUrl = 'https://karaoke-app-6byu.onrender.com/api';  // aggiornata
+  // impostazioni di paginazione lato server
+  pageSize = 8;
+  currentPage = 1;
 
   constructor(
     private http: HttpClient,
@@ -73,35 +76,32 @@ export class UserCanzoniComponent implements OnInit {
       Authorization: `Bearer ${token}`
     });
   }
-  
 
   loadEsibizioni(id: number, page: number = 1): void {
-  const pageSize = this.pageSize;
+    this.http.get<any>(`${this.backendUrl}/esibizioni/user/${id}?page=${page}&pageSize=${this.pageSize}`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: res => {
+        // sovrascrivo sempre l'array con i dati della pagina corrente
+        this.esibizioni = res.esibizioni.map((e: any) => ({
+          esibizione_id: e.id,
+          artista: e.artista,
+          canzone: e.canzone,
+          tonalita: e.tonalita,
+          data_esibizione: e.data_esibizione,
+          partecipante_2: e.partecipante_2,
+          partecipante_3: e.partecipante_3,
+          voti: Array.isArray(e.voti) ? e.voti : []
+        }));
 
-  this.http.get<any>(`${this.backendUrl}/esibizioni/user/${id}?page=${page}&pageSize=${pageSize}`, {
-    headers: this.getAuthHeaders()
-  }).subscribe({
-    next: res => {
-      this.esibizioni = res.esibizioni.map((e: any) => ({
-        esibizione_id: e.id,
-        artista: e.artista,
-        canzone: e.canzone,
-        tonalita: e.tonalita,
-        data_esibizione: e.data_esibizione,
-        partecipante_2: e.partecipante_2,
-        partecipante_3: e.partecipante_3,
-        voti: Array.isArray(e.voti) ? e.voti : []
-      }));
-      
-      this.totalPages = res.totalPages;
-      this.currentPage = res.currentPage;
-    },
-    error: err => {
-      console.error('Errore caricamento esibizioni:', err);
-    }
-  });
-}
-
+        this.totalPages = res.totalPages;
+        this.currentPage = res.currentPage;
+      },
+      error: err => {
+        console.error('Errore caricamento esibizioni:', err);
+      }
+    });
+  }
 
   eliminaCanzone(id: number): void {
     this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
@@ -115,7 +115,7 @@ export class UserCanzoniComponent implements OnInit {
           }).subscribe({
             next: () => {
               this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toastr.success(msg));
-              this.loadEsibizioni(this.userId);
+              this.loadEsibizioni(this.userId, this.currentPage);
             },
             error: err => {
               console.error('Errore durante l\'eliminazione:', err);
@@ -126,7 +126,6 @@ export class UserCanzoniComponent implements OnInit {
       });
     });
   }
-
 
   formattaVoti(voti: VotoEmoji[]): string {
     if (!voti || voti.length === 0) return '—';
@@ -139,7 +138,7 @@ export class UserCanzoniComponent implements OnInit {
 
   // Mappa emoji testuali a classi FontAwesome per icone
   getFaIconClass(emoji: string): string {
-  if (!emoji) return 'fa-circle';
+    if (!emoji) return 'fa-circle';
 
     // Rimuove spazi e variation selector-16 (fe0f)
     const normalized = emoji
@@ -147,44 +146,29 @@ export class UserCanzoniComponent implements OnInit {
       .replace(/\uFE0F/g, '')
       .trim();
 
-    console.log('Emoji originale:', emoji);
-    console.log('Emoji normalizzata:', normalized);
+    // Se vuoi riattivare il debug, togli i commenti qui:
+    // console.log('Emoji originale:', emoji);
+    // console.log('Emoji normalizzata:', normalized);
 
-  switch (normalized) {
-    case '👍':
-      return 'fa-thumbs-up';
-
-    case '😐':
-      return 'fa-face-meh';
-
-    case '😂':
-      return 'fa-face-laugh-squint';
-
-    case '❤':
-    case '❤️':
-      return 'fa-heart';
-
-    default:
-      return 'fa-circle';
+    switch (normalized) {
+      case '👍':
+        return 'fa-thumbs-up';
+      case '😐':
+        return 'fa-face-meh';
+      case '😂':
+        return 'fa-face-laugh-squint';
+      case '❤':
+      case '❤️':
+        return 'fa-heart';
+      default:
+        return 'fa-circle';
+    }
   }
-}
-
-
-  //function di paginazione per lazy-loading
-  pageSize = 8;
-  currentPage = 1;
-
-  get paginatedEsibizioni(): Esibizione[] {
-    const start = (this.currentPage - 1) * this.pageSize;
-    return this.esibizioni.slice(start, start + this.pageSize);
-  }
-
 
   changePage(delta: number): void {
-  const nextPage = this.currentPage + delta;
-  if (nextPage >= 1 && nextPage <= this.totalPages) {
-    this.loadEsibizioni(this.userId, nextPage);
+    const nextPage = this.currentPage + delta;
+    if (nextPage >= 1 && nextPage <= this.totalPages) {
+      this.loadEsibizioni(this.userId, nextPage);
+    }
   }
-}
-
 }
