@@ -88,7 +88,9 @@
     "requests": "Requests",
     "wishlist": "Add on wishlist",
     "delete": "Delete",
-    "back_to_list": "Back to Song List"
+    "back_to_list": "Back to Song List",
+    "no_data": "Recovery data in progress"
+
   },
   "password_recovery": {
     "title": "Recover Password with Security Question",

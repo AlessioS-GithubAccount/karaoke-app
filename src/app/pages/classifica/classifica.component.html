@@ -3,7 +3,7 @@
 
   <!-- SPINNER -->
   <div *ngIf="isLoading" class="loading-spinner text-center my-4">
-    <i class="fa fa-spinner fa-spin fa-2x"></i>
+    <i class="fa fa-spinner fa-spin fa-2x text-center"></i>
     <p>{{ 'common.loading' | translate }}</p>
   </div>
 
@@ -59,7 +59,7 @@
   </div>
 
   <ng-template #noData>
-    <div class="alert alert-info mt-3">
+    <div class="alert alert-info mt-3 text-center">
       {{ 'chart.no_data' | translate }}
     </div>
   </ng-template>

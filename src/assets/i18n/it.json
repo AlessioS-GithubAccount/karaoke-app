@@ -90,7 +90,8 @@
     "requests": "Richieste",
     "wishlist": "Aggiungi in wishlist",
     "delete": "Elimina",
-    "back_to_list": "Torna alla Lista Canzoni"
+    "back_to_list": "Torna alla Lista Canzoni",
+    "no_data": "Recupero dati in corso"
   },
   "password_recovery": {
     "title": "Recupera la Password con Domanda Segreta",
