@@ -24,10 +24,14 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Recupera modalità scura dal localStorage
     const savedMode = localStorage.getItem('darkMode');
-    this.darkMode = savedMode === 'true';
-    this.router.events.subscribe(() => {
+
+    if (savedMode === null) {
+      this.darkMode = true;
+      localStorage.setItem('darkMode', 'true'); // salva come default
+    } else {
+      this.darkMode = savedMode === 'true';
+    }
     this.updateBodyClass();
-  });
 
     // Setup lingue
     this.translate.addLangs(['en', 'it']);

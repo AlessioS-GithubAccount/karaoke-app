@@ -83,8 +83,7 @@
   animation: alertPopIn 0.5s ease forwards;
 }
 
-.alert-warning-custom.alert-animated {
-}
+
 
 @keyframes fadeSlideUp {
   0% {
