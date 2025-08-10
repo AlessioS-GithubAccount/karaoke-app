@@ -10,10 +10,11 @@
 </div>
 
 <!-- SPINNER -->
-<div *ngIf="isLoading" class="spinner-overlay">
-  <div class="spinner"></div>
+<div *ngIf="isLoading" class="loading-spinner">
+  <i class="fa fa-spinner fa-spin"></i>
   <p>{{ 'common.loading' | translate }}</p>
 </div>
+
 
 <!-- Tabella desktop/tablet (visibile sopra 480px) -->
 <table class="table my-zebra-table desktop-table" *ngIf="!isLoading && archivio_Filtrato.length > 0; else noCanzoni">
