@@ -80,7 +80,9 @@
   "music_archive": {
     "title": "Archivio Musicale",
     "song": "Canzone",
-    "artist": "Artista"
+    "artist": "Artista",
+    "search_placeholder": "Cerca artista o canzone...",
+    "search_title": "Cerca"
   },
   "chart": {
     "title": "Classifica Top 30 Canzoni Più Richieste",

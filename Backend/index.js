@@ -902,6 +902,24 @@ app.get('/api/archivio-musicale', async (req, res) => {
   }
 });
 
+// GET ricerca senza paginazione
+app.get('/api/archivio-musicale/search', async (req, res) => {
+  try {
+    const search = req.query.q ? `%${req.query.q}%` : '%';
+
+    const [rows] = await db.query(
+      'SELECT * FROM raccolta_canzoni WHERE artista LIKE ? OR canzone LIKE ? ORDER BY artista ASC',
+      [search, search]
+    );
+
+    res.json(rows); // restituisce direttamente un array
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Errore nella ricerca dell\'archivio musicale' });
+  }
+});
+
+
 
 //func genera top list
 app.get('/api/classifica', async (req, res) => {

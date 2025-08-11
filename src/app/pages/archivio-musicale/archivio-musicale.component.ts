@@ -20,6 +20,8 @@ export class ArchivioMusicaleComponent implements OnInit {
   isGuest: boolean = false;
   canUseActions: boolean = false;
   searchText: string = '';
+  isSearching: boolean = false; // indica se la search bar è attiva
+
 
   // Paginazione
   currentPage: number = 1;
@@ -77,6 +79,27 @@ export class ArchivioMusicaleComponent implements OnInit {
       this.loadArchivio(this.currentPage + 1);
     }
   }
+
+  onSearchChange(): void {
+  if (this.searchText.trim()) {
+    this.isSearching = true;
+    this.karaokeService.getArchivioMusicaleSearch(this.searchText).subscribe({
+      next: (res) => {
+        console.log('Risultati ricerca:', res);
+        this.archivio = res;
+        this.totalPages = 1; // disattiva paginazione
+        this.currentPage = 1;
+      },
+      error: () => {
+        this.toastr.error('Errore nella ricerca');
+      }
+    });
+  } else {
+    this.isSearching = false;
+    this.loadArchivio(this.currentPage); // torna alla paginazione standard
+  }
+}
+
 
   scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -7,6 +7,41 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+.search-title{
+  font-size: 1rem;
+}
+
+.search-bar{
+  padding-left: 4rem;
+}
+
+.search-seizure{
+  width: 300px;
+}
+
+/* Tablet (max 768px) */
+@media (max-width: 768px) {
+  .search-bar {
+    padding-left: 2rem;
+  }
+
+  .search-seizure {
+    width: 300px;
+  }
+}
+
+/* Smartphone (max 480px) */
+@media (max-width: 480px) {
+  .search-bar {
+    padding-left: 2rem;
+  }
+
+  .search-seizure {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
 /* Animazione di ingresso */
 .animated-fade-slide-in {
   opacity: 0;

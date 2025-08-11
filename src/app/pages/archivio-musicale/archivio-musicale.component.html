@@ -1,4 +1,16 @@
-<h2>{{ 'song_archive.title' | translate }}</h2>
+<h2>{{ 'music_archive.title' | translate }}</h2>
+
+<!-- Barra di ricerca -->
+<div class="search-bar">
+  <h4 class="search-title">{{ 'music_archive.search_title' | translate }}</h4>
+  <input
+    type="text"
+    class="form-control search-seizure"
+    placeholder="{{ 'music_archive.search_placeholder' | translate }}"
+    [(ngModel)]="searchText"
+    (input)="onSearchChange()"
+  />
+</div>
 
 <div class="scroll-buttons">
   <button class="scroll-btn up" (click)="scrollToTop()" title="Scroll su">
@@ -15,9 +27,8 @@
   <p>{{ 'common.loading' | translate }}</p>
 </div>
 
-
 <!-- Tabella desktop/tablet (visibile sopra 480px) -->
-<table class="table my-zebra-table desktop-table" *ngIf="!isLoading && archivio_Filtrato.length > 0; else noCanzoni">
+<table class="table my-zebra-table desktop-table" *ngIf="!isLoading && ((isSearching ? archivio.length : archivio.length) > 0); else noCanzoni">
   <thead>
     <tr>
       <th class="border-radius-left">{{ 'song_archive.columns.artist' | translate }}</th>
@@ -28,19 +39,15 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let item of archivio_Filtrato">
+    <tr *ngFor="let item of (isSearching ? archivio : archivio)">
       <td>{{ item.artista }}</td>
       <td>{{ item.canzone }}</td>
       <td>{{ item.num_richieste }}</td>
-
-      <!-- Wishlist -->
       <td class="text-center">
         <button class="btn btn-sm btn-warning wishlist-btn" (click)="aggiungiAWishlist(item)">
           <i [ngClass]="item.inWishlist ? 'fa-solid fa-star active' : 'fa-solid fa-star'"></i>
         </button>
       </td>
-
-      <!-- Azioni admin -->
       <td *ngIf="canUseActions" class="text-center">
         <button class="btn btn-sm btn-danger" *ngIf="isAdmin" (click)="eliminaCanzone(item.id)">
           {{ 'song_archive.buttons.delete' | translate }}
@@ -51,8 +58,8 @@
 </table>
 
 <!-- Lista card smartphone (visibile sotto 480px) -->
-<div class="mobile-cards" *ngIf="!isLoading && archivio_Filtrato.length > 0">
-  <div class="mobile-card" *ngFor="let item of archivio_Filtrato">
+<div class="mobile-cards" *ngIf="!isLoading && ((isSearching ? archivio.length : archivio.length) > 0)">
+  <div class="mobile-card" *ngFor="let item of (isSearching ? archivio : archivio)">
     <div><strong>{{ 'song_archive.columns.artist' | translate }}:</strong> {{ item.artista }}</div>
     <div><strong>{{ 'song_archive.columns.song' | translate }}:</strong> {{ item.canzone }}</div>
     <div><strong>{{ 'song_archive.columns.total_requests' | translate }}:</strong> {{ item.num_richieste }}</div>
@@ -69,16 +76,16 @@
   </div>
 </div>
 
-<!-- Paginazione -->
-<div class="pagination-controls" *ngIf="!isLoading && totalPages > 1">
+<!-- Paginazione (mostra solo se NON stai cercando) -->
+<div class="pagination-controls" *ngIf="!isLoading && totalPages > 1 && !isSearching">
   <button class="btn btn-primary" (click)="prevPage()" [disabled]="currentPage === 1">
     {{ 'song_archive.buttons.prev_page' | translate }}
   </button>
-  
+
   <span class="page-info">
     {{ 'song_archive.pagination.page' | translate }} {{ currentPage }} / {{ totalPages }}
   </span>
-  
+
   <button class="btn btn-primary" (click)="nextPage()" [disabled]="currentPage === totalPages">
     {{ 'song_archive.buttons.next_page' | translate }}
   </button>

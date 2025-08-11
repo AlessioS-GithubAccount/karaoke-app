@@ -6,7 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class KaraokeService {
-  private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
+  //private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
+  private baseUrl = 'http://localhost:3000/api';
 
   private apiUrl = `${this.baseUrl}/canzoni`;
   private resetUrl = `${this.baseUrl}/reset-canzoni`;
@@ -59,6 +60,9 @@ export class KaraokeService {
   return this.http.get<any>(`${this.archivioUrl}?page=${page}&limit=${limit}`);
 }
 
+getArchivioMusicaleSearch(query: string): Observable<any[]> {
+  return this.http.get<any[]>(`${this.archivioUrl}/search?q=${encodeURIComponent(query)}`);
+}
 
   deleteCanzone(id: number): Observable<any> {
     const token = localStorage.getItem('token');

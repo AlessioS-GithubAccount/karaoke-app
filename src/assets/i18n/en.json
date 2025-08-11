@@ -77,7 +77,9 @@
     "title": "Music Archive",
     "song": "Song",
     "artist": "Artist",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "search_placeholder": "Search for artist or song...",
+    "search_title": "Cerca"
   },
 
   "chart": {
