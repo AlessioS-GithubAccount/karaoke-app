@@ -35,6 +35,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/archivio-musicale/archivio-musicale.module').then(m => m.ArchivioMusicaleModule)
   },
 
+  {
+    path: 'classifica-top20',
+    loadChildren: () => import('./pages/classifica/classifica.module').then(m => m.ClassificaModule)
+  },
+
   { path: '**', redirectTo: '', pathMatch: 'full' }
 ];
 
