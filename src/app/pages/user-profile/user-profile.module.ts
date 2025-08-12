@@ -6,17 +6,13 @@ import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { UserProfileComponent } from './user-profile.component';
-import { UserCanzoniComponent } from './userCanzoni/user-canzoni/user-canzoni.component';
 import { PrivacyComponent } from './privacy/privacy.component';
-import { WishlistComponent } from './wishlist/wishlist.component';
 import { ModifyProfileComponent } from './modify-profile/modify-profile.component';
 
 @NgModule({
   declarations: [
     UserProfileComponent,
-    UserCanzoniComponent,
     PrivacyComponent,
-    WishlistComponent,
     ModifyProfileComponent
   ],
   imports: [
@@ -26,9 +22,17 @@ import { ModifyProfileComponent } from './modify-profile/modify-profile.componen
     ReactiveFormsModule,
     RouterModule.forChild([
       { path: '', component: UserProfileComponent, canActivate: [AuthGuard] },  // /user-profile
-      { path: 'storico', component: UserCanzoniComponent, canActivate: [AuthGuard] }, // /user-profile/storico
+       { 
+          path: 'wishlist', 
+          loadChildren: () => import('./wishlist/wishlist.module').then(m => m.WishlistModule), 
+          canActivate: [AuthGuard] 
+        },
+        {
+          path: 'user-canzoni',
+          loadChildren: () => import('./userCanzoni/user-canzoni/user-canzoni.module').then(m => m.UserCanzoniModule),
+          canActivate: [AuthGuard]
+        },
       { path: 'privacy', component: PrivacyComponent, canActivate: [AuthGuard] }, // /user-profile/privacy
-      { path: 'wishlist', component: WishlistComponent, canActivate: [AuthGuard] }, // /user-profile/wishlist
       { path: 'modify-profile', component: ModifyProfileComponent, canActivate: [AuthGuard] }, // /user-profile/modify-profile
     ])
   ]

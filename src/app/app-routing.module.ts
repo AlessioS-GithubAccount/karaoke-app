@@ -15,7 +15,6 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'prenota-canzoni', component: PrenotaCanzoniComponent },
-  { path: 'classifica-top20', component: ClassificaComponent },
 
   // Pagina profilo principale
   { 

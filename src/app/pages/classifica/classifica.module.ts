@@ -1,9 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClassificaComponent } from './classifica.component';
+import { RouterModule, Routes } from '@angular/router';  // <--- import router
 import { MatDialogModule } from '@angular/material/dialog';
 import { ToastrModule } from 'ngx-toastr';
 import { TranslateModule } from '@ngx-translate/core';
+
+const routes: Routes = [
+  { path: '', component: ClassificaComponent }
+];
 
 @NgModule({
   declarations: [ClassificaComponent],
@@ -11,7 +16,8 @@ import { TranslateModule } from '@ngx-translate/core';
     CommonModule,
     MatDialogModule,
     ToastrModule.forRoot(),
-    TranslateModule
+    TranslateModule,
+    RouterModule.forChild(routes)  // <--- aggiunto routing interno
   ]
 })
 export class ClassificaModule {}

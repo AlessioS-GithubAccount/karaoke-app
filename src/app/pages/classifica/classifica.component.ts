@@ -62,6 +62,7 @@ export class ClassificaComponent implements OnInit {
 
     this.karaokeService.getTopN(this.topNum).subscribe({
       next: (data: any[]) => {
+        console.log('Dati ricevuti:', data); 
         const uniqueMap = new Map<string, any>();
         data.forEach((item: any) => {
           const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
@@ -110,9 +111,7 @@ export class ClassificaComponent implements OnInit {
   });
 }
 
-
-
-  private capitalizeWords(str: string): string {
+private capitalizeWords(str: string): string {
     if (!str) return '';
     return str.replace(/\w\S*/g, (txt) =>
       txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
