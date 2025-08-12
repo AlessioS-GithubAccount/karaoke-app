@@ -6,8 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class KaraokeService {
-  //private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
-  private baseUrl = 'http://localhost:3000/api';
+  private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
+  //private baseUrl = 'http://localhost:3000/api';
 
   private apiUrl = `${this.baseUrl}/canzoni`;
   private resetUrl = `${this.baseUrl}/reset-canzoni`;
