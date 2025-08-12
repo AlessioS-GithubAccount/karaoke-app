@@ -17,6 +17,11 @@ let refreshTokens = [];
 app.use(cors());
 app.use(express.json());
 
+// Route di test root
+app.get('/', (req, res) => {
+  res.send('Backend attivo!');
+});
+
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: 'Token mancante' });
