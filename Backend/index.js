@@ -15,17 +15,6 @@ let refreshTokens = [];
 app.use(cors());
 app.use(express.json());
 
-// Route di test root
-app.get('/', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT NOW() AS server_time');
-    res.json({ msg: 'Backend attivo!', server_time: rows[0].server_time });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Errore DB');
-  }
-});
-
 
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
