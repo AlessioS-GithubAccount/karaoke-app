@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const pool = require('./db/pool');  // ← importa qui il pool
+const db = require('./db/pool'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,14 +25,6 @@ app.get('/', async (req, res) => {
     res.status(500).send('Errore DB');
   }
 });
-
-//verifica connessione pool-db
-pool.getConnection()
-  .then(conn => {
-    console.log('Connessione DB OK');
-    conn.release();
-  })
-  .catch(err => console.error('Errore connessione DB:', err));
 
 
 function verifyToken(req, res, next) {
