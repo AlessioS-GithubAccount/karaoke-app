@@ -2,15 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('./database');
+const pool = require('./db/pool');  // ← importa qui il pool
 
 const app = express();
-const PORT = process.env.PORT;  
-//const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
 const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';
-
 
 let refreshTokens = [];
 
@@ -18,9 +16,24 @@ app.use(cors());
 app.use(express.json());
 
 // Route di test root
-app.get('/', (req, res) => {
-  res.send('Backend attivo!');
+app.get('/', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT NOW() AS server_time');
+    res.json({ msg: 'Backend attivo!', server_time: rows[0].server_time });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Errore DB');
+  }
 });
+
+//verifica connessione pool-db
+pool.getConnection()
+  .then(conn => {
+    console.log('Connessione DB OK');
+    conn.release();
+  })
+  .catch(err => console.error('Errore connessione DB:', err));
+
 
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
