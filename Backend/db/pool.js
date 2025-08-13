@@ -1,7 +1,5 @@
 // /backend/db/pool.js
 const mysql = require('mysql2/promise');
-const fs = require('fs');
-const path = require('path');
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -12,9 +10,9 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: {
-    ca: fs.readFileSync(path.join(__dirname, '../ssl/ca.pem'))
-  }
+  ssl: process.env.DB_CA
+    ? { ca: Buffer.from(process.env.DB_CA) }
+    : undefined
 });
 
 module.exports = pool;
