@@ -12,8 +12,8 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   ssl: process.env.DB_CA
-    ? { ca: fs.readFileSync(process.env.DB_CA) }
-    : undefined
+  ? { ca: process.env.DB_CA.replace(/\\n/g, '\n') }
+  : undefined
 });
 
 module.exports = pool;
