@@ -1,5 +1,6 @@
-// /backend/db/pool.js
 const mysql = require('mysql2/promise');
+const fs = require('fs');
+require('dotenv').config(); // legge il .env
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -10,8 +11,8 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: process.env.DB_CA
-    ? { ca: Buffer.from(process.env.DB_CA) }
+  ssl: process.env.DB_CA_PATH
+    ? { ca: fs.readFileSync(process.env.DB_CA_PATH) }
     : undefined
 });
 
