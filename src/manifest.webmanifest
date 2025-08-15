@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Karaoke App",
+  "short_name": "Karaoke",
+  "start_url": "./",
+  "scope": "./",
+  "theme_color": "#111111",
+  "background_color": "#111111",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "assets/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-128x128.png", "sizes": "128x128", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-144x144.png", "sizes": "144x144", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-152x152.png", "sizes": "152x152", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png", "purpose": "maskable any" },
+    { "src": "assets/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable any" }
+  ],
+  "splash_screens": [
+    { "src": "assets/icons/splash-640x1136.png", "width": 640, "height": 1136 },
+    { "src": "assets/icons/splash-750x1334.png", "width": 750, "height": 1334 },
+    { "src": "assets/icons/splash-1125x2436.png", "width": 1125, "height": 2436 },
+    { "src": "assets/icons/splash-1536x2048.png", "width": 1536, "height": 2048 },
+    { "src": "assets/icons/splash-2048x2732.png", "width": 2048, "height": 2732 }
+  ]
+}

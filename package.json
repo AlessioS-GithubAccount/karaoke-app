@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "postbuild": "copy dist\\karaoke-app\\browser\\manifest.webmanifest dist\\karaoke-app\\",
+    "generate:icons": "node src/sharp-pwa.js"
   },
   "private": true,
   "dependencies": {
@@ -20,6 +22,7 @@
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
+    "@angular/service-worker": "^17.3.0",
     "@fortawesome/fontawesome-free": "^7.0.0",
     "@ngx-translate/core": "^16.0.4",
     "@ngx-translate/http-loader": "^16.0.1",
@@ -27,6 +30,7 @@
     "jwt-decode": "^4.0.0",
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",
+    "sharp": "^0.34.3",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
   },

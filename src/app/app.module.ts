@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';  // importa anche HTTP_INTERCEPTORS
 import { AppRoutingModule } from './app-routing.module';
@@ -29,6 +29,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TokenInterceptor  } from './Authguards/Interceptor';
 import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';  
 import { MatDialogModule } from '@angular/material/dialog';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 // Factory function per HttpLoader
 export function HttpLoaderFactory(http: HttpClient) {
@@ -70,6 +71,12 @@ export function HttpLoaderFactory(http: HttpClient) {
       closeButton: false,
       preventDuplicates: true,
     }),
+     ServiceWorkerModule.register('ngsw-worker.js', {
+       enabled: !isDevMode(),
+       // Register the ServiceWorker as soon as the application is stable
+       // or after 30 seconds (whichever comes first).
+       registrationStrategy: 'registerWhenStable:30000'
+     }),
   ],
   providers: [
     KaraokeService,
