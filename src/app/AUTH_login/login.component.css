@@ -22,9 +22,8 @@
 /* BODY GENERALE */
 body {
   margin: 0;
-  font-family: 'Space Grotesk', sans-serif;
   background-color: var(--background-color);
-  color: #f0f0f0;
+  color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 body.light-mode {
