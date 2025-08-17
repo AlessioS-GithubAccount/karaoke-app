@@ -1,13 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
-:host {
-  display: block;
-  padding-top: 60px;
+/* Stili globali sul body invece che su :host */
+html, body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
   font-family: 'Montserrat', sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Spinner di caricamento */
 .loading-spinner {
   opacity: 0;
   transform: translateY(30px);
@@ -41,12 +45,12 @@
   }
 }
 
-
+/* Header bottoni wishlist */
 .wishlist-header-buttons {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* o center, se vuoi centrare tutto */
-  gap: 10px; /* Spazio tra h2 e i bottoni */
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .button-group {
@@ -68,8 +72,7 @@ h2 {
   animation-delay: 0.1s;
 }
 
-/* Tabella stile "archivio canzoni" */
-
+/* Tabella stile archivio */
 .my-zebra-table {
   width: 100%;
   padding-left: 4rem;
@@ -105,11 +108,11 @@ h2 {
   border-bottom-right-radius: 12px;
 }
 
-/* Riga tabella con box-shadow solo al hover */
+/* Righe con hover glow */
 .my-zebra-table tbody tr:nth-child(odd),
 .my-zebra-table tbody tr:nth-child(even) {
   background: var(--odd-color);
-  box-shadow: none; /* no shadow di default */
+  box-shadow: none;
   border-radius: 12px;
   backdrop-filter: blur(4px);
   animation: fadeSlideIn 1.5s ease forwards;
@@ -121,7 +124,6 @@ h2 {
   box-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--accent-hover) !important;
 }
 
-/* Reset focus e active per evitare glow permanente */
 .my-zebra-table tbody tr:focus,
 .my-zebra-table tbody tr:active {
   outline: none;
@@ -129,7 +131,7 @@ h2 {
   transform: none;
 }
 
-/* Input uniformi */
+/* Input */
 .wishlist-input {
   background: transparent;
   border: 1px solid var(--accent-color);
@@ -141,7 +143,7 @@ h2 {
   width: 100%;
 }
 
-/* Pulsanti */
+/* Pulsanti header */
 .wishlist-header-buttons {
   display: flex;
   gap: 1rem;
@@ -164,6 +166,7 @@ h2 {
   background-color: #3b5bdb;
 }
 
+/* Light mode fix */
 .light-mode button {
   color: white !important;
 }
@@ -172,6 +175,7 @@ body.light-mode .btn-crud {
   color: var(--background-color) !important;
 }
 
+/* Bottoni generali */
 button {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
   color: var(--text-color);
@@ -259,7 +263,7 @@ button:disabled {
   }
 }
 
-/* Mobile Responsive Styles */
+/* Responsive */
 @media screen and (max-width: 768px) {
   h2 {
     margin: 0 auto 1.5rem;
@@ -285,14 +289,14 @@ button:disabled {
   .wishlist-mobile-card {
     background-color: var(--card-background, rgba(255, 255, 255, 0.05));
     padding: 1rem;
-    margin: 1rem auto; /* margin auto orizzontale per centrare */
+    margin: 1rem auto;
     border-radius: 16px;
     box-shadow: 0 0 12px var(--accent-hover);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    max-width: 90%; /* restringi un po' la larghezza */
-    animation: fadeSlideIn 1.5s ease forwards; /* animazione aggiunta */
+    max-width: 90%;
+    animation: fadeSlideIn 1.5s ease forwards;
   }
 
   .mobile-card-actions {
@@ -341,7 +345,7 @@ button:disabled {
     flex-direction: column;
     gap: 0.5rem;
     max-width: 90%;
-    animation: fadeSlideIn 1.5s ease forwards; /* animazione anche qui */
+    animation: fadeSlideIn 1.5s ease forwards;
   }
 
   .mobile-card-actions {

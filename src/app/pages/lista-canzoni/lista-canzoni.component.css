@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-
 /* Animazione di ingresso */
 .animated-fade-slide-in {
   opacity: 0;
@@ -27,14 +25,14 @@
 }
 
 
-html, body {
+/* Host come contenitore principale della pagina */
+:host {
+  display: block;
+  min-height: 100vh;
+  width: 100%;
   overflow-x: hidden;
   padding: 0;
   margin: 0;
-}
-
-body {
-  padding-top: 20px;
   font-family: 'Montserrat', sans-serif;
   background-color: var(--background-color);
   background-attachment: fixed; 
@@ -94,11 +92,11 @@ h2{
 }
 
 .scroll-btn i {
-  display: block;       /* per far sì che occupi tutta la larghezza del bottone */
-  width: 100%;          /* larghezza piena */
-  height: 100%;         /* altezza piena */
-  text-align: center;   /* centratura orizzontale */
-  line-height: 30px;    /* allinea verticalmente (uguale all'altezza del bottone) */
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  line-height: 30px;
   pointer-events: none;
 }
 
@@ -109,8 +107,6 @@ h2{
 .scroll-btn i {
   pointer-events: none;
 }
-
-
 
 @keyframes fadeSlideIn {
   0% {

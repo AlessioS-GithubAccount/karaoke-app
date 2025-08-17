@@ -618,7 +618,7 @@ app.post('/api/canzoni/riordina', async (req, res) => {
 });
 
 
-//genera lista classica topN
+//genera lista classifica topN
 app.get('/api/classifica/top', async (req, res) => {
   const n = parseInt(req.query.n) || 30; // default top30
   try {
