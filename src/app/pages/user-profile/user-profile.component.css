@@ -1,7 +1,7 @@
 :host {
   display: block;
   font-family: 'Montserrat', sans-serif;
-  color: var(--text-color);
+  color: #ffffff; /* testo bianco globale */
 
   width: 100%;
   min-height: 100vh;
@@ -9,36 +9,69 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed; /* opzionale se vuoi effetto parallax */
-  position: relative; /* o nulla, se non serve */
+  background-attachment: fixed;
+  position: relative;
+
+  /* variabili locali per forza bianco nei componenti */
+  --profile-title-color: #ffffff;
+  --profile-title-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 30px #ffffff;
+  --card-title-color: #ffffff;
+  --card-text-color: #ffffff;
+
 }
 
-body{
+body {
   margin-top: 0rem !important;
 }
 
-.not-logged{
+/* Non loggato */
+.not-logged {
   margin-top: 5rem;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--accent-color);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 4rem auto;
+  color: #ffffff; /* testo bianco */
+  text-align: center;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
+  backdrop-filter: blur(6px);
 }
 
+.not-logged a.btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 30px;
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
+  color: #ffffff;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+  box-shadow: 0 0 10px var(--glow-color);
+}
 
-.profile-title{
+.not-logged a.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+}
+
+/* Titolo profilo */
+.profile-title {
   margin-top: 8rem;
-  text-shadow:
-    0 0 10px var(--accent-hover),
-    0 0 10px var(--glow-color),
-    0 0 10px var(--accent-hover)!important;
-  }
-
-::ng-deep body.light-mode .profile-title {
-  color: #fff !important;
-  text-shadow:
-    0 0 10px var(--accent-hover),
-    0 0 20px var(--glow-color),
-    0 0 30px var(--accent-hover)!important;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--profile-title-color);
+  text-shadow: var(--profile-title-shadow);
+  animation: fadeInUp 0.8s ease-out forwards;
 }
 
-/* Glowing icon styles (come homepage) */
+.profile-subtitle {
+  color: #ffffff; /* testo bianco */
+  margin-bottom: 2rem;
+  animation: fadeInUp 1s ease-out forwards;
+}
+
+/* Glowing icon styles */
 .profile-card i {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
@@ -58,10 +91,6 @@ body{
     0 0 30px var(--accent-hover);
 }
 
-
-
-
-
 /* Container principale */
 .user-profile-container {
   max-width: 1000px;
@@ -71,21 +100,7 @@ body{
   animation: fadeSlideIn 1s ease-out;
 }
 
-/* Titolo */
-.profile-title {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  color: var(--accent-color);
-  animation: fadeInUp 0.8s ease-out forwards;
-}
-
-.profile-subtitle {
-  color: #999;
-  margin-bottom: 2rem;
-  animation: fadeInUp 1s ease-out forwards;
-}
-
-/* Griglia delle card (quadrate) */
+/* Griglia delle card */
 .profile-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -93,14 +108,13 @@ body{
   padding: 1rem 0;
 }
 
-/* Singola card */
-/* Stile base della card */
+/* Card */
 .profile-card {
-  background: var(--card-bg);
+  background: var(--card-bg, rgba(255, 255, 255, 0.2));
   border-radius: 16px;
   padding: 1.5rem;
   min-height: 200px;
-  box-shadow: 0 0 0 transparent; 
+  box-shadow: 0 0 0 transparent;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
   backdrop-filter: blur(6px);
@@ -120,61 +134,16 @@ body{
     0 0 20px var(--accent-hover);
 }
 
-
-/* Stile base per light mode */
-::ng-deep body.light-mode .profile-card {
-  background: var(--feature-bg-gradient) !important;
-  box-shadow: 0 0 0 transparent; /* nessun !important qui */
-}
-
-/* Hover glow in light mode */
-::ng-deep body.light-mode .profile-card:hover {
-  box-shadow:
-    0 0 10px var(--glow-color),
-    0 0 20px var(--accent-hover);
-}
-
-
-
+/* Titoli e testo card */
 .profile-card h3 {
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
-  color: var(--accent-color);
+  color: var(--card-title-color);
 }
 
 .profile-card p {
   font-size: 0.9rem;
-  color: #bbb;
-}
-
-/* Non loggato */
-.not-logged {
-  background-color: rgba(0, 0, 0, 0.6);
-  border: 1px solid var(--accent-color);
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 600px;
-  margin: 4rem auto;
-  color: #fff;
-  text-align: center;
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
-  backdrop-filter: blur(6px);
-}
-
-.not-logged a.btn {
-  margin-top: 1rem;
-  padding: 0.6rem 1.4rem;
-  border-radius: 30px;
-  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
-  color: #fff;
-  font-weight: bold;
-  transition: transform 0.2s ease;
-  box-shadow: 0 0 10px var(--glow-color);
-}
-
-.not-logged a.btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
+  color: var(--card-text-color);
 }
 
 /* Animazioni */
@@ -203,5 +172,3 @@ body{
     transform: translateY(0);
   }
 }
-
-
