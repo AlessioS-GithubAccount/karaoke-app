@@ -1,115 +1,117 @@
-<div class="container mt-5 register-container register-animated-fade-slide-in" style="max-width: 500px;">
-  <h2 class="text-center mb-4">{{ 'registration.title' | translate }}</h2>
+<div class="register-background">
+    <div class="container mt-5 register-container register-animated-fade-slide-in" style="max-width: 500px;">
+      <h2 class="text-center mb-4">{{ 'registration.title' | translate }}</h2>
 
-  <form (ngSubmit)="register()" #registerForm="ngForm">
-    <!-- Username -->
-    <div class="mb-3">
-      <label for="username" class="form-label">
-        {{ 'registration.username_label' | translate }}
-      </label>
-      <input 
-        type="text" 
-        id="username" 
-        name="username" 
-        class="form-control" 
-        [(ngModel)]="username" 
-        required>
+      <form (ngSubmit)="register()" #registerForm="ngForm">
+        <!-- Username -->
+        <div class="mb-3">
+          <label for="username" class="form-label">
+            {{ 'registration.username_label' | translate }}
+          </label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            class="form-control" 
+            [(ngModel)]="username" 
+            required>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label for="password" class="form-label">
+            {{ 'registration.password_label' | translate }}
+          </label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            class="form-control" 
+            [(ngModel)]="password" 
+            required>
+        </div>
+
+        <!-- Info recupero password -->
+        <div class="mb-2 text-muted small instruction">
+          {{ 'registration.password_recovery_info' | translate }}
+        </div>
+
+        <!-- Domanda recupero -->
+        <div class="mb-3">
+          <label for="domandaRecupero" class="form-label">
+            {{ 'registration.recovery_question_label' | translate }}
+          </label>
+          <select 
+            id="domandaRecupero" 
+            name="domandaRecupero" 
+            class="form-select" 
+            [(ngModel)]="domandaRecupero" 
+            required>
+            <option value="" disabled selected>
+              {{ 'registration.select_question_option' | translate }}
+            </option>
+            <option value="nome_animale_domestico">
+              {{ 'registration.pet_name_option' | translate }}
+            </option>
+            <option value="città_preferita">
+              {{ 'registration.favorite_city_option' | translate }}
+            </option>
+            <option value="nome_madre">
+              {{ 'registration.mother_name_option' | translate }}
+            </option>
+            <option value="animale_preferito">
+              {{ 'registration.favorite_animal_option' | translate }}
+            </option>
+            <option value="codicepin">
+              {{ 'registration.pin_code_option' | translate }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Risposta alla domanda -->
+        <div class="mb-3">
+          <label for="rispostaRecupero" class="form-label">
+            {{ 'registration.recovery_answer_label' | translate }}
+          </label>
+          <input 
+            type="text" 
+            id="rispostaRecupero" 
+            name="rispostaRecupero" 
+            class="form-control"
+            [(ngModel)]="rispostaRecupero" 
+            required 
+            [placeholder]="'registration.recovery_answer_placeholder' | translate">
+        </div>
+
+        <!-- PIN admin opzionale -->
+        <div class="mb-3">
+          <label for="keypass" class="form-label">
+            {{ 'registration.admin_keypass_label' | translate }}
+          </label>
+          <input 
+            type="password" 
+            id="keypass" 
+            name="keypass" 
+            class="form-control"
+            [(ngModel)]="keypass" 
+            [placeholder]="'registration.admin_keypass_placeholder' | translate">
+        </div>
+
+        <!-- Pulsanti -->
+        <button 
+          type="submit" 
+          class="btn btn-success w-100 mb-3" 
+          [disabled]="!registerForm.valid">
+          {{ 'registration.create_account_button' | translate }}
+        </button>
+
+        <a routerLink="/login" class="btn btn-outline-primary w-100 btn secondary">
+          {{ 'registration.back_to_login_button' | translate }}
+        </a>
+      </form>
+
+      <div class="mt-4 text-center text-muted small privacy-disclaimer">
+        <em class="privacy-disclaimer">{{ 'registration.privacy_info' | translate }}</em>
+      </div>
     </div>
-
-    <!-- Password -->
-    <div class="mb-3">
-      <label for="password" class="form-label">
-        {{ 'registration.password_label' | translate }}
-      </label>
-      <input 
-        type="password" 
-        id="password" 
-        name="password" 
-        class="form-control" 
-        [(ngModel)]="password" 
-        required>
-    </div>
-
-    <!-- Info recupero password -->
-    <div class="mb-2 text-muted small instruction">
-      {{ 'registration.password_recovery_info' | translate }}
-    </div>
-
-    <!-- Domanda recupero -->
-    <div class="mb-3">
-      <label for="domandaRecupero" class="form-label">
-        {{ 'registration.recovery_question_label' | translate }}
-      </label>
-      <select 
-        id="domandaRecupero" 
-        name="domandaRecupero" 
-        class="form-select" 
-        [(ngModel)]="domandaRecupero" 
-        required>
-        <option value="" disabled selected>
-          {{ 'registration.select_question_option' | translate }}
-        </option>
-        <option value="nome_animale_domestico">
-          {{ 'registration.pet_name_option' | translate }}
-        </option>
-        <option value="città_preferita">
-          {{ 'registration.favorite_city_option' | translate }}
-        </option>
-        <option value="nome_madre">
-          {{ 'registration.mother_name_option' | translate }}
-        </option>
-        <option value="animale_preferito">
-          {{ 'registration.favorite_animal_option' | translate }}
-        </option>
-        <option value="codicepin">
-          {{ 'registration.pin_code_option' | translate }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Risposta alla domanda -->
-    <div class="mb-3">
-      <label for="rispostaRecupero" class="form-label">
-        {{ 'registration.recovery_answer_label' | translate }}
-      </label>
-      <input 
-        type="text" 
-        id="rispostaRecupero" 
-        name="rispostaRecupero" 
-        class="form-control"
-        [(ngModel)]="rispostaRecupero" 
-        required 
-        [placeholder]="'registration.recovery_answer_placeholder' | translate">
-    </div>
-
-    <!-- PIN admin opzionale -->
-    <div class="mb-3">
-      <label for="keypass" class="form-label">
-        {{ 'registration.admin_keypass_label' | translate }}
-      </label>
-      <input 
-        type="password" 
-        id="keypass" 
-        name="keypass" 
-        class="form-control"
-        [(ngModel)]="keypass" 
-        [placeholder]="'registration.admin_keypass_placeholder' | translate">
-    </div>
-
-    <!-- Pulsanti -->
-    <button 
-      type="submit" 
-      class="btn btn-success w-100 mb-3" 
-      [disabled]="!registerForm.valid">
-      {{ 'registration.create_account_button' | translate }}
-    </button>
-
-    <a routerLink="/login" class="btn btn-outline-primary w-100">
-      {{ 'registration.back_to_login_button' | translate }}
-    </a>
-  </form>
-
-  <div class="mt-4 text-center text-muted small privacy-disclaimer">
-    <em class="privacy-disclaimer">{{ 'registration.privacy_info' | translate }}</em>
   </div>
-</div>

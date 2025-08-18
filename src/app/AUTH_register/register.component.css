@@ -1,59 +1,84 @@
-/* Import font Montserrat (già incluso presumibilmente) */
-/* Arrotondamento inputs e select */
+html, body {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color); /* palette */
+}
+
+.register-background {
+  min-height: 100vh;       /* copre almeno tutta la viewport */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* inizia dall'alto */
+  padding: 40px 20px;
+  background: var(--menu-bg-color);  /* puoi mettere anche gradient */
+  transition: background 0.3s ease;
+}
+
+body.light-mode .register-background {
+  background: radial-gradient(circle at top left, #ffffff, #f2f2f2);
+}
+
+/* ------------------ Inputs e select ------------------ */
 input.form-control,
 select.form-select {
   border-radius: 12px !important;
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-  /* Per animazioni hover/ focus si possono aggiungere qui */
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border: 1px solid var(--menu-bg-color);
+}
+body.light-mode input.form-control,
+body.light-mode select.form-select {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #ccc;
 }
 
-/* Animazione di ingresso simile a login */
+/* ------------------ Animazione di ingresso ------------------ */
 .register-animated-fade-slide-in {
   opacity: 0;
   transform: translateY(30px);
   animation: fadeSlideIn 0.8s ease-out forwards;
 }
 
-/* Chiave animazione */
-@keyframes fadeSlideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Neon/glow effetto per container */
+/* ------------------ Neon/glow container ------------------ */
 .register-container {
   background-color: var(--background-color);
   border-radius: 12px;
   padding: 2.5rem 2rem;
   box-shadow: 0 0 12px rgba(0, 255, 255, 0.1);
   margin-top: 2rem;
+  width: 100%;
+  max-width: 450px; /* larghezza massima */
   opacity: 0;
   transform: translateY(30px);
   animation: fadeSlideIn 0.8s ease-out forwards, neonAlert 2.5s ease-in-out infinite;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-@keyframes neonAlert {
-  0%, 100% {
-    box-shadow:  0 0 12px rgba(0, 240, 255, 0.4), 0 0 24px rgba(0, 240, 255, 0.2);
-    transform: translateX(0);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.5);
-    transform: translateX(0);
-  }
+
+body.light-mode .register-container {
+  background-color: var(--background-color);
+  box-shadow: 0 0 16px rgba(0, 200, 255, 0.2);
 }
 
-/* Label */
+h2{
+    color: #00f0ff;
+}
+
+/* ------------------ Label ------------------ */
 .form-label {
   font-weight: 600;
   color: var(--text-color);
   transition: color 0.3s ease;
 }
+body.light-mode .form-label {
+  color: #333;
+}
 
-/* Pulsanti */
+/* ------------------ Pulsanti ------------------ */
 .btn {
   border-radius: 30px;
   font-weight: 700;
@@ -68,63 +93,97 @@ select.form-select {
   z-index: 1;
 }
 
+/* Pulsante success / registrazione */
 .btn-success {
-  background-color: #00f0ff;
+  background: linear-gradient(135deg, #00c972, #00e688);
   color: #000;
-  box-shadow: 0 0 12px #00f0ff;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 0 12px rgba(0, 230, 136, 0.6);
+}
+.btn-success:hover {
+  background: linear-gradient(135deg, #00e688, #00c972);
+  transform: scale(1.05);
+  box-shadow:
+    0 0 12px rgba(0, 230, 136, 0.6),
+    0 0 24px rgba(0, 230, 136, 0.4),
+    0 0 48px rgba(0, 230, 136, 0.2);
 }
 
-.btn-success:hover {
-    background-color: #0ff;
+/* Pulsante outline / secondario */
+.btn.secondary {
+  background-color: transparent;
+  border: 2px solid #00f0ff;
+  color: #00f0ff;
+  box-shadow: none;
+}
+.btn.secondary:hover {
+  background-color: rgba(0, 255, 255, 0.1);
   transform: scale(1.05);
   box-shadow:
     0 0 12px rgba(0, 255, 255, 0.4),
     0 0 24px rgba(0, 255, 255, 0.3),
     0 0 36px rgba(0, 255, 255, 0.2);
 }
-
-/* Link btn stile simile a secondary login */
-a.btn.btn-outline-primary {
-  border: 2px solid #00c972;
-  color: #00c972;
-  background: transparent;
-  border-radius: 30px;
-  transition: all 0.3s ease;
-  text-align: center;
-  display: block;
+.btn.secondary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.2) 0%, transparent 70%);
+  animation: pulse-glow 2s infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.btn.secondary:hover::before {
+  opacity: 1;
 }
 
-a.btn.btn-outline-primary:hover {
-  background: rgba(0, 230, 136, 0.1);
-  color: #007a3d;
-  transform: scale(1.05);
+/* ------------------ Disclaimer / istruzioni ------------------ */
+.privacy-disclaimer,
+.instruction {
+  color: var(--disclaimer);
+  margin-top: 2rem;
+}
+.instruction {
+  color: var(--disclaimer) !important;
 }
 
-.privacy-disclaimer{
-    color: var(--disclaimer);
+/* ------------------ Keyframes ------------------ */
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.instruction{
-    color: var(--disclaimer) !important;
-    margin-top: 2rem;
+@keyframes neonAlert {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.4), 0 0 24px rgba(0, 240, 255, 0.2);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.8), 0 0 40px rgba(0, 240, 255, 0.5);
+    transform: translateX(0);
+  }
 }
-/* Media Queries */
 
+/* ------------------ Media Queries ------------------ */
 @media screen and (max-width: 768px) {
   .register-container {
     padding: 2rem 1.5rem;
     margin-top: 1.5rem;
   }
-
   .btn {
     font-size: 0.95rem;
     padding: 0.5rem 1rem;
   }
-
   .form-label {
     font-size: 0.9rem;
   }
-
   input.form-control,
   select.form-select {
     font-size: 0.9rem;
@@ -137,25 +196,19 @@ a.btn.btn-outline-primary:hover {
     margin-top: 1rem;
     box-shadow: 0 0 5px rgba(0, 255, 255, 0.08);
   }
-
   .btn {
     font-size: 0.85rem;
     padding: 0.45rem 0.9rem;
   }
-
   .form-label {
     font-size: 0.85rem;
   }
-
   input.form-control,
   select.form-select {
     font-size: 0.85rem;
     padding: 0.5rem 0.8rem;
   }
-
   a.btn.btn-outline-primary {
     font-size: 0.85rem;
   }
 }
-
-
