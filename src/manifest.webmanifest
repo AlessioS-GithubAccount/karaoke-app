@@ -1,7 +1,7 @@
 {
   "id": "/",
   "name": "Karaoke App",
-  "short_name": "Karaoke",
+  "short_name": "Karaoke Live",
   "start_url": "./",
   "scope": "./",
   "theme_color": "#111111",
