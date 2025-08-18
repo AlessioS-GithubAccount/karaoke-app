@@ -40,7 +40,6 @@ export class ListaCanzoniComponent implements OnInit {
   @ViewChildren('rigaCanzone') righeCanzoni!: QueryList<ElementRef>;
 
   canzoni: Canzone[] = [];
-  top20: any[] = [];
   isAdmin = false;
   userId: number | null = null;
   guestId: string | null = null;
@@ -86,7 +85,6 @@ export class ListaCanzoniComponent implements OnInit {
     });
 
     this.caricaCanzoni();
-    this.caricaTop20();
   }
 
   checkViewport() {
@@ -160,16 +158,7 @@ export class ListaCanzoniComponent implements OnInit {
     });
   }
 
-  caricaTop20(): void {
-    this.karaokeService.getTop20().subscribe({
-      next: (data) => this.top20 = data,
-      error: (err) => {
-        console.error('Errore nel recupero della Top 20:', err);
-        this.translate.get('toast.TOP20_ERROR').subscribe(msg => this.toastr.error(msg));
-      }
-    });
-  }
-
+  
   toggleCantata(index: number): void {
     if (!this.isAdmin) return;
     const canzone = this.canzoni[index];
