@@ -35,7 +35,7 @@
     "WISHLIST_REMOVE": "Canzone rimossa dalla wishlist!",
     "WISHLIST_ERROR": "Errore durante l'aggiunta alla wishlist",
     "DELETE_CONFIRM": "Sei sicuro di voler eliminare questa canzone?",
-    "RESET_LIST_CONFIRM": "Vuoi rettare la lista canzoni? Operazione irreversibile.",
+    "RESET_LIST_CONFIRM": "Vuoi cancellare tutta la lista canzoni? Operazione irreversibile.",
     "CONFIRM_DELETE": "Canzone eliminata con successo",
     "ERROR_DELETE": "Errore nell' eliminazione canzone."
   },
