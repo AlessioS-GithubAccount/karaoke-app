@@ -58,32 +58,59 @@ export class ClassificaComponent implements OnInit {
   }
 
   caricaClassifica(): void {
-    this.isLoading = true;  // inizio caricamento
+  this.isLoading = true;
 
-    this.karaokeService.getTopN(this.topNum).subscribe({
+      // Primo tentativo: carica snapshot
+      this.karaokeService.getSnapshotTopN(this.topNum).subscribe({
       next: (data: any[]) => {
-        console.log('Dati ricevuti:', data); 
-        const uniqueMap = new Map<string, any>();
-        data.forEach((item: any) => {
-          const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, {
-              ...item,
-              artista: this.capitalizeWords(item.artista),
-              canzone: this.capitalizeWords(item.canzone)
-            });
-          }
-        });
-        this.topCanzoni = Array.from(uniqueMap.values())
-          .sort((a, b) => b.num_richieste - a.num_richieste);
-        this.isLoading = false;  // fine caricamento
+        if (data.length > 0) {
+          this.processaDatiClassifica(data);
+        } else {
+          // Se snapshot vuoto, fallback alla classifica live
+          console.log('Snapshot vuoto, carico classifica live...');
+          this.karaokeService.getTopN(this.topNum).subscribe({
+            next: (liveData: any[]) => this.processaDatiClassifica(liveData),
+            error: (err) => {
+              console.error('Errore caricamento classifica live:', err);
+              this.isLoading = false;
+            }
+          });
+        }
       },
       error: (err) => {
-        console.error('Errore nel caricamento della classifica:', err);
-        this.isLoading = false;  // anche in caso di errore, stop spinner
+        console.error('Errore nel caricamento snapshot:', err);
+        // fallback: classifica live
+        this.karaokeService.getTopN(this.topNum).subscribe({
+          next: (liveData: any[]) => this.processaDatiClassifica(liveData),
+          error: (err) => {
+            console.error('Errore caricamento classifica live:', err);
+            this.isLoading = false;
+          }
+        });
       }
     });
   }
+
+  // Metodo helper per processare e ordinare i dati
+  private processaDatiClassifica(data: any[]): void {
+    const uniqueMap = new Map<string, any>();
+    data.forEach((item: any) => {
+      const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, {
+          ...item,
+          artista: this.capitalizeWords(item.artista),
+          canzone: this.capitalizeWords(item.canzone)
+        });
+      }
+    });
+
+    this.topCanzoni = Array.from(uniqueMap.values())
+      .sort((a, b) => b.num_richieste - a.num_richieste);
+
+    this.isLoading = false;
+  }
+
 
   eliminaCanzone(id: number): void {
   if (!this.isAdmin) return;

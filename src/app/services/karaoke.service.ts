@@ -32,9 +32,16 @@ export class KaraokeService {
     return this.http.post(this.resetUrl, { password });
   }
 
+  /*
   getTop20(): Observable<any[]> {
     return this.http.get<any[]>(this.top20Url);
+  } */
+
+    getSnapshotTopN(topNum: number = 30): Observable<any[]> {
+    // Qui chiamiamo l'endpoint dello snapshot più recente
+    return this.http.get<any[]>(`${this.baseUrl}/classifica/snapshot?top=${topNum}`);
   }
+
 
   aggiungiPartecipante(idCanzone: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idCanzone}/partecipa`, {});

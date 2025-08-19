@@ -669,18 +669,22 @@ app.post('/api/snapshot/classifica', async (req, res) => {
 //recupera snapshot da tab snapshot_classifica in db
 // Prende l'ultimo snapshot della classifica
 app.get('/api/classifica/snapshot', async (req, res) => {
+  const top = parseInt(req.query.top) || 30;
   try {
     const [rows] = await db.query(
-      `SELECT artista, canzone, num_richieste 
-       FROM snapshot_classifica 
+      `SELECT artista, canzone, num_richieste
+       FROM snapshot_classifica
        WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM snapshot_classifica)
-       ORDER BY num_richieste DESC`
+       ORDER BY num_richieste DESC
+       LIMIT ?`,
+      [top]
     );
     res.json(rows);
   } catch (err) {
     res.status(500).json({ message: 'Errore nel recupero dello snapshot' });
   }
 });
+
 
 // Prende l'ultimo snapshot della classifica
 app.get('/api/classifica/snapshot', async (req, res) => {
