@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise');
 const fs = require('fs');
-require('dotenv').config(); // legge il .env
+require('dotenv').config();
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -11,9 +11,9 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: process.env.DB_CA
-  ? { ca: process.env.DB_CA.replace(/\\n/g, '\n') }
-  : undefined
+  ssl: process.env.DB_CA_PATH
+    ? { ca: fs.readFileSync(process.env.DB_CA_PATH) }
+    : undefined,
 });
 
 module.exports = pool;
