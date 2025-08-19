@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { map } from 'rxjs/operators';
+
 
 @Injectable({
   providedIn: 'root'
@@ -37,11 +39,17 @@ export class KaraokeService {
     return this.http.get<any[]>(this.top20Url);
   } */
 
-    getSnapshotTopN(topNum: number = 30): Observable<any[]> {
-    // Qui chiamiamo l'endpoint dello snapshot più recente
-    return this.http.get<any[]>(`${this.baseUrl}/classifica/snapshot?top=${topNum}`);
-  }
-
+getSnapshotTopN(topNum: number = 30): Observable<any[]> {
+  return this.http.get<any>(`${this.baseUrl}/classifica/snapshot`).pipe(
+    map(response => {
+      // Se il backend restituisce un array direttamente
+      if (Array.isArray(response)) return response;
+      // Se il backend restituisce un oggetto { data: [...] }
+      if (response.data && Array.isArray(response.data)) return response.data;
+      return []; // fallback
+    })
+  );
+}
 
   aggiungiPartecipante(idCanzone: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idCanzone}/partecipa`, {});
