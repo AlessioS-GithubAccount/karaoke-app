@@ -278,6 +278,12 @@ button:disabled {
     text-align: center;
   }
 
+  .wishlist-header-buttons-2{
+    padding-left: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
   .wishlist-header-buttons .btn-link,
   .wishlist-header-buttons-2 .btn-link,
   .add-song-btn {
@@ -285,6 +291,10 @@ button:disabled {
     width: auto;
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
+  }
+
+  .add-song-btn{
+    margin-left: 1rem;
   }
 
   .wishlist-mobile-card {
@@ -328,12 +338,22 @@ button:disabled {
     gap: 6px;
   }
 
+  .wishlist-header-buttons-2{
+    padding-left: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
   .wishlist-header-buttons .btn-link,
   .wishlist-header-buttons-2 .btn-link,
   .add-song-btn {
     padding: 0.4rem 0.8rem;
     font-size: 0.7rem;
     margin: 0.4rem auto;
+  }
+
+  .add-song-btn{
+    margin-left: 1rem;
   }
 
   .wishlist-mobile-card {

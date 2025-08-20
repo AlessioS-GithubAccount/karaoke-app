@@ -119,6 +119,13 @@
       </div>
     </div>
 
+     <!-- Pulsante in basso -->
+      <div class="center-btn BtnBackprofile">
+        <button (click)="ritornaAlProfilo()">
+          {{ 'performance_history.back_to_profile' | translate }}
+        </button>
+      </div>
+
   </ng-container>
 
   <!-- NO ESIBIZIONI -->
@@ -128,10 +135,5 @@
     </div>
   </ng-template>
 
-  <!-- Pulsante in basso -->
-  <div class="center-btn mt-4">
-    <button (click)="ritornaAlProfilo()">
-      {{ 'performance_history.back_to_profile' | translate }}
-    </button>
-  </div>
+ 
 </div>

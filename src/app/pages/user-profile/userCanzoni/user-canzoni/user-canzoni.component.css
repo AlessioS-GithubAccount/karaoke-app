@@ -241,7 +241,15 @@ button:hover {
   justify-content: center;
   align-items: center;
   gap: 1rem; /* Spazio tra i pulsanti e il testo */
-  margin: 1.5rem 0;
+  margin-top: 1rem;
+  margin-bottom: 0rem;
+  padding-bottom: 0rem;
+}
+
+.BtnBackprofile{
+  margin-top: 0rem;
+  padding-top: 0rem;
+  padding-bottom: 2rem;
 }
 
 /* Animazioni */
@@ -265,6 +273,11 @@ button:hover {
 
 /* Media Queries */
 @media (max-width: 768px) {
+
+   .BtnBackprofile{
+    padding-bottom: 2rem;
+  }
+  
   .animated-title {
     margin-left: 2rem;
     font-size: 1.4rem;
@@ -299,6 +312,11 @@ button:hover {
 }
 
 @media (max-width: 480px) {
+
+  .BtnBackprofile{
+    padding-bottom: 2rem;
+  }
+
   .center-btn button {
     padding: 4px 12px;
     font-size: 12px;

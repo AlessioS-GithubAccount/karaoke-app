@@ -172,3 +172,20 @@ body {
     transform: translateY(0);
   }
 }
+
+@media (max-width: 768px) {
+  .user-profile-container {
+    margin-top: 2rem;   /* invece di partire a metà schermo */
+    padding-top: 1rem;  /* meno spazio sopra */
+  }
+
+  .profile-title {
+    margin-top: 2rem;   /* spinge meno verso il basso */
+    font-size: 1.6rem;  /* titolo leggermente più piccolo */
+  }
+
+  .profile-subtitle {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+}
