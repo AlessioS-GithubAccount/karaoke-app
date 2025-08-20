@@ -195,10 +195,10 @@ button:hover {
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
 }
 
-button:disabled {
-  background: #444;
-  color: #999;
-  box-shadow: none;
+.pagination-controls button:disabled {
+  background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2)) !important;
+  color: var(--text-color) !important;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -244,6 +244,15 @@ button:disabled {
   transform: scale(1.05);
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
 }
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;   /* centra orizzontalmente */
+  align-items: center;
+  gap: 1rem;                 /* spazio tra ◄ testo ► */
+  margin-top: 1.5rem;
+}
+
 
 /* Animazioni */
 @keyframes fadeSlideIn {

@@ -22,39 +22,51 @@
   <p>{{ 'common.loading' | translate }}</p>
 </div>
 
-
 <!-- DESKTOP TABLE -->
-<table class="my-zebra-table" *ngIf="!isMobile && wishlist.length > 0 && !isLoading; else mobileView">
-  <thead>
-    <tr>
-      <th>{{ 'performance_history.song' | translate }}</th>
-      <th>{{ 'performance_history.artist' | translate }}</th>
-      <th>{{ 'performance_history.key' | translate }}</th>
-      <th>{{ 'performance_history.actions' | translate }}</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let song of wishlist">
-      <td><input class="wishlist-input" [(ngModel)]="song.canzone" /></td>
-      <td><input class="wishlist-input" [(ngModel)]="song.artista" /></td>
-      <td><input class="wishlist-input" [(ngModel)]="song.tonalita" /></td>
-      <td>
-        <div class="action-buttons">
-          <button class="btn-crud" (click)="salvaWishlist(song)" [disabled]="!song.canzone || !song.artista">
-            {{ 'performance_history.save_button' | translate }}
-          </button>
-          <button class="btn-crud" (click)="rimuoviWishlist(song.id)">
-            {{ 'performance_history.delete_button' | translate }}
-          </button>
-        </div>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<div *ngIf="!isMobile && !isLoading">
+  <table class="my-zebra-table" *ngIf="wishlist.length > 0; else noWishlistDesktop">
+    <thead>
+      <tr>
+        <th>{{ 'performance_history.song' | translate }}</th>
+        <th>{{ 'performance_history.artist' | translate }}</th>
+        <th>{{ 'performance_history.key' | translate }}</th>
+        <th>{{ 'performance_history.actions' | translate }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let song of wishlist">
+        <td><input class="wishlist-input" [(ngModel)]="song.canzone" /></td>
+        <td><input class="wishlist-input" [(ngModel)]="song.artista" /></td>
+        <td><input class="wishlist-input" [(ngModel)]="song.tonalita" /></td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn-crud" (click)="salvaWishlist(song)" [disabled]="!song.canzone || !song.artista">
+              {{ 'performance_history.save_button' | translate }}
+            </button>
+            <button class="btn-crud" (click)="rimuoviWishlist(song.id)">
+              {{ 'performance_history.delete_button' | translate }}
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Pagination (desktop) -->
+  <div class="pagination-controls" *ngIf="totalPages > 1">
+    <button (click)="changePage(-1)" [disabled]="currentPage === 1">◄</button>
+    <span>{{ 'performance_history.currentPage' | translate }} {{ currentPage }} / {{ totalPages }}</span>
+    <button (click)="changePage(1)" [disabled]="currentPage === totalPages">►</button>
+  </div>
+
+  <ng-template #noWishlistDesktop>
+    <p class="no-wishlist-text">{{ 'performance_history.wishlist_empty' | translate }}</p>
+  </ng-template>
+</div>
 
 <!-- MOBILE CARDS -->
-<ng-template #mobileView>
-  <div *ngIf="isMobile && wishlist.length > 0 && !isLoading; else noWishlist">
+<ng-template [ngIf]="isMobile && !isLoading">
+  <div *ngIf="wishlist.length > 0; else noWishlistMobile">
     <div *ngFor="let song of wishlist" class="wishlist-mobile-card">
       <div><strong>{{ 'performance_history.song' | translate }}:</strong>
         <input class="wishlist-input" [(ngModel)]="song.canzone" />
@@ -74,12 +86,18 @@
         </button>
       </div>
     </div>
-  </div>
-</ng-template>
 
-<!-- Empty State -->
-<ng-template #noWishlist>
-  <p class="no-wishlist-text">{{ 'performance_history.wishlist_empty' | translate }}</p>
+    <!-- Pagination (mobile) -->
+    <div class="pagination-controls" *ngIf="totalPages > 1">
+      <button (click)="changePage(-1)" [disabled]="currentPage === 1">◄</button>
+      <span>{{ 'performance_history.currentPage' | translate }} {{ currentPage }} / {{ totalPages }}</span>
+      <button (click)="changePage(1)" [disabled]="currentPage === totalPages">►</button>
+    </div>
+  </div>
+
+  <ng-template #noWishlistMobile>
+    <p class="no-wishlist-text">{{ 'performance_history.wishlist_empty' | translate }}</p>
+  </ng-template>
 </ng-template>
 
 <!-- BOTTOM ACTIONS -->

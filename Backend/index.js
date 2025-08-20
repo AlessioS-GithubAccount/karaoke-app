@@ -304,7 +304,7 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
   }
 });
 
-//func per recuperare lo storico canzoni dello user
+//func per recuperare lo storico canzoni dello user - usercanzoni
 app.get('/api/esibizioni/user/:id', async (req, res) => {
   const userId = req.params.id;
   const page = parseInt(req.query.page) || 1;
@@ -838,13 +838,51 @@ app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
 app.get('/api/wishlist', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const [rows] = await db.query('SELECT * FROM wishlist WHERE user_id = ?', [userId]);
-    res.json(rows);
+
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 8;
+    const offset = (page - 1) * pageSize;
+
+    // conteggio totale
+    const [[{ total }]] = await db.query(
+      'SELECT COUNT(*) AS total FROM wishlist WHERE user_id = ?',
+      [userId]
+    );
+
+    if (total === 0) {
+      return res.json({
+        wishlist: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: page
+      });
+    }
+
+    const totalPages = Math.ceil(total / pageSize);
+
+    // pagina corrente
+    const [rows] = await db.query(
+      `SELECT id, user_id, canzone, artista, tonalita
+       FROM wishlist
+       WHERE user_id = ?
+       ORDER BY id DESC
+       LIMIT ? OFFSET ?`,
+      [userId, pageSize, offset]
+    );
+
+    res.json({
+      wishlist: rows,
+      totalItems: total,
+      totalPages,
+      currentPage: page
+    });
+
   } catch (err) {
-    console.error(err);
+    console.error('Errore nel recupero wishlist:', err);
     res.status(500).json({ message: 'Errore nel recupero wishlist' });
   }
 });
+
 
 // Aggiungi una canzone alla wishlist
 app.post('/api/wishlist', verifyToken, async (req, res) => {
