@@ -11,29 +11,11 @@ const SECRET_KEY = 'karaoke_super_segreto';
 const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';
 
-const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
-const generaSnapshot = require("./snapshot");
-
 let refreshTokens = [];
 
 app.use(cors());
 app.use(express.json());
 
-
-// Endpoint per lanciare lo snapshot cron classifica
-app.get("/run-snapshot", async (req, res) => {
-  const key = req.query.key;
-  if (key !== SNAPSHOT_KEY) {
-    return res.status(403).send("Accesso negato");
-  }
-
-  try {
-    await generaSnapshot();
-    res.send("Snapshot eseguito correttamente");
-  } catch (err) {
-    res.status(500).send("Errore durante lo snapshot");
-  }
-});
 
 
 function verifyToken(req, res, next) {
@@ -669,53 +651,6 @@ app.get('/api/classifica/top', async (req, res) => {
   }
 });
 
-// genera snapshot classifica tramite cron esterni
-app.post('/api/snapshot/classifica', async (req, res) => {
-  const token = req.headers['x-api-key'];
-  if (token !== process.env.SNAPSHOT_API_KEY) {
-    return res.status(401).json({ message: 'Non autorizzato' });
-  }
-
-  try {
-    await generaSnapshot();
-    res.json({ message: 'Snapshot creato correttamente.' });
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nella creazione dello snapshot' });
-  }
-});
-
-// recupera snapshot da tab snapshot_classifica in db
-// prende l'ultimo snapshot completo (data + ora)
-app.get('/api/classifica/snapshot', async (req, res) => {
-  const top = parseInt(req.query.top) || 30;
-  try {
-    const [rows] = await db.query(
-      `SELECT artista, canzone, num_richieste, snapshot_date
-       FROM snapshot_classifica
-       WHERE snapshot_date = (
-         SELECT MAX(snapshot_date) 
-         FROM snapshot_classifica
-       )
-       ORDER BY num_richieste DESC
-       LIMIT ?`,
-      [top]
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nel recupero dello snapshot' });
-  }
-});
-
-
-//endpoint chiamata cron
-app.get('/api/classifica/snapshot/genera', async (req, res) => {
-  try {
-    await generaSnapshot();
-    res.json({ message: 'Snapshot generato correttamente' });
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nella generazione dello snapshot' });
-  }
-});
 
 
 // DELETE canzone da classifica (solo admin)

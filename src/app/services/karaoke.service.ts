@@ -39,17 +39,6 @@ export class KaraokeService {
     return this.http.get<any[]>(this.top20Url);
   } */
 
-getSnapshotTopN(topNum: number = 30): Observable<any[]> {
-  return this.http.get<any>(`${this.baseUrl}/classifica/snapshot`).pipe(
-    map(response => {
-      // Se il backend restituisce un array direttamente
-      if (Array.isArray(response)) return response;
-      // Se il backend restituisce un oggetto { data: [...] }
-      if (response.data && Array.isArray(response.data)) return response.data;
-      return []; // fallback
-    })
-  );
-}
 
   aggiungiPartecipante(idCanzone: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idCanzone}/partecipa`, {});
