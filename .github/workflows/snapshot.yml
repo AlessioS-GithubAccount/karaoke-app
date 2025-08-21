@@ -1,30 +1,22 @@
-name: Snapshot Classifica
+name: Daily snapshot (00:00 CET)
 
 on:
   schedule:
-    # Esegue ogni giorno a 0:00 ora italiana (22:00 UTC)
-    - cron: '0 22 * * *'
-  workflow_dispatch:  # Permette di far partire manualmente l'Action
+    - cron: "0 23 * * *"   # 23:00 UTC = 00:00 CET (in inverno)
+  workflow_dispatch: {}      # avvio manuale
 
 jobs:
-  snapshot:
+  run-snapshot:
     runs-on: ubuntu-latest
-
+    env:
+      SNAPSHOT_URL: ${{ secrets.SNAPSHOT_URL }}
+      SNAPSHOT_KEY: ${{ secrets.SNAPSHOT_KEY }}
+      TZ: Europe/Rome
     steps:
-      - name: Log data e ora
+      - name: Call snapshot endpoint
         run: |
-          echo "Esecuzione snapshot: $(date '+%Y-%m-%d %H:%M:%S')"
-
-      - name: Esegui snapshot classifica
-        run: |
-          echo "Avvio snapshot..."
-          RESPONSE=$(curl -s -w "%{http_code}" -o /tmp/response.txt "https://karaoke-app-6byu.onrender.com/run-snapshot?key=unaChiaveSegretissima123")
-          BODY=$(cat /tmp/response.txt)
-          if [ "$RESPONSE" -eq 200 ]; then
-            echo "Snapshot eseguito correttamente!"
-            echo "Risposta server: $BODY"
-          else
-            echo "Errore nello snapshot. Codice HTTP: $RESPONSE"
-            echo "Risposta server: $BODY"
-            exit 1
-          fi
+          set -euo pipefail
+          echo "Calling $SNAPSHOT_URL at $(date)"
+          curl -fSsL --retry 4 --retry-delay 15 \
+            -X POST "$SNAPSHOT_URL" \
+            -H "x-snapshot-key: $SNAPSHOT_KEY"
