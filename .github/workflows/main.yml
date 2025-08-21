@@ -1,0 +1,22 @@
+name: Daily snapshot (00:00 CET)
+
+on:
+  schedule:
+    - cron: "0 23 * * *"   # 23:00 UTC = 00:00 CET (in inverno)
+  workflow_dispatch: {}      # avvio manuale
+
+jobs:
+  run-snapshot:
+    runs-on: ubuntu-latest
+    env:
+      SNAPSHOT_URL: ${{ secrets.SNAPSHOT_URL }}
+      SNAPSHOT_KEY: ${{ secrets.SNAPSHOT_KEY }}
+      TZ: Europe/Rome
+    steps:
+      - name: Call snapshot endpoint
+        run: |
+          set -euo pipefail
+          echo "Calling $SNAPSHOT_URL at $(date)"
+          curl -fSsL --retry 4 --retry-delay 15 \
+            -X POST "$SNAPSHOT_URL" \
+            -H "x-snapshot-key: $SNAPSHOT_KEY"
