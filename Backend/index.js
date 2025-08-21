@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
 const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';
-
+const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
 let refreshTokens = [];
 
 
@@ -667,28 +667,55 @@ app.get('/api/classifica/top', async (req, res) => {
   }
 });
 
-// POST: genera/rigenera lo snapshot del giorno (protetto da chiave) snapshot classifica
-app.post('/api/classifica/snapshot/run', async (req, res) => {
+app.get('/api/healthz', async (req, res) => {
   try {
-    if (!SNAPSHOT_KEY || req.header('x-snapshot-key') !== SNAPSHOT_KEY) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
+    const [rows] = await db.query('SELECT 1 AS ok');
+    res.json({ ok: rows?.[0]?.ok === 1, snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY) });
+  } catch (e) {
+    res.status(500).json({ ok: false, snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY),
+      code: e.code || null, detail: e.sqlMessage || e.message || null });
+  }
+});
 
-    const n = parseInt(req.query.n, 10) || 100;
+app.get('/api/debug/classifica', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT artista, canzone, num_richieste
+       FROM classifica
+       ORDER BY num_richieste DESC
+       LIMIT 5`
+    );
+    res.json({ count: rows.length, sample: rows });
+  } catch (e) {
+    res.status(500).json({ message: 'Errore query classifica',
+      code: e.code || null, detail: e.sqlMessage || e.message || null });
+  }
+});
 
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const snapshotDate = `${yyyy}-${mm}-${dd}`;
 
-    // 1) prendi classifica live
+// POST: genera/rigenera lo snapshot del giorno (protetto da chiave)
+app.post('/api/classifica/snapshot/run', async (req, res) => {
+  if (!SNAPSHOT_KEY || req.header('x-snapshot-key') !== SNAPSHOT_KEY) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const n = Number.parseInt(req.query.n, 10) || 100;
+  const isDry = String(req.query.dry) === '1';
+  const snapshotDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  try {
     const [top] = await db.query(
-      'SELECT id, artista, canzone, num_richieste FROM classifica ORDER BY num_richieste DESC LIMIT ?',
+      `SELECT artista, canzone, num_richieste
+       FROM classifica
+       ORDER BY num_richieste DESC
+       LIMIT ?`,
       [n]
     );
 
-    // 2) transazione: cancella snapshot del giorno e reinserisci
+    if (isDry) {
+      return res.json({ date: snapshotDate, items: top.length, sample: top.slice(0, 5) });
+    }
+
     let conn;
     try {
       conn = await db.getConnection();
@@ -698,37 +725,53 @@ app.post('/api/classifica/snapshot/run', async (req, res) => {
 
       if (top.length > 0) {
         const values = top.map((row, idx) => [
-          snapshotDate,
-          idx + 1,
-          row.artista,
-          row.canzone,
-          row.num_richieste
+          snapshotDate, idx + 1, row.artista, row.canzone, row.num_richieste ?? 0
         ]);
 
-        await conn.query(
-          'INSERT INTO classifica_snapshot (snapshot_date, `position`, artista, canzone, num_richieste) VALUES ?',
-          [values]
-        );
+        const placeholders = values.map(() => '(?,?,?,?,?)').join(',');
+        const flat = values.flat();
+
+        try {
+          await conn.query(
+            `INSERT INTO classifica_snapshot (snapshot_date, \`position\`, artista, canzone, num_richieste)
+             VALUES ${placeholders}`,
+            flat
+          );
+        } catch (bulkErr) {
+          const singleSql = `INSERT INTO classifica_snapshot
+            (snapshot_date, \`position\`, artista, canzone, num_richieste)
+            VALUES (?,?,?,?,?)`;
+          for (const row of values) await conn.query(singleSql, row);
+        }
       }
 
       await conn.commit();
       return res.json({ message: 'Snapshot generato', date: snapshotDate, items: top.length });
     } catch (txErr) {
       if (conn) await conn.rollback();
-      throw txErr;
+      return res.status(500).json({
+        message: 'Errore creazione snapshot',
+        code: txErr.code || null,
+        detail: txErr.sqlMessage || txErr.message || null
+      });
     } finally {
       if (conn) conn.release();
     }
   } catch (err) {
-    console.error('Errore POST snapshot run:', err);
-    res.status(500).json({ message: 'Errore creazione snapshot' });
+    return res.status(500).json({
+      message: 'Errore creazione snapshot',
+      code: err.code || null,
+      detail: err.sqlMessage || err.message || null
+    });
   }
 });
+
+
 
 // GET: ultimo snapshot disponibile (top N) con data+ora
 app.get('/api/classifica/snapshot/top', async (req, res) => {
   try {
-    const n = parseInt(req.query.n, 10) || 30;
+    const n = Number.parseInt(req.query.n, 10) || 30;
 
     const [[last]] = await db.query('SELECT MAX(snapshot_date) AS latest FROM classifica_snapshot');
     if (!last || !last.latest) return res.json([]);
@@ -744,10 +787,11 @@ app.get('/api/classifica/snapshot/top', async (req, res) => {
 
     res.json(rows);
   } catch (err) {
-    console.error('Errore GET snapshot top:', err);
+    console.error('Errore GET snapshot top:', err.message || err);
     res.status(500).json({ message: 'Errore nel recupero snapshot' });
   }
 });
+
 
 
 // DELETE canzone da classifica (solo admin)
@@ -1075,17 +1119,6 @@ app.get('/api/archivio-musicale/search', async (req, res) => {
   }
 });
 
-
-
-//func genera top list
-app.get('/api/classifica', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT * FROM classifica ORDER BY punteggio DESC');
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nel recupero della classifica' });
-  }
-});
 
 //func per modificare dati canzoni già in lista prenotate
 app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
