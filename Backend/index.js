@@ -1,21 +1,37 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('./db/pool'); 
+const db = require('./db/pool');
 
 const app = express();
+
+const allowedOrigins = [
+  'https://karaoke-webapp0.netlify.app',
+  'http://localhost:4200',
+];
+
+// CORS PRIMA delle rotte
+app.use(cors({
+  origin: allowedOrigins, // consenti solo questi Origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
+  maxAge: 600, // cache preflight 10 min
+}));
+
+// Risposte immediate alle preflight
+app.options('*', cors());
+
+// Body parser JSON
+app.use(express.json());
+
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = 'karaoke_super_segreto';
 const REFRESH_SECRET = 'karaoke_refresh_secret';
 const PIN_ADMIN = '0000';
 
 let refreshTokens = [];
-
-app.use(cors());
-app.use(express.json());
-
 
 
 function verifyToken(req, res, next) {
@@ -651,6 +667,87 @@ app.get('/api/classifica/top', async (req, res) => {
   }
 });
 
+// POST: genera/rigenera lo snapshot del giorno (protetto da chiave) snapshot classifica
+app.post('/api/classifica/snapshot/run', async (req, res) => {
+  try {
+    if (!SNAPSHOT_KEY || req.header('x-snapshot-key') !== SNAPSHOT_KEY) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const n = parseInt(req.query.n, 10) || 100;
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const snapshotDate = `${yyyy}-${mm}-${dd}`;
+
+    // 1) prendi classifica live
+    const [top] = await db.query(
+      'SELECT id, artista, canzone, num_richieste FROM classifica ORDER BY num_richieste DESC LIMIT ?',
+      [n]
+    );
+
+    // 2) transazione: cancella snapshot del giorno e reinserisci
+    let conn;
+    try {
+      conn = await db.getConnection();
+      await conn.beginTransaction();
+
+      await conn.query('DELETE FROM classifica_snapshot WHERE snapshot_date = ?', [snapshotDate]);
+
+      if (top.length > 0) {
+        const values = top.map((row, idx) => [
+          snapshotDate,
+          idx + 1,
+          row.artista,
+          row.canzone,
+          row.num_richieste
+        ]);
+
+        await conn.query(
+          'INSERT INTO classifica_snapshot (snapshot_date, `position`, artista, canzone, num_richieste) VALUES ?',
+          [values]
+        );
+      }
+
+      await conn.commit();
+      return res.json({ message: 'Snapshot generato', date: snapshotDate, items: top.length });
+    } catch (txErr) {
+      if (conn) await conn.rollback();
+      throw txErr;
+    } finally {
+      if (conn) conn.release();
+    }
+  } catch (err) {
+    console.error('Errore POST snapshot run:', err);
+    res.status(500).json({ message: 'Errore creazione snapshot' });
+  }
+});
+
+// GET: ultimo snapshot disponibile (top N) con data+ora
+app.get('/api/classifica/snapshot/top', async (req, res) => {
+  try {
+    const n = parseInt(req.query.n, 10) || 30;
+
+    const [[last]] = await db.query('SELECT MAX(snapshot_date) AS latest FROM classifica_snapshot');
+    if (!last || !last.latest) return res.json([]);
+
+    const [rows] = await db.query(
+      `SELECT \`position\`, artista, canzone, num_richieste, snapshot_date, created_at
+       FROM classifica_snapshot
+       WHERE snapshot_date = ?
+       ORDER BY \`position\` ASC
+       LIMIT ?`,
+      [last.latest, n]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Errore GET snapshot top:', err);
+    res.status(500).json({ message: 'Errore nel recupero snapshot' });
+  }
+});
 
 
 // DELETE canzone da classifica (solo admin)
