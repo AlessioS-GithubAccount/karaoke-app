@@ -6,15 +6,13 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
 
-
-
 @Component({
   selector: 'app-classifica',
   templateUrl: './classifica.component.html',
   styleUrls: ['./classifica.component.scss']
 })
 export class ClassificaComponent implements OnInit {
-  isLoading: boolean = false; 
+  isLoading: boolean = false;
   topCanzoni: any[] = [];
   topNum: number = 30;
 
@@ -24,8 +22,15 @@ export class ClassificaComponent implements OnInit {
   isGuest: boolean = false;
   canUseActions: boolean = false;
 
+  // snapshot è read-only: non mostriamo delete
+  showDelete: boolean = false;
+
   // responsive
   isMobileView: boolean = false;
+
+  // metadati snapshot
+  lastUpdated: string | null = null;    // created_at
+  snapshotDate: string | null = null;   // snapshot_date
 
   constructor(
     private karaokeService: KaraokeService,
@@ -44,6 +49,9 @@ export class ClassificaComponent implements OnInit {
     this.isGuest = ruolo === 'guest';
     this.canUseActions = this.isAdmin || this.isUser;
 
+    // Snapshot = read-only
+    this.showDelete = false;
+
     this.checkViewport();
     this.caricaClassifica();
   }
@@ -57,61 +65,66 @@ export class ClassificaComponent implements OnInit {
     this.isMobileView = window.innerWidth <= 768;
   }
 
+  // Carica lo snapshot del giorno
   caricaClassifica(): void {
-    this.isLoading = true;  // inizio caricamento
+    this.isLoading = true;
 
-    this.karaokeService.getTopN(this.topNum).subscribe({
+    this.karaokeService.getSnapshotTop(this.topNum).subscribe({
       next: (data: any[]) => {
-        console.log('Dati ricevuti:', data); 
-        const uniqueMap = new Map<string, any>();
-        data.forEach((item: any) => {
-          const key = `${item.artista.toLowerCase()}|${item.canzone.toLowerCase()}`;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, {
-              ...item,
-              artista: this.capitalizeWords(item.artista),
-              canzone: this.capitalizeWords(item.canzone)
-            });
-          }
-        });
-        this.topCanzoni = Array.from(uniqueMap.values())
-          .sort((a, b) => b.num_richieste - a.num_richieste);
-        this.isLoading = false;  // fine caricamento
+        console.log('Snapshot ricevuto:', data);
+
+        // già ordinati dal backend (position ASC)
+        this.topCanzoni = (data || []).map((item: any) => ({
+          ...item,
+          artista: this.capitalizeWords(item.artista),
+          canzone: this.capitalizeWords(item.canzone)
+        }));
+
+        if (this.topCanzoni.length) {
+          this.snapshotDate = this.topCanzoni[0].snapshot_date ?? null;
+          this.lastUpdated = this.topCanzoni[0].created_at ?? null;
+        } else {
+          this.snapshotDate = null;
+          this.lastUpdated = null;
+        }
+
+        this.isLoading = false;
       },
       error: (err) => {
-        console.error('Errore nel caricamento della classifica:', err);
-        this.isLoading = false;  // anche in caso di errore, stop spinner
+        console.error('Errore nel caricamento dello snapshot:', err);
+        this.isLoading = false;
       }
     });
   }
 
+  // Rimane per eventuale vista "live"; non usata nello snapshot (showDelete=false)
   eliminaCanzone(id: number): void {
-  if (!this.isAdmin) return;
+    if (!this.isAdmin) return;
 
-  this.translate.get('toast.DELETE_CONFIRM').subscribe(confirmMsg => {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '350px',
-      data: { message: confirmMsg }
+    this.translate.get('toast.DELETE_CONFIRM').subscribe(confirmMsg => {
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '350px',
+        data: { message: confirmMsg }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.karaokeService.deleteFromClassifica(id).subscribe({
+            next: () => {
+              this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
+              this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toast.success(msg));
+            },
+            error: (err) => {
+              console.error('Errore durante eliminazione dalla classifica:', err);
+              this.translate.get('toast.ERROR_LIST').subscribe(msg => this.toast.error(msg));
+            }
+          });
+        }
+      });
     });
+  }
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.karaokeService.deleteFromClassifica(id).subscribe({
-          next: () => {
-            this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
-            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toast.success(msg));
-          },
-          error: (err) => {
-            console.error('Errore durante eliminazione dalla classifica:', err);
-            this.translate.get('toast.ERROR_LIST').subscribe(msg => this.toast.error(msg));
-          }
-        });
-      }
-    });
-  });
-}
-
-private capitalizeWords(str: string): string {
+  private capitalizeWords(str: string): string {
     if (!str) return '';
     return str.replace(/\w\S*/g, (txt) =>
       txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
