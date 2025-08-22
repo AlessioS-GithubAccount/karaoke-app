@@ -140,9 +140,7 @@ button:hover {
   z-index: 1000 !important;
 }
 
-
-
-
+/*animazione */
 @keyframes fadeInScale {
   0% {
     opacity: 0;
