@@ -1,7 +1,8 @@
-import { Component, OnInit, Renderer2, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, Renderer2, HostListener, ElementRef, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
+import { SwUpdate, VersionEvent } from '@angular/service-worker';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,9 @@ export class AppComponent implements OnInit {
   darkMode = false;
   menuOpen = false;
   currentLang = 'en';
+
+  // Inject "soft" per evitare errori in ambienti senza SW
+  private swUpdate = inject(SwUpdate, { optional: true });
 
   constructor(
     private renderer: Renderer2,
@@ -44,6 +48,18 @@ export class AppComponent implements OnInit {
 
     // Effetto animazione navbar all'avvio
     setTimeout(() => this.triggerNavbarAnimation(), 100);
+
+    // --- AUTO-UPDATE SW: ricarica quando è pronta una nuova versione ---
+    if (this.swUpdate?.isEnabled) {
+      this.swUpdate.versionUpdates.subscribe((e: VersionEvent) => {
+        // Quando il SW segnala che la nuova versione è pronta, ricarica per evitare mismatch
+        if (e.type === 'VERSION_READY') {
+          location.reload();
+        }
+      });
+      // Controllo esplicito all'avvio (non blocca)
+      this.swUpdate.checkForUpdate().catch(() => {});
+    }
   }
 
   // Riassegna animazione navbar quando si scrolla in cima
