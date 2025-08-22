@@ -223,56 +223,70 @@ leoProfanity.add(customBadWords);
 
 //func per aggiungere partecipante a un esibizione
 app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (req, res) => {
-  console.log('=== Debug POST aggiungi partecipante ===');
-  console.log('Authorization header:', req.headers.authorization);
-  console.log('Decoded user from token:', req.user);
-
-  const canzoneId = req.params.id;
-  let { nomePartecipante, guestId } = req.body;
+  const canzoneId = Number(req.params.id);
+  let { nomePartecipante } = req.body;
 
   if (!nomePartecipante) {
     return res.status(400).json({ message: 'Nome partecipante obbligatorio.' });
   }
-
   if (!req.user || !req.user.id) {
     return res.status(401).json({ message: 'Devi essere loggato per partecipare.' });
   }
 
-  // Censura eventuali parolacce nel nome partecipante
+  // Censura
   nomePartecipante = leoProfanity.clean(nomePartecipante);
 
   const userId = req.user.id;
   const now = new Date();
 
   try {
-    // Prendo la canzone e l'esibizione associata con JOIN
-    const [result] = await db.query(
-      `SELECT c.*, e.id AS esibizione_id
-       FROM canzoni c
-       LEFT JOIN user_storico_esibizioni e ON c.id = e.esibizione_id
-       WHERE c.id = ?`,
+    // 1) Prendi la canzone (registrante + partecipanti attuali)
+    const [rows] = await db.query(
+      `SELECT id, user_id, nome AS registrante_nome, artista, canzone, tonalita, partecipante_2, partecipante_3
+       FROM canzoni
+       WHERE id = ?`,
       [canzoneId]
     );
+    if (rows.length === 0) return res.status(404).json({ message: 'Canzone non trovata' });
 
-    if (result.length === 0) {
-      return res.status(404).json({ message: 'Canzone non trovata' });
-    }
+    const canzone = rows[0];
+    let p2 = canzone.partecipante_2;
+    let p3 = canzone.partecipante_3;
 
-    const canzone = result[0];
-    console.log('[DEBUG] Canzone trovata con esibizione:', canzone);
-
-    let partecipante2 = canzone.partecipante_2;
-    let partecipante3 = canzone.partecipante_3;
-
-    if (!partecipante2) {
-      partecipante2 = nomePartecipante;
+    // 2) Assegna lo slot libero nella canzone (p2 -> p3)
+    if (!p2) {
+      p2 = nomePartecipante;
       await db.query('UPDATE canzoni SET partecipante_2 = ? WHERE id = ?', [nomePartecipante, canzoneId]);
-    } else if (!partecipante3) {
-      partecipante3 = nomePartecipante;
+    } else if (!p3) {
+      p3 = nomePartecipante;
       await db.query('UPDATE canzoni SET partecipante_3 = ? WHERE id = ?', [nomePartecipante, canzoneId]);
     } else {
       return res.status(400).json({ message: 'Numero massimo di partecipanti raggiunto per questa canzone.' });
     }
+
+    // 3) Aggiorna la riga di STORICO del REGISTRANTE con i partecipanti effettivi
+    //    (solo se la canzone è stata registrata da un utente loggato)
+    const esibizioneId = canzoneId; // coerente con le altre API
+    if (canzone.user_id) {
+      await db.query(
+        `UPDATE user_storico_esibizioni
+         SET partecipante_2 = ?, partecipante_3 = ?
+         WHERE user_id = ? AND esibizione_id = ?`,
+        [p2 || null, p3 || null, canzone.user_id, esibizioneId]
+      );
+    }
+
+    // 4) Inserisci la riga di STORICO per il PARTECIPANTE
+    //    "hai cantato con" deve mostrare IL REGISTRANTE (sempre),
+    //    e, se presente, anche l'altro partecipante diverso da me.
+    const norm = s => (s || '').trim().toLowerCase();
+    const me = norm(nomePartecipante);
+    const registrante = canzone.registrante_nome || null;
+
+    // calcola eventuale "altro partecipante" (quello diverso da me)
+    let altro = null;
+    if (p2 && norm(p2) !== me) altro = p2;
+    if (p3 && norm(p3) !== me) altro = altro ? altro : p3; // prendi il primo diverso da me
 
     await db.query(
       `INSERT INTO user_storico_esibizioni (
@@ -282,22 +296,21 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
       [
         userId,
         canzoneId,
-        canzone.esibizione_id,
+        esibizioneId,
         now,
         canzone.tonalita || null,
-        canzone.nome,
+        canzone.registrante_nome,  // "nome" del registrante (coerente con tuo schema)
         canzone.artista,
         canzone.canzone,
-        partecipante2,
-        partecipante3
+        registrante,               // hai cantato con = registrante
+        altro                      // e (se c'è) anche l'altro partecipante ≠ me
       ]
     );
 
-    console.log('[DEBUG] Partecipazione registrata con successo.');
     return res.json({ message: 'Partecipazione registrata con successo.' });
 
   } catch (error) {
-    console.error('[ERRORE] POST partecipazione:', error);
+    console.error('[ERRORE] POST aggiungi-partecipante:', error);
     return res.status(500).json({ message: 'Errore interno del server.' });
   }
 });
