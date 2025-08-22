@@ -1,10 +1,10 @@
 import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';  // importa anche HTTP_INTERCEPTORS
+import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-// Import ngx-translate core and http loader
+// ngx-translate
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
@@ -20,18 +20,19 @@ import { RegisterComponent } from './AUTH_register/register.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
 
-// Import DragDropModule from Angular CDK
+// Angular CDK / Animations / Material
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
-
-// Import dell'interceptor
-import { TokenInterceptor  } from './Authguards/Interceptor';
-import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';  
 import { MatDialogModule } from '@angular/material/dialog';
+
+// Interceptor
+import { TokenInterceptor } from './Authguards/Interceptor';
+import { ConfirmDialogComponent } from './shared/confirm-dialog/confirm-dialog.component';
+
+// Service Worker
 import { ServiceWorkerModule } from '@angular/service-worker';
 
-// Factory function per HttpLoader
+// Factory per i18n http loader
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
@@ -45,7 +46,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     RegisterComponent,
     HomepageComponent,
     ForgotPasswordComponent,
-    ConfirmDialogComponent  
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -56,7 +57,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     HttpClientModule,
     MatDialogModule,
     DragDropModule,
-    // ngx-translate module
+
+    // ngx-translate
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -64,28 +66,29 @@ export function HttpLoaderFactory(http: HttpClient) {
         deps: [HttpClient]
       }
     }),
-     ToastrModule.forRoot({
-      positionClass: 'toast-center-bottom', // puoi cambiare posizione
+
+    ToastrModule.forRoot({
+      positionClass: 'toast-center-bottom', // se vuoi standard: 'toast-bottom-center'
       timeOut: 5000,
       progressBar: true,
       closeButton: false,
       preventDuplicates: true,
     }),
-     ServiceWorkerModule.register('ngsw-worker.js', {
-       enabled: !isDevMode(),
-       // Register the ServiceWorker as soon as the application is stable
-       // or after 30 seconds (whichever comes first).
-       registrationStrategy: 'registerWhenStable:30000'
-     }),
+
+    // Service Worker: registra SUBITO in produzione
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerImmediately'
+    }),
   ],
   providers: [
     KaraokeService,
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: TokenInterceptor ,
+      useClass: TokenInterceptor,
       multi: true
     }
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

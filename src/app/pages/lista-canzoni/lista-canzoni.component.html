@@ -1,21 +1,21 @@
- <!-- Scroll Buttons -->
-  <div class="scroll-buttons">
-    <button class="scroll-btn up" (click)="scrollToTop()" title="Scroll su">
-      <i class="fa fa-chevron-up"></i>
-    </button>
-    <button class="scroll-btn down" (click)="scrollToBottom()" title="Scroll giù">
-      <i class="fa fa-chevron-down"></i>
-    </button>
-  </div>
+<!-- Scroll Buttons -->
+<div class="scroll-buttons">
+  <button class="scroll-btn up" (click)="scrollToTop()" title="Scroll su">
+    <i class="fa fa-chevron-up"></i>
+  </button>
+  <button class="scroll-btn down" (click)="scrollToBottom()" title="Scroll giù">
+    <i class="fa fa-chevron-down"></i>
+  </button>
+</div>
 
-  <div class="animated-fade-slide-in">
+<div class="animated-fade-slide-in">
   <h2 class="fade-text">{{ 'song_list.title' | translate }}</h2>
 
   <div class="deleteList">
     <button *ngIf="isAdmin"
-          class="btn btn-danger mb-3"
-          (click)="resetLista()">
-     <i class="fa fa-trash"></i> {{ 'song_list.actions.reset_list' | translate }}
+            class="btn btn-danger mb-3"
+            (click)="resetLista()">
+      <i class="fa fa-trash"></i> {{ 'song_list.actions.reset_list' | translate }}
     </button>
   </div>
 
@@ -180,7 +180,12 @@
 
   <!-- template mobile cards -->
   <div class="mobile-cards" *ngIf="isMobileView && canzoni.length > 0">
-    <div class="mobile-card" *ngFor="let canzone of canzoni; let i = index" style="margin-bottom: 1rem; padding: 1rem; border-radius: 12px; background: var(--even-color); box-shadow: var(--box-shadow);">
+    <div
+      class="mobile-card"
+      *ngFor="let canzone of canzoni; let i = index"
+      #rigaCanzone
+      [id]="'canzone-' + canzone.id"
+      style="margin-bottom: 1rem; padding: 1rem; border-radius: 12px; background: var(--even-color); box-shadow: var(--box-shadow);">
 
       <div><strong>{{ 'song_list.labels.status' | translate }}:</strong>
         <button (click)="isAdmin && toggleCantata(i)"

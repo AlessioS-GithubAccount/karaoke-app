@@ -115,8 +115,17 @@ export class PrenotaCanzoniComponent implements OnInit {
           this.artistiFiltrati = [];
           this.canzoniFiltrate = [];
 
-          const insertedId = response.canzoneId || response.insertId || response.id;
-          this.router.navigate(['/lista-canzoni'], { queryParams: { scrollToId: insertedId } });
+          // ID inserito: prova diversi campi possibili
+          const insertedId = response?.canzoneId ?? response?.insertId ?? response?.id ?? null;
+
+          // Fallback sicuro anche se non volessi esporre il query param
+          if (insertedId != null) {
+            sessionStorage.setItem('scrollToSongId', String(insertedId));
+          }
+
+          this.router.navigate(['/lista-canzoni'], {
+            queryParams: insertedId != null ? { scrollToId: insertedId } : {}
+          });
         },
         error: (err) => {
           console.error('Errore durante l\'invio dei dati', err);

@@ -1,6 +1,8 @@
 import {
   Component,
   OnInit,
+  AfterViewInit,
+  OnDestroy,
   QueryList,
   ViewChildren,
   ElementRef
@@ -13,6 +15,7 @@ import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
+import { Subscription, interval } from 'rxjs';
 
 interface Canzone {
   id: number;
@@ -36,7 +39,7 @@ interface Canzone {
   templateUrl: './lista-canzoni.component.html',
   styleUrls: ['./lista-canzoni.component.css']
 })
-export class ListaCanzoniComponent implements OnInit {
+export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('rigaCanzone') righeCanzoni!: QueryList<ElementRef>;
 
   canzoni: Canzone[] = [];
@@ -61,6 +64,9 @@ export class ListaCanzoniComponent implements OnInit {
   editedCanzone: Canzone | null = null;
   scrollToId: number | null = null;
 
+  private qpSub?: Subscription;
+  private changesSub?: Subscription;
+
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
@@ -80,11 +86,31 @@ export class ListaCanzoniComponent implements OnInit {
     this.checkViewport();
     window.addEventListener('resize', () => this.checkViewport());
 
-    this.route.queryParams.subscribe(params => {
-      this.scrollToId = params['scrollToId'] ? +params['scrollToId'] : null;
+    // Leggi scrollToId da query o da sessionStorage (fallback)
+    this.qpSub = this.route.queryParams.subscribe(params => {
+      const fromQuery = params['scrollToId'] ? +params['scrollToId'] : null;
+      const fromSession = sessionStorage.getItem('scrollToSongId');
+      this.scrollToId = fromQuery ?? (fromSession ? +fromSession : null);
+      if (fromSession) {
+        sessionStorage.removeItem('scrollToSongId');
+      }
     });
 
     this.caricaCanzoni();
+  }
+
+  ngAfterViewInit(): void {
+    // Quando cambia la lista di righe (es. dopo caricamento), prova lo scroll
+    this.changesSub = this.righeCanzoni.changes.subscribe(() => {
+      if (this.scrollToId != null) {
+        this.scheduleScrollTo(this.scrollToId);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.qpSub?.unsubscribe();
+    this.changesSub?.unsubscribe();
   }
 
   checkViewport() {
@@ -116,6 +142,31 @@ export class ListaCanzoniComponent implements OnInit {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   }
 
+  private tryScrollTo(id: number): boolean {
+    const el = document.getElementById('canzone-' + id);
+    if (!el) return false;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('highlight');
+    setTimeout(() => el.classList.remove('highlight'), 3000);
+    return true;
+    }
+
+  /** riprova lo scroll per un po' finché l'elemento non esiste */
+  private scheduleScrollTo(id: number) {
+    let tries = 0;
+    const maxTries = 80; // ~4s a 50ms
+    const iv = setInterval(() => {
+      tries++;
+      if (this.tryScrollTo(id) || tries >= maxTries) {
+        clearInterval(iv);
+        // una volta scrollato, pulisci la richiesta
+        if (this.tryScrollTo(id)) {
+          this.scrollToId = null;
+        }
+      }
+    }, 50);
+  }
+
   salvaOrdine(): void {
     const nuovaLista = this.canzoni.map((c, index) => ({
       id: c.id,
@@ -138,17 +189,13 @@ export class ListaCanzoniComponent implements OnInit {
     this.karaokeService.getCanzoni().subscribe({
       next: (data: Canzone[]) => {
         this.canzoni = data;
+        // lascia che Angular renda la vista, poi prova lo scroll
         setTimeout(() => {
           this.isLoading = false;
-          if (this.scrollToId !== null) {
-            const el = document.getElementById('canzone-' + this.scrollToId);
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              el.classList.add('highlight');
-              setTimeout(() => el.classList.remove('highlight'), 3000);
-            }
+          if (this.scrollToId != null) {
+            this.scheduleScrollTo(this.scrollToId);
           }
-        }, 400);
+        }, 0);
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -158,7 +205,6 @@ export class ListaCanzoniComponent implements OnInit {
     });
   }
 
-  
   toggleCantata(index: number): void {
     if (!this.isAdmin) return;
     const canzone = this.canzoni[index];
@@ -196,6 +242,10 @@ export class ListaCanzoniComponent implements OnInit {
         }
       });
     });
+  }
+
+  partecipazioneCompleta(canzone: Canzone): boolean {
+    return canzone.partecipanti_add >= 3;
   }
 
   partecipaAllaCanzone(canzone: Canzone): void {
@@ -236,10 +286,6 @@ export class ListaCanzoniComponent implements OnInit {
         this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(err.error?.message || msg));
       }
     });
-  }
-
-  partecipazioneCompleta(canzone: Canzone): boolean {
-    return canzone.partecipanti_add >= 3;
   }
 
   eliminaCanzone(id: number, index: number): void {
