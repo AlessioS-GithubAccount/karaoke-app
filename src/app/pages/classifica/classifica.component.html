@@ -1,8 +1,8 @@
 <div class="container mt-5 animated-fade-slide-in">
   <h2>{{ 'chart.title' | translate }}</h2>
 
-  <!-- META snapshot + refresh -->
-  <div class="meta-bar" *ngIf="!isLoading">
+  <!-- META snapshot + refresh (SOLO ADMIN) -->
+  <div class="meta-bar" *ngIf="!isLoading && isAdmin">
     <div class="meta-line" *ngIf="snapshotDate">
       Snapshot del: <strong>{{ snapshotDate | date:'mediumDate' }}</strong>
     </div>
