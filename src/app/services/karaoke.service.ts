@@ -46,9 +46,10 @@ export class KaraokeService {
     return this.http.get<any[]>(this.classificaUrl);
   }
 
-  // ✅ Classifica "snapshot del giorno"
+  // ✅ Classifica "snapshot del giorno" (con cache-buster per evitare risposte cache)
   getSnapshotTop(n: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.snapshotTopUrl}?n=${n}`);
+    const ts = Date.now();
+    return this.http.get<any[]>(`${this.snapshotTopUrl}?n=${n}&_=${ts}`);
   }
 
   aggiornaCantata(idCanzone: number, cantata: boolean): Observable<any> {
