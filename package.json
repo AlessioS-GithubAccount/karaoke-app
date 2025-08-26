@@ -31,6 +31,7 @@
     "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",
     "sharp": "^0.34.3",
+    "socket.io-client": "^4.8.1",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
   },
