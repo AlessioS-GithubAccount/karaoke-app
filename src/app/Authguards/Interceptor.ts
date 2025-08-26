@@ -9,13 +9,14 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
 
-  private authUrl = 'https://karaoke-app-6byu.onrender.com/api/auth';
+  private authUrl = `${environment.baseUrl}/auth`;
 
   constructor(private http: HttpClient) {}
 
@@ -59,10 +60,11 @@ export class TokenInterceptor implements HttpInterceptor {
         catchError((err) => {
           this.isRefreshing = false;
 
-          // Logout backend se possibile
+          // 👇 Aggiornato: includi anche il refreshToken nel logout di fallback
           const username = localStorage.getItem('username');
-          if (username) {
-            this.http.post(`${this.authUrl}/logout`, { username }).subscribe({
+          const rt = localStorage.getItem('refresh_token');
+          if (username || rt) {
+            this.http.post(`${this.authUrl}/logout`, { username, refreshToken: rt }).subscribe({
               next: () => console.log('Logout notificato al backend dopo refresh fallito'),
               error: (e) => console.error('Errore logout backend dopo refresh fallito:', e)
             });
@@ -74,9 +76,6 @@ export class TokenInterceptor implements HttpInterceptor {
           localStorage.removeItem('role');
           localStorage.removeItem('username');
           localStorage.removeItem('guestId');
-
-          // Opzionale: forzare logout o redirect
-          // window.location.href = '/login';
 
           return throwError(() => err);
         })

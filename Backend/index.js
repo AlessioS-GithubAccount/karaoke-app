@@ -7,18 +7,22 @@ const db = require('./db/pool');
 
 const app = express();
 
-const allowedOrigins = [
-  'https://karaoke-webapp0.netlify.app',
-  'http://localhost:4200',
-];
+// ====== CORS ======
+// Legge da env var (CSV). Se non c'è, fallback a Netlify + localhost.
+const allowedOrigins =
+  (process.env.CORS_ORIGINS &&
+    process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)) ||
+  ['https://karaoke-webapp0.netlify.app', 'http://localhost:4200'];
 
 // CORS PRIMA delle rotte
-app.use(cors({
-  origin: allowedOrigins, // consenti solo questi Origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
-  maxAge: 600, // cache preflight 10 min
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
+    maxAge: 600, // cache preflight 10 min
+  })
+);
 
 // Risposte immediate alle preflight
 app.options('*', cors());
@@ -26,12 +30,18 @@ app.options('*', cors());
 // Body parser JSON
 app.use(express.json());
 
+// ====== CONFIG / SECRETS ======
 const PORT = process.env.PORT || 3000;
-const SECRET_KEY = 'karaoke_super_segreto';
-const REFRESH_SECRET = 'karaoke_refresh_secret';
+
+// 🔐 Spostati su .env (con fallback di sviluppo)
+const SECRET_KEY = process.env.SECRET_KEY || 'dev_secret_change_me';
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'dev_refresh_change_me';
+
 const PIN_ADMIN = '0000';
 const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
+
 let refreshTokens = [];
+
 
 
 function verifyToken(req, res, next) {

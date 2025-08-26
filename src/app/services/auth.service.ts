@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private baseUrl = 'https://karaoke-app-6byu.onrender.com/api';
+  private baseUrl = environment.baseUrl;
 
   private loginUrl = `${this.baseUrl}/auth/login`;
   private logoutUrl = `${this.baseUrl}/auth/logout`;
@@ -44,7 +45,6 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    console.log('Invio richiesta login a backend', { username, password }); // <-- rimuovere in produzione
     return new Observable<any>((observer) => {
       this.http.post<any>(this.loginUrl, { username, password }).subscribe({
         next: (res) => {
@@ -63,15 +63,19 @@ export class AuthService {
     });
   }
 
+  // 👇 Aggiornato: invia anche il refreshToken al backend
   logout(): void {
     const username = localStorage.getItem('username');
-    if (username) {
-      this.http.post(this.logoutUrl, { username }).subscribe({
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    if (username || refreshToken) {
+      this.http.post(this.logoutUrl, { username, refreshToken }).subscribe({
         next: () => console.log('Logout notificato al backend'),
         error: (err) => console.error('Errore logout backend:', err),
       });
     }
 
+    // Pulizia immediata lato client, a prescindere dall’esito della chiamata
     this.clearStorage();
     this.loggedIn.next(false);
     this.currentUserSubject.next(null);
@@ -89,14 +93,14 @@ export class AuthService {
       const decoded: any = jwtDecode(token);
       const now = Date.now().valueOf() / 1000;
       if (decoded.exp && decoded.exp < now) {
-        this.clearStorage(); // token scaduto
+        this.clearStorage();
         this.loggedIn.next(false);
         this.currentUserSubject.next(null);
         return false;
       }
       return true;
-    } catch (err) {
-      this.clearStorage(); // token malformato
+    } catch {
+      this.clearStorage();
       this.loggedIn.next(false);
       this.currentUserSubject.next(null);
       return false;
@@ -128,7 +132,7 @@ export class AuthService {
     return localStorage.getItem('role');
   }
 
-  refreshToken(): Observable<any> {
+  refreshToken(): Observable<{ token: string }> {
     const refresh = localStorage.getItem('refresh_token');
     return this.http.post<{ token: string }>(this.refreshUrl, { refreshToken: refresh });
   }
