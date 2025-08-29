@@ -39,6 +39,9 @@ const routes: Routes = [
     loadChildren: () => import('./pages/classifica/classifica.module').then(m => m.ClassificaModule)
   },
 
+  // 🔒 Chat (lazy). Il guard è applicato dentro ChatModule (UserOnlyGuard).
+  { path: 'chat', loadChildren: () => import('./chat/chat.module').then(m => m.ChatModule) },
+
   { path: '**', redirectTo: '', pathMatch: 'full' }
 ];
 

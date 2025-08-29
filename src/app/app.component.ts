@@ -193,4 +193,9 @@ export class AppComponent implements OnInit {
   get isLightMode(): boolean {
     return !this.darkMode;
   }
+
+  // 🔒 esposto al template per mostrare la voce "Chat" solo ai loggati
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
 }

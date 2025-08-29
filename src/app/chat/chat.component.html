@@ -1,0 +1,93 @@
+<!-- 🔒 Gate interno: visibile a guest / non loggati -->
+<div *ngIf="mustLogin; else chatLayout" class="chat-login-gate">
+  <div class="login-card alert-animated">
+    <h2 class="title">Per usare la chat devi effettuare il login</h2>
+    <p class="subtitle">Solo gli utenti registrati possono inviare e leggere messaggi.</p>
+    <div class="actions">
+      <button class="btn1" (click)="goLogin()">
+        <i class="fas fa-sign-in-alt"></i> Vai al login
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 💬 Layout con sidebar contatti + thread -->
+<ng-template #chatLayout>
+  <div class="chat two-cols">
+    <!-- Sidebar con utenti online -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h3>Utenti online</h3>
+      </div>
+
+      <div class="users" *ngIf="online.length; else noOnline">
+        <button
+          class="user-item"
+          *ngFor="let u of online; trackBy: trackByIndex"
+          [class.active]="activePeer?.id === u.id"
+          (click)="selectPeer(u)"
+        >
+          <span class="avatar">{{ (u.username || '').charAt(0) | uppercase }}</span>
+          <div class="meta">
+            <div class="name">{{ u.username }}</div>
+            <div class="status">online</div>
+          </div>
+        </button>
+      </div>
+
+      <ng-template #noOnline>
+        <div class="empty">
+          <i class="fas fa-user-slash"></i>
+          <p>Nessun utente online</p>
+        </div>
+      </ng-template>
+    </aside>
+
+    <!-- Pannello chat -->
+    <section class="panel">
+      <header class="thread-header" *ngIf="activePeer; else pickPeer">
+        <div class="peer">
+          <span class="avatar">{{ (activePeer.username || '').charAt(0) | uppercase }}</span>
+          <div>
+            <div class="name">{{ activePeer.username || 'User' }}</div>
+            <div class="status">DM privato</div>
+          </div>
+        </div>
+      </header>
+
+      <ng-template #pickPeer>
+        <div class="thread-empty">
+          <i class="fas fa-comments"></i>
+          <p>Seleziona un contatto dall’elenco per iniziare una chat privata.</p>
+        </div>
+      </ng-template>
+
+      <div class="messages" id="chat-scroll" *ngIf="activePeer">
+        <div
+          class="message"
+          *ngFor="let m of messages; trackBy: trackByIndex"
+          [class.me]="m.me"
+        >
+          <div class="meta">
+            <span class="author">{{ m.author }}</span>
+            <span class="time">{{ m.time | date:'shortTime' }}</span>
+          </div>
+          <div class="bubble">{{ m.text }}</div>
+        </div>
+      </div>
+
+      <div class="composer" *ngIf="activePeer">
+        <input
+          type="text"
+          [(ngModel)]="inputText"
+          placeholder="Scrivi un messaggio…"
+          (keydown.enter)="send()"
+          autocomplete="off"
+        />
+        <button class="btn" (click)="send()">
+          <i class="fas fa-paper-plane"></i> Invia
+        </button>
+      </div>
+    </section>
+  </div>
+</ng-template>

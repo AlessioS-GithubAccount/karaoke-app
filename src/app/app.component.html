@@ -64,6 +64,16 @@
         <i class="fas fa-trophy"></i> {{ 'navbar.top_20' | translate }}
       </a>
     </li>
+
+    <!-- 🔊 CHAT: visibile sempre -->
+    <li>
+      <a routerLink="/chat" (click)="closeMenu()">
+        <i class="fas fa-comments"></i>
+        <!-- puoi usare la traduzione quando la aggiungi -->
+        {{ 'navbar.chat' | translate }}
+      </a>
+    </li>
+
     <li>
       <a href="#" (click)="closeMenu(); logout()">
         <i class="fas fa-sign-out-alt"></i> {{ 'navbar.logout' | translate }}
