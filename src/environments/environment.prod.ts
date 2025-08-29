@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
-  baseUrl: 'https://TUO-BACKEND.onrender.com/api',
-  wsUrl: 'https://TUO-BACKEND.onrender.com' 
+  baseUrl: 'https://karaoke-app-6byu.onrender.com/api',
+  // endpoint WebSocket in prod (niente /api)
+  wsUrl: 'https://karaoke-app-6byu.onrender.com'
 };
