@@ -1,10 +1,14 @@
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('./db/pool');
+
+// === Socket.IO / HTTP
+const http = require('http');
+const { Server } = require('socket.io');
+const { randomUUID } = require('crypto');
 
 const app = express();
 
@@ -42,7 +46,6 @@ const PIN_ADMIN = '0000';
 const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
 
 let refreshTokens = [];
-
 
 
 function verifyToken(req, res, next) {
@@ -151,7 +154,6 @@ app.post('/api/admin/aggiungi-canzone', verifyToken, authorizeRoles('admin'), as
     res.status(500).json({ message: 'Errore interno' });
   }
 });*/
-
 
 
 // chiamate per privacy component
@@ -405,8 +407,6 @@ app.get('/api/esibizioni/user/:id', async (req, res) => {
     res.status(500).json({ message: 'Errore nel recupero delle esibizioni' });
   }
 });
-
-
 
 
 
@@ -1212,7 +1212,7 @@ app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
     await db.query('DELETE FROM canzoni WHERE id = ?', [id]);
     res.json({ message: 'Canzone eliminata con successo' });
   } catch (err) {
-    console.error('Errore in DELETE /api/canzoni/:id', err); // aggiungi questo
+    console.error('Errore in DELETE /api/canzoni/:id', err);
     res.status(500).json({ message: 'Errore interno del server' });
   }
 });
@@ -1253,6 +1253,190 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
   }
 })();
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server attivo su http://localhost:${PORT}`);
+
+// ===========================
+//  SOCKET.IO - CHAT (globale + DM) con presenza IN MEMORIA
+// ===========================
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    credentials: true
+  },
+  path: '/socket.io',
+  transports: ['websocket'] // niente long-polling
+});
+
+// --- In-memory structures (no DB) ---
+const socketsByUser = new Map(); // userId -> Set<socketId>
+const usersBySocket = new Map();  // socketId -> { id, username, ruolo }
+const activeUsers   = new Map();  // userId -> { id, username, status }
+const historyGlobal = [];         // ultimi N messaggi globali
+const historyDm     = new Map();  // "a:b" -> array messaggi
+const MAX_HISTORY   = 50;
+
+// Auth WS: SOLO UTENTI LOGGATI (no guest)
+io.use((socket, next) => {
+  try {
+    const fromAuth   = socket.handshake?.auth?.token;
+    const fromQuery  = socket.handshake?.query?.token;
+    // NB: in browser non arrivano header custom, quindi non contare su Authorization
+    const token = (fromAuth || fromQuery || '').toString().trim();
+    if (!token) return next(new Error('Unauthorized'));
+
+    const user = jwt.verify(token, SECRET_KEY);
+    socket.data.user = {
+      id: Number(user.id),
+      username: String(user.username || 'User'),
+      ruolo: String(user.ruolo || '')
+    };
+    return next();
+  } catch (e) {
+    console.error('[ws] auth error:', e.message);
+    return next(new Error('Unauthorized'));
+  }
+});io.use((socket, next) => {
+  try {
+    const fromAuth   = socket.handshake?.auth?.token;
+    const fromQuery  = socket.handshake?.query?.token;
+    // NB: in browser non arrivano header custom, quindi non contare su Authorization
+    const token = (fromAuth || fromQuery || '').toString().trim();
+    if (!token) return next(new Error('Unauthorized'));
+
+    const user = jwt.verify(token, SECRET_KEY);
+    socket.data.user = {
+      id: Number(user.id),
+      username: String(user.username || 'User'),
+      ruolo: String(user.ruolo || '')
+    };
+    return next();
+  } catch (e) {
+    console.error('[ws] auth error:', e.message);
+    return next(new Error('Unauthorized'));
+  }
+});
+
+// helper per DM: chiave deterministica
+function dmKey(a, b) {
+  const A = Number(a), B = Number(b);
+  return A < B ? `${A}:${B}` : `${B}:${A}`;
+}
+
+io.on('connection', (socket) => {
+  const u = socket.data.user; // { id, username, ruolo }
+  if (!u?.id) {
+    socket.disconnect();
+    return;
+  }
+
+  // registra mappe presenza
+  usersBySocket.set(socket.id, u);
+  if (!socketsByUser.has(u.id)) socketsByUser.set(u.id, new Set());
+  socketsByUser.get(u.id).add(socket.id);
+
+  const wasOnline = activeUsers.has(u.id);
+  activeUsers.set(u.id, { id: u.id, username: u.username, status: 'online' });
+
+  // manda lista completa a me (compat: presence:list + users:list)
+  const list = Array.from(activeUsers.values());
+  socket.emit('presence:list', list);
+  socket.emit('users:list', list);
+
+  // informa gli altri che sono online (compat: presence:update + users:online)
+  if (!wasOnline) {
+    socket.broadcast.emit('presence:update', { id: u.id, username: u.username, status: 'online' });
+    socket.broadcast.emit('users:online', { id: u.id, username: u.username });
+  }
+
+  // stanza globale
+  socket.join('global');
+
+  // === HISTORY ===
+  socket.on('chat:history', (payload) => {
+    if (payload && typeof payload.to === 'number') {
+      const key = dmKey(u.id, payload.to);
+      socket.emit('chat:history', historyDm.get(key) || []);
+    } else {
+      socket.emit('chat:history', historyGlobal);
+    }
+  });
+
+  // compat: apertura DM via stanza (opzionale)
+  socket.on('chat:dm:open', ({ peerId }) => {
+    const pid = Number(peerId);
+    if (!pid || pid === u.id) return;
+    // invia history DM specifica (vuota se non presente)
+    const key = dmKey(u.id, pid);
+    socket.join(`dm:${key}`);
+    socket.emit('chat:dm:history', { peerId: pid, messages: historyDm.get(key) || [] });
+  });
+
+  // === INVIO MESSAGGI ===
+  socket.on('chat:send', (payload) => {
+    const textRaw = String(payload?.text ?? '');
+    if (!textRaw.trim()) return;
+    const text = textRaw.slice(0, 2000);
+
+    const msg = {
+      id: (typeof randomUUID === 'function' ? randomUUID() : String(Date.now())),
+      author: u.username,
+      text,
+      time: Date.now(),
+      userId: u.id,
+      to: typeof payload?.to === 'number' ? payload.to : undefined,
+    };
+
+    if (typeof msg.to === 'number') {
+      // ======= DM =======
+      const key = dmKey(u.id, msg.to);
+      const arr = historyDm.get(key) || [];
+      arr.push(msg);
+      if (arr.length > MAX_HISTORY) arr.shift();
+      historyDm.set(key, arr);
+
+      // consegna a destinatario (tutte le sue tab)
+      const toSockets = socketsByUser.get(msg.to);
+      if (toSockets) for (const sid of toSockets) io.to(sid).emit('chat:message', msg);
+      // eco al mittente (tutte le sue tab)
+      const meSockets = socketsByUser.get(u.id);
+      if (meSockets) for (const sid of meSockets) io.to(sid).emit('chat:message', msg);
+
+      // compat: stanza DM specifica + evento dedicato
+      io.to(`dm:${key}`).emit('chat:dm:message', msg);
+    } else {
+      // ======= GLOBALE =======
+      historyGlobal.push(msg);
+      if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
+      io.to('global').emit('chat:message', msg);
+    }
+  });
+
+  // richiesta lista presenza esplicita
+  socket.on('presence:get', () => {
+    const listNow = Array.from(activeUsers.values());
+    socket.emit('presence:list', listNow);
+    socket.emit('users:list', listNow);
+  });
+
+  // cleanup su disconnect
+  socket.on('disconnect', () => {
+    usersBySocket.delete(socket.id);
+    const set = socketsByUser.get(u.id);
+    if (set) {
+      set.delete(socket.id);
+      if (set.size === 0) {
+        socketsByUser.delete(u.id);
+        activeUsers.delete(u.id);
+        socket.broadcast.emit('presence:remove', { id: u.id });
+        socket.broadcast.emit('users:offline', { id: u.id });
+      }
+    }
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`🚀 HTTP+WS attivi su http://localhost:${PORT}`);
 });

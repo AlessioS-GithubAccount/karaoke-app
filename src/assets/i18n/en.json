@@ -71,7 +71,9 @@
     "top_20": "Top 30 Chart",
     "logout": "Logout",
     "dark_mode": "Dark Mode",
-    "light_mode": "Light Mode"
+    "light_mode": "Light Mode",
+    "chat": "Chat",
+    "chat_private": "Private chat"
   },
   "music_archive": {
     "title": "Music Archive",
