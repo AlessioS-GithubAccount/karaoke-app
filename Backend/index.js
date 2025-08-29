@@ -672,7 +672,6 @@ app.get('/api/classifica/top', async (req, res) => {
     res.status(500).json({ message: 'Errore nel recupero della classifica' });
   }
 });
-
 */
 // genera lista classifica topN (live)
 app.get('/api/classifica/top', async (req, res) => {
@@ -1264,10 +1263,10 @@ const io = new Server(server, {
     origin: allowedOrigins,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Authorization', 'Content-Type'],
-    credentials: true
+    credentials: false // non usiamo cookie
   },
   path: '/socket.io',
-  transports: ['websocket'] // niente long-polling
+  transports: ['websocket', 'polling'] // fallback utile in prod (CDN/Proxy)
 });
 
 // --- In-memory structures (no DB) ---
@@ -1281,28 +1280,9 @@ const MAX_HISTORY   = 50;
 // Auth WS: SOLO UTENTI LOGGATI (no guest)
 io.use((socket, next) => {
   try {
-    const fromAuth   = socket.handshake?.auth?.token;
-    const fromQuery  = socket.handshake?.query?.token;
-    // NB: in browser non arrivano header custom, quindi non contare su Authorization
-    const token = (fromAuth || fromQuery || '').toString().trim();
-    if (!token) return next(new Error('Unauthorized'));
-
-    const user = jwt.verify(token, SECRET_KEY);
-    socket.data.user = {
-      id: Number(user.id),
-      username: String(user.username || 'User'),
-      ruolo: String(user.ruolo || '')
-    };
-    return next();
-  } catch (e) {
-    console.error('[ws] auth error:', e.message);
-    return next(new Error('Unauthorized'));
-  }
-});io.use((socket, next) => {
-  try {
-    const fromAuth   = socket.handshake?.auth?.token;
-    const fromQuery  = socket.handshake?.query?.token;
-    // NB: in browser non arrivano header custom, quindi non contare su Authorization
+    const fromAuth  = socket.handshake?.auth?.token;
+    const fromQuery = socket.handshake?.query?.token;
+    // NB: header Authorization spesso non arriva lato browser su WS
     const token = (fromAuth || fromQuery || '').toString().trim();
     if (!token) return next(new Error('Unauthorized'));
 
@@ -1364,61 +1344,61 @@ io.on('connection', (socket) => {
     }
   });
 
-  // compat: apertura DM via stanza (opzionale)
+  // apertura DM (per inviare history)
   socket.on('chat:dm:open', ({ peerId }) => {
     const pid = Number(peerId);
     if (!pid || pid === u.id) return;
-    // invia history DM specifica (vuota se non presente)
     const key = dmKey(u.id, pid);
     socket.join(`dm:${key}`);
     socket.emit('chat:dm:history', { peerId: pid, messages: historyDm.get(key) || [] });
   });
 
-  // === INVIO MESSAGGI ===
-  socket.on('chat:send', (payload) => {
-    const textRaw = String(payload?.text ?? '');
-    if (!textRaw.trim()) return;
-    const text = textRaw.slice(0, 2000);
+  // === INVIO MESSAGGI DM ===
+  socket.on('chat:dm:send', ({ to, text }) => {
+    const pid = Number(to);
+    const textRaw = String(text ?? '');
+    if (!pid || pid === u.id || !textRaw.trim()) return;
+    const safeText = textRaw.slice(0, 2000);
 
     const msg = {
       id: (typeof randomUUID === 'function' ? randomUUID() : String(Date.now())),
       author: u.username,
-      text,
+      text: safeText,
       time: Date.now(),
-      userId: u.id,
-      to: typeof payload?.to === 'number' ? payload.to : undefined,
+      fromUserId: u.id,     // campi attesi dal client
+      toUserId: pid
     };
 
-    if (typeof msg.to === 'number') {
-      // ======= DM =======
-      const key = dmKey(u.id, msg.to);
-      const arr = historyDm.get(key) || [];
-      arr.push(msg);
-      if (arr.length > MAX_HISTORY) arr.shift();
-      historyDm.set(key, arr);
+    const key = dmKey(u.id, pid);
+    const arr = historyDm.get(key) || [];
+    arr.push(msg);
+    if (arr.length > MAX_HISTORY) arr.shift();
+    historyDm.set(key, arr);
 
-      // consegna a destinatario (tutte le sue tab)
-      const toSockets = socketsByUser.get(msg.to);
-      if (toSockets) for (const sid of toSockets) io.to(sid).emit('chat:message', msg);
-      // eco al mittente (tutte le sue tab)
-      const meSockets = socketsByUser.get(u.id);
-      if (meSockets) for (const sid of meSockets) io.to(sid).emit('chat:message', msg);
+    // consegna a TUTTE le tab dei due utenti (solo evento DM)
+    const toSockets = socketsByUser.get(pid);
+    if (toSockets) for (const sid of toSockets) io.to(sid).emit('chat:dm:message', msg);
+    const meSockets = socketsByUser.get(u.id);
+    if (meSockets) for (const sid of meSockets) io.to(sid).emit('chat:dm:message', msg);
 
-      // compat: stanza DM specifica + evento dedicato
-      io.to(`dm:${key}`).emit('chat:dm:message', msg);
-    } else {
-      // ======= GLOBALE =======
-      historyGlobal.push(msg);
-      if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
-      io.to('global').emit('chat:message', msg);
-    }
+    // e anche alla stanza DM (se aperta)
+    io.to(`dm:${key}`).emit('chat:dm:message', msg);
   });
 
-  // richiesta lista presenza esplicita
-  socket.on('presence:get', () => {
-    const listNow = Array.from(activeUsers.values());
-    socket.emit('presence:list', listNow);
-    socket.emit('users:list', listNow);
+  // (opzionale) chat globale
+  socket.on('chat:send', ({ text }) => {
+    const t = String(text ?? '').trim();
+    if (!t) return;
+    const msg = {
+      id: (typeof randomUUID === 'function' ? randomUUID() : String(Date.now())),
+      author: u.username,
+      text: t.slice(0, 2000),
+      time: Date.now(),
+      fromUserId: u.id
+    };
+    historyGlobal.push(msg);
+    if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
+    io.to('global').emit('chat:message', msg);
   });
 
   // cleanup su disconnect
