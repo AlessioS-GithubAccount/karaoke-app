@@ -1,4 +1,6 @@
-/* Layout base */
+/* ===========================
+   Layout base
+   =========================== */
 .chat.two-cols {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -10,7 +12,14 @@
   color: var(--c-fg, #e9ecf1);
 }
 
-/* Sidebar */
+/* leggero fade-in del layout quando appare */
+.layout-animate {
+  animation: fadeInSoft 0.8s ease-out both;
+}
+
+/* ===========================
+   Sidebar
+   =========================== */
 .sidebar {
   border-right: 1px solid rgba(255,255,255,0.08);
   padding: 12px 10px;
@@ -29,25 +38,9 @@
   opacity: .9;
 }
 
-/* Me box */
-.me-box { padding: 6px; }
-.me-row { display:flex; align-items:center; gap:10px; }
-.me-row .avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: #4b6bfb;
-  color: #fff;
-  display:flex; align-items:center; justify-content:center;
-  font-weight: 700;
-}
-.me-row .name { font-weight: 600; }
-.me-row .status { font-size: 12px; opacity: .8; }
-.me-row .status.online { color: #52d17f; }
-.me-box hr {
-  border: none; height: 1px; background: rgba(255,255,255,.08);
-  margin: 10px 0 0 0;
-}
-
-/* Lista utenti */
+/* ===========================
+   Lista utenti
+   =========================== */
 .users {
   margin-top: 10px;
   overflow: auto;
@@ -82,7 +75,7 @@
 .user-item .status { font-size: 11px; opacity: .8; }
 .user-item .status.online { color: #52d17f; }
 
-/* Empty state */
+/* Stato vuoto */
 .empty {
   margin-top: 24px;
   text-align: center;
@@ -93,7 +86,9 @@
   margin-bottom: 8px;
 }
 
-/* Pannello chat */
+/* ===========================
+   Pannello chat
+   =========================== */
 .panel {
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -123,6 +118,7 @@
 /* Thread vuoto */
 .thread-empty {
   height: 100%;
+  margin-top: 2rem;
   display:flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 8px;
@@ -130,7 +126,9 @@
 }
 .thread-empty i { font-size: 36px; }
 
-/* Messaggi */
+/* ===========================
+   Messaggi
+   =========================== */
 .messages {
   overflow: auto;
   padding: 16px;
@@ -144,6 +142,7 @@
   display:flex;
   flex-direction: column;
   gap: 4px;
+  animation: fadeInMsg .18s ease both;
 }
 .message.me {
   align-self: flex-end;
@@ -168,7 +167,9 @@
   color: #fff;
 }
 
-/* Composer */
+/* ===========================
+   Composer
+   =========================== */
 .composer {
   display:flex; gap: 10px;
   padding: 12px 16px;
@@ -182,10 +183,13 @@
   padding: 12px 12px;
   color: inherit;
   outline: none;
-  transition: border .15s;
+  transition: border .15s, background .15s;
 }
 .composer input[type="text"]::placeholder { opacity: .7; }
-.composer input[type="text"]:focus { border-color: rgba(75,107,251,.6); }
+.composer input[type="text"]:focus {
+  border-color: rgba(75,107,251,.6);
+  background: rgba(255,255,255,0.08);
+}
 
 .composer .btn {
   flex: 0 0 auto;
@@ -203,35 +207,105 @@
 .composer .btn:active { transform: translateY(1px); }
 .composer .btn:hover { filter: brightness(1.05); }
 
-/* Gate (login richiesto) */
+/* ===========================
+   Gate (login richiesto) – stile come Prenota Canzoni
+   =========================== */
 .chat-login-gate {
   display:flex; align-items:center; justify-content:center;
-  min-height: 60vh;
-}
-.login-card {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 520px;
-  text-align: center;
-  backdrop-filter: blur(6px);
-}
-.login-card .title { margin: 0 0 6px 0; }
-.login-card .subtitle { opacity: .85; margin: 0 0 16px 0; }
-.login-card .actions { display:flex; justify-content:center; }
-.login-card .btn1 {
-  background: #4b6bfb;
-  color:#fff;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 14px;
-  cursor: pointer;
-  font-weight: 600;
-  display:flex; align-items:center; gap:8px;
+  min-height: calc(100vh - 120px);
+  padding: 32px 16px;
 }
 
-/* Responsive */
+.gate-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 24px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(69, 85, 108, 0.30),
+    rgba(243, 130, 255, 0.10)
+  );
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  animation:
+    neonAlertPink 2.5s ease-in-out infinite,
+    fadeInSoft 0.9s ease-out both;
+}
+.gate-card .title { margin: 0 0 6px 0; }
+.gate-card .subtitle { opacity: .9; margin: 0 0 16px 0; }
+.gate-card .actions { display:flex; justify-content:center; }
+
+/* bottone stile “Prenota Canzoni” (+ fallback) */
+.btn1 {
+  font-size: 0.95rem;
+  padding: 0.55rem 1rem;
+  border-radius: 20px;
+  background: linear-gradient(
+    135deg,
+    var(--button-gradient-1, #4b6bfb),
+    var(--button-gradient-2, #9f67ff)
+  );
+  color: var(--text-color, #fff);
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 0 8px var(--glow-color, rgba(243,130,255,0.5));
+  transition: transform 0.2s ease, box-shadow 0.3s ease, filter .15s;
+  cursor: pointer;
+}
+.btn1:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 14px var(--glow-color, rgba(243,130,255,0.7)),
+    0 0 24px var(--accent-hover, rgba(243,130,255,0.35));
+}
+.btn1:active { transform: translateY(1px); }
+
+/* ===========================
+   Animazioni
+   =========================== */
+/* comparsa lenta e delicata */
+@keyframes fadeInSoft {
+  0%   { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+  60%  { opacity: 0.85; transform: translateY(2px); filter: blur(0.5px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* rimane per eventuali usi (layout o altro) */
+@keyframes fadeSlideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* effetto neon tenue come nel componente Prenota */
+@keyframes neonAlertPink {
+  0%, 100% {
+    box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 15px 4px rgba(243, 130, 255, 0.60);
+    transform: translateX(1px);
+  }
+  60% { transform: translateX(1px); }
+}
+
+/* entrata dei singoli messaggi */
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* usa la nuova animazione di comparsa lenta per gli elementi marcati */
+.alert-animated {
+  animation: fadeInSoft 0.9s ease-out both;
+}
+
+/* ===========================
+   Responsive
+   =========================== */
 @media (max-width: 960px) {
   .chat.two-cols {
     grid-template-columns: 1fr;
@@ -242,7 +316,10 @@
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
-  .panel {
-    height: 60vh;
-  }
+  .panel { height: 60vh; }
+}
+
+@media (max-width: 480px) {
+  .gate-card { padding: 18px; }
+  .btn1 { font-size: 0.85rem; }
 }

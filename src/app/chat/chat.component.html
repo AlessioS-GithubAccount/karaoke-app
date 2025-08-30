@@ -1,11 +1,12 @@
 <!-- 🔒 Gate interno: visibile a guest / non loggati -->
 <div *ngIf="mustLogin; else chatLayout" class="chat-login-gate">
-  <div class="login-card alert-animated">
+  <div class="gate-card alert-animated form-animate">
     <h2 class="title">{{ 'chat.loginRequiredTitle' | translate }}</h2>
     <p class="subtitle">{{ 'chat.loginRequiredSubtitle' | translate }}</p>
     <div class="actions">
       <button class="btn1" (click)="goLogin()">
-        <i class="fas fa-sign-in-alt"></i> {{ 'chat.goToLogin' | translate }}
+        <i class="fas fa-sign-in-alt"></i>
+        {{ 'chat.goToLogin' | translate }}
       </button>
     </div>
   </div>
@@ -13,7 +14,7 @@
 
 <!-- 💬 Layout con sidebar contatti + thread -->
 <ng-template #chatLayout>
-  <div class="chat two-cols">
+  <div class="chat two-cols layout-animate">
     <!-- Sidebar con utenti online -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -50,7 +51,7 @@
           <span class="avatar">{{ (peer.username || '').charAt(0) | uppercase }}</span>
           <div>
             <div class="name">{{ peer.username }}</div>
-            <div class="status">{{ 'chat.privateDm' | translate }}</div>
+            <div class="status dm">{{ 'chat.privateDm' | translate }}</div>
           </div>
         </div>
       </header>
