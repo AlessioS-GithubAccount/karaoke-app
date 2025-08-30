@@ -1,4 +1,32 @@
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# ===== Cache controll =====
+# 1) index.html: mai in cache -> carica sempre l'ultima build
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# 2) bundle JS: cache lunga 
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# 3) CSS: cache lunga
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# 4) assets (icone, immagini, fonts): cache lunga
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
