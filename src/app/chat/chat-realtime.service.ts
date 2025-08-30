@@ -19,17 +19,17 @@ export class ChatRealtimeService {
   private socket?: Socket;
   private myUserId: number | null = null;
 
-  // Presence (lista peers online)
+  // Presence (lista peers online, filtrata: esclude me stesso)
   private _onlineUsers = new BehaviorSubject<OnlineUser[]>([]);
-  public onlineUsers$ = this._onlineUsers.asObservable();
+  public  onlineUsers$ = this._onlineUsers.asObservable();
 
   // Peer attivo corrente (selezionato nella UI)
   private _activePeer = new BehaviorSubject<OnlineUser | null>(null);
-  public activePeer$ = this._activePeer.asObservable();
+  public  activePeer$ = this._activePeer.asObservable();
 
   // Stream dei messaggi DM (sia history che live)
   private _dmMessage$ = new Subject<ChatMessage>();
-  public dmMessage$ = this._dmMessage$.asObservable();
+  public  dmMessage$ = this._dmMessage$.asObservable();
 
   connect(): void {
     if (this.socket?.connected) return;
@@ -53,10 +53,11 @@ export class ChatRealtimeService {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 600,
       auth: { token } // token nudo, senza "Bearer"
-      // NB: extraHeaders in browser sono ignorati
+      // NB: extraHeaders in browser sono ignorati sui WS cross-origin
     });
 
     this.socket.on('connect', () => {
+      // Richiedo la lista presence all'avvio
       this.socket?.emit('presence:get');
     });
 
@@ -69,13 +70,19 @@ export class ChatRealtimeService {
     });
 
     // ===== Presence =====
+    const filterOutMe = (list: OnlineUser[]) =>
+      Array.isArray(list)
+        ? list.filter(u => (this.myUserId ? u.id !== this.myUserId : true))
+        : [];
+
     this.socket.on('users:list', (list: OnlineUser[]) => {
-      this._onlineUsers.next(Array.isArray(list) ? list : []);
+      this._onlineUsers.next(filterOutMe(list));
     });
     this.socket.on('presence:list', (list: OnlineUser[]) => {
-      this._onlineUsers.next(Array.isArray(list) ? list : []);
+      this._onlineUsers.next(filterOutMe(list));
     });
     this.socket.on('users:online', (u: OnlineUser) => {
+      if (this.myUserId && u.id === this.myUserId) return; // ignora me stesso
       const cur = this._onlineUsers.value;
       if (!cur.find(x => x.id === u.id)) {
         this._onlineUsers.next([...cur, u]);
@@ -85,6 +92,7 @@ export class ChatRealtimeService {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
     });
     this.socket.on('presence:update', (u: OnlineUser & { status?: string }) => {
+      if (this.myUserId && u.id === this.myUserId) return;
       const cur = this._onlineUsers.value.slice();
       const idx = cur.findIndex(x => x.id === u.id);
       if (idx >= 0) cur[idx] = { id: u.id, username: u.username };
@@ -104,17 +112,21 @@ export class ChatRealtimeService {
       }
     });
 
-    // ===== Ascolta SOLO questo per i nuovi messaggi =====
+    // ===== Nuovi messaggi (globale + DM unificati) =====
+    // IMPORTANTE: ascoltiamo SOLO 'chat:message' che il server emette in entrambi i casi.
     this.socket.on('chat:message', (m: any) => {
       const mapped = this.mapIncoming(m);
       if (mapped) this._dmMessage$.next(mapped);
     });
 
-    // IMPORTANTE: non ascoltare 'chat:dm:message' per evitare duplicati
-    // this.socket.on('chat:dm:message', ...)  // RIMOSSO
+    // NON ascoltare 'chat:dm:message' per evitare duplicati
+    // this.socket.on('chat:dm:message', ...) // NO
   }
 
   selectPeer(u: OnlineUser): void {
+    // per sicurezza, ignora selezione su me stesso
+    if (this.myUserId && u.id === this.myUserId) return;
+
     this._activePeer.next(u);
     if (!this.socket?.connected) return;
     this.socket.emit('chat:dm:open', { peerId: u.id });
@@ -122,9 +134,13 @@ export class ChatRealtimeService {
 
   sendToActive(text: string): void {
     const peer = this._activePeer.value;
-    if (!peer || !this.socket?.connected) return;
+    const msg = (text || '').trim();
+    if (!peer || !this.socket?.connected || !msg) return;
+
     // Il server ascolta 'chat:send'
-    this.socket.emit('chat:send', { to: peer.id, text });
+    this.socket.emit('chat:send', { to: peer.id, text: msg });
+
+    // NIENTE eco locale: il server rimanderà il messaggio col suo ID
   }
 
   disconnect(): void {
@@ -155,5 +171,5 @@ export class ChatRealtimeService {
       userId: fromUserId,
       toUserId
     };
-    }
+  }
 }

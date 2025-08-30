@@ -75,17 +75,27 @@
     "chat": "Chat",
     "chat_private": "Private chat"
   },
-  "chat":{
-  "chat_login_message": "To use the chat, you must log in",
-  "chat_register_message": "Only registered users can send and read messages.",
-  "go_to_login": "Go to login",
-  "online_users_header": "Online users",
-  "no_online_users": "No users online",
-  "select_contact_message": "Select a contact from the list to start a private chat.",
-  "private_dm_header": "Private DM",
-  "message_placeholder": "Type a message…",
-  "send_button": "Send"
-},
+ "chat": {
+    "loginRequiredTitle": "To use the chat you must log in",
+    "loginRequiredSubtitle": "Only registered users can send and read messages.",
+    "goToLogin": "Go to login",
+    "onlineUsers": "Online users",
+    "statusOnline": "online",
+    "noOnline": "No users online",
+    "privateDm": "Private DM",
+    "pickPeer": "Select a contact from the list to start a private chat.",
+    "placeholder": "Type a message…",
+    "send": "Send",
+    "chat_login_message": "To use the chat, you must log in",
+    "chat_register_message": "Only registered users can send and read messages.",
+    "go_to_login": "Go to login",
+    "online_users_header": "Online users",
+    "no_online_users": "No users online",
+    "select_contact_message": "Select a contact from the list to start a private chat.",
+    "private_dm_header": "Private DM",
+    "message_placeholder": "Type a message…",
+    "send_button": "Send"
+  },
   "music_archive": {
     "title": "Music Archive",
     "song": "Song",
