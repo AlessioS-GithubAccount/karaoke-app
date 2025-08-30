@@ -65,12 +65,12 @@
       </a>
     </li>
 
-    <!-- 🔊 CHAT: visibile sempre -->
+    <!-- 🔊 CHAT: visibile sempre + badge non letti -->
     <li>
       <a routerLink="/chat" (click)="closeMenu()">
         <i class="fas fa-comments"></i>
-        <!-- puoi usare la traduzione quando la aggiungi -->
         {{ 'navbar.chat' | translate }}
+        <span class="nav-badge" *ngIf="unreadTotal > 0">{{ unreadTotal }}</span>
       </a>
     </li>
 

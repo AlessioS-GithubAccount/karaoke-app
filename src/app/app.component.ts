@@ -1,19 +1,26 @@
-import { Component, OnInit, Renderer2, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, OnInit, Renderer2, HostListener, ElementRef, inject, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { ToastrService } from 'ngx-toastr';
+import { Subscription } from 'rxjs';
+import { ChatRealtimeService } from './chat/chat-realtime.service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   darkMode = false;
   menuOpen = false;
   currentLang = 'en';
+
+  // 🔔 totale non letti per badge navbar
+  unreadTotal = 0;
+
+  private subs: Subscription[] = [];
 
   // Service Worker opzionale (in dev potrebbe non esserci)
   private swUpdate = inject(SwUpdate, { optional: true });
@@ -24,7 +31,8 @@ export class AppComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private eRef: ElementRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private realtime: ChatRealtimeService
   ) {}
 
   ngOnInit(): void {
@@ -58,33 +66,37 @@ export class AppComponent implements OnInit {
     // Effetto animazione navbar
     setTimeout(() => this.triggerNavbarAnimation(), 100);
 
+    // ====== CHAT REALTIME per badge navbar ======
+    // se l'utente è loggato, assicura la connessione realtime
+    if (this.authService.isLoggedIn()) {
+      this.realtime.connect();
+    }
+
+    // inizializza il totale non letti da localStorage (se presente)
+    this.unreadTotal = this.loadTotalUnreadFromStorage();
+
+    // ascolta gli aggiornamenti del totale non letti
+    this.subs.push(
+      this.realtime.totalUnread$.subscribe(n => {
+        this.unreadTotal = n;
+      })
+    );
+
     // ====== AGGIORNAMENTI PWA: AUTO + TOAST ======
     if (this.swUpdate?.isEnabled) {
       this.swUpdate.versionUpdates.subscribe((e: VersionEvent) => {
         switch (e.type) {
           case 'VERSION_DETECTED':
-            // Ha trovato una nuova versione e sta iniziando il download
-            this.toastr.info('Sto scaricando un aggiornamento…', 'Aggiornamento', {
-              timeOut: 3000
-            });
+            this.toastr.info('Sto scaricando un aggiornamento…', 'Aggiornamento', { timeOut: 3000 });
             break;
-
           case 'VERSION_READY':
-            // L’aggiornamento è pronto: avvisa e applica subito
-            this.toastr.info('Nuova versione pronta. Installo e riapro…', 'Aggiornamento', {
-              timeOut: 2500
-            });
-            // Flag per mostrare il toast di conferma dopo il reload
+            this.toastr.info('Nuova versione pronta. Installo e riapro…', 'Aggiornamento', { timeOut: 2500 });
             sessionStorage.setItem('justUpdated', '1');
             this.activateUpdateAndReload();
             break;
-
           case 'VERSION_INSTALLATION_FAILED':
-            this.toastr.error('Installazione aggiornamento non riuscita.', 'Aggiornamento', {
-              timeOut: 5000
-            });
+            this.toastr.error('Installazione aggiornamento non riuscita.', 'Aggiornamento', { timeOut: 5000 });
             break;
-
           case 'NO_NEW_VERSION_DETECTED':
           default:
             break;
@@ -98,6 +110,26 @@ export class AppComponent implements OnInit {
       });
       window.addEventListener('online', () => this.checkForUpdateSafe());
       setInterval(() => this.checkForUpdateSafe(), 5 * 60 * 1000); // ogni 5 min
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+  }
+
+  private loadTotalUnreadFromStorage(): number {
+    try {
+      const raw = localStorage.getItem('chat_unread');
+      if (!raw) return 0;
+      const obj = JSON.parse(raw);
+      let tot = 0;
+      for (const k of Object.keys(obj)) {
+        const v = Number((obj as any)[k]);
+        if (v > 0) tot += v;
+      }
+      return tot;
+    } catch {
+      return 0;
     }
   }
 
@@ -194,7 +226,7 @@ export class AppComponent implements OnInit {
     return !this.darkMode;
   }
 
-  // 🔒 esposto al template per mostrare la voce "Chat" solo ai loggati
+  // 🔒 esposto al template per mostrare la voce "Chat" solo ai loggati (se vuoi usarlo nel template)
   get isLoggedIn(): boolean {
     return this.authService.isLoggedIn();
   }

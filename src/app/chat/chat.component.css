@@ -21,9 +21,9 @@
    Sidebar
    =========================== */
 .sidebar {
+  padding: 18px 18px 14px;  /* più respiro ai lati */
+  overflow: visible;        /* non taglia gli shadow dei figli */
   border-right: 1px solid rgba(255,255,255,0.08);
-  padding: 12px 10px;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -43,37 +43,81 @@
    =========================== */
 .users {
   margin-top: 10px;
-  overflow: auto;
-  padding-right: 6px;
+  padding: 16px 14px 24px;  /* padding più ampio: evita clip top/bottom e aiuta gli shadow */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* nascondi scrollbar visivamente */
+  -ms-overflow-style: none;   /* IE/Edge legacy */
+  scrollbar-width: none;      /* Firefox */
+}
+.users::-webkit-scrollbar {    /* Chrome/Safari/Edge Chromium */
+  display: none;
 }
 
+/* Card utente: shadow contenuto e niente overflow */
 .user-item {
+  box-sizing: border-box;   /* padding/border inclusi nella larghezza */
   width: 100%;
-  background: transparent;
-  border: none;
+  max-width: 100%;
+  margin: 10px 0;           /* niente margini laterali per evitare sforamento */
+  padding: 12px 14px 12px 20px; /* + padding sinistro per staccare l’avatar dal bordo */
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.28);
+  display: flex;
+  align-items: center;
+  gap: 12px;                /* più spazio tra avatar e testo */
   color: inherit;
   text-align: left;
-  display:flex; align-items:center; gap:10px;
-  padding: 8px 6px;
-  border-radius: 10px;
   cursor: pointer;
-  transition: background .15s ease-in-out, transform .06s ease-in-out;
+  transition: background .15s ease, transform .08s ease, box-shadow .15s ease;
 }
-.user-item:hover { background: rgba(255,255,255,0.06); }
-.user-item.active { background: rgba(75,107,251,.22); }
-.user-item:active { transform: scale(.99); }
+.user-item:hover {
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.34);
+  transform: translateY(-1px);
+}
+.user-item.active {
+  background: rgba(75,107,251,.18);
+  border-color: rgba(75,107,251,.35);
+  box-shadow: 0 6px 20px rgba(75,107,251,.28);
+}
 
 .user-item .avatar {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: #2b2f4a;
   color: #cdd7ff;
-  display:flex; align-items:center; justify-content:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   font-weight: 700;
+  flex: 0 0 36px;          /* evita schiacciamenti */
 }
-.user-item .meta { display:flex; flex-direction:column; gap:2px; }
-.user-item .name { font-weight: 600; }
+.user-item .meta { display:flex; flex-direction:column; gap:2px; min-width: 0; }
+.user-item .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-item .status { font-size: 11px; opacity: .8; }
 .user-item .status.online { color: #52d17f; }
+
+/* Badge numerico per ogni contatto (stile WhatsApp) */
+.user-item .badge {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #25d366;
+  color: #0b1b13;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px rgba(11,27,19,0.15);
+}
 
 /* Stato vuoto */
 .empty {
@@ -135,7 +179,16 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+
+  -ms-overflow-style: none;
+  scrollbar-width: thin;
 }
+.messages::-webkit-scrollbar { width: 6px; }
+.messages::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 6px;
+}
+.messages::-webkit-scrollbar-track { background: transparent; }
 
 .message {
   max-width: 70%;
@@ -153,9 +206,7 @@
   opacity: .8;
   display:flex; gap: 8px;
 }
-.message.me .meta {
-  justify-content: flex-end;
-}
+.message.me .meta { justify-content: flex-end; }
 .bubble {
   padding: 10px 12px;
   border-radius: 14px;
@@ -208,7 +259,7 @@
 .composer .btn:hover { filter: brightness(1.05); }
 
 /* ===========================
-   Gate (login richiesto) – stile come Prenota Canzoni
+   Gate (login richiesto) – stile Prenota Canzoni
    =========================== */
 .chat-login-gate {
   display:flex; align-items:center; justify-content:center;
@@ -221,18 +272,12 @@
   max-width: 600px;
   padding: 24px;
   border-radius: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(69, 85, 108, 0.30),
-    rgba(243, 130, 255, 0.10)
-  );
+  background: linear-gradient(135deg, rgba(69, 85, 108, 0.30), rgba(243, 130, 255, 0.10));
   border: 1px solid rgba(255,255,255,0.10);
   box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40);
   backdrop-filter: blur(6px);
   text-align: center;
-  animation:
-    neonAlertPink 2.5s ease-in-out infinite,
-    fadeInSoft 0.9s ease-out both;
+  animation: neonAlertPink 2.5s ease-in-out infinite, fadeInSoft 0.9s ease-out both;
 }
 .gate-card .title { margin: 0 0 6px 0; }
 .gate-card .subtitle { opacity: .9; margin: 0 0 16px 0; }
@@ -243,11 +288,7 @@
   font-size: 0.95rem;
   padding: 0.55rem 1rem;
   border-radius: 20px;
-  background: linear-gradient(
-    135deg,
-    var(--button-gradient-1, #4b6bfb),
-    var(--button-gradient-2, #9f67ff)
-  );
+  background: linear-gradient(135deg, var(--button-gradient-1, #4b6bfb), var(--button-gradient-2, #9f67ff));
   color: var(--text-color, #fff);
   font-weight: 700;
   border: none;
@@ -257,51 +298,32 @@
 }
 .btn1:hover {
   transform: scale(1.05);
-  box-shadow:
-    0 0 14px var(--glow-color, rgba(243,130,255,0.7)),
-    0 0 24px var(--accent-hover, rgba(243,130,255,0.35));
+  box-shadow: 0 0 14px var(--glow-color, rgba(243,130,255,0.7)), 0 0 24px var(--accent-hover, rgba(243,130,255,0.35));
 }
 .btn1:active { transform: translateY(1px); }
 
 /* ===========================
    Animazioni
    =========================== */
-/* comparsa lenta e delicata */
 @keyframes fadeInSoft {
   0%   { opacity: 0; transform: translateY(8px); filter: blur(2px); }
   60%  { opacity: 0.85; transform: translateY(2px); filter: blur(0.5px); }
   100% { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
-
-/* rimane per eventuali usi (layout o altro) */
 @keyframes fadeSlideUp {
   0% { opacity: 0; transform: translateY(20px); }
   100% { opacity: 1; transform: translateY(0); }
 }
-
-/* effetto neon tenue come nel componente Prenota */
 @keyframes neonAlertPink {
-  0%, 100% {
-    box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40);
-    transform: translateX(0);
-  }
-  50% {
-    box-shadow: 0 0 15px 4px rgba(243, 130, 255, 0.60);
-    transform: translateX(1px);
-  }
+  0%, 100% { box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40); transform: translateX(0); }
+  50% { box-shadow: 0 0 15px 4px rgba(243, 130, 255, 0.60); transform: translateX(1px); }
   60% { transform: translateX(1px); }
 }
-
-/* entrata dei singoli messaggi */
 @keyframes fadeInMsg {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* usa la nuova animazione di comparsa lenta per gli elementi marcati */
-.alert-animated {
-  animation: fadeInSoft 0.9s ease-out both;
-}
+.alert-animated { animation: fadeInSoft 0.9s ease-out both; }
 
 /* ===========================
    Responsive
@@ -320,6 +342,9 @@
 }
 
 @media (max-width: 480px) {
+  .sidebar { padding: 16px 12px 12px; }
+  .users   { padding: 14px 10px 20px; }
+  .user-item { margin: 8px 0; padding-left: 18px; }
   .gate-card { padding: 18px; }
   .btn1 { font-size: 0.85rem; }
 }

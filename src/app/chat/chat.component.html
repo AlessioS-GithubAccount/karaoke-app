@@ -1,12 +1,11 @@
 <!-- 🔒 Gate interno: visibile a guest / non loggati -->
 <div *ngIf="mustLogin; else chatLayout" class="chat-login-gate">
-  <div class="gate-card alert-animated form-animate">
+  <div class="gate-card alert-animated">
     <h2 class="title">{{ 'chat.loginRequiredTitle' | translate }}</h2>
     <p class="subtitle">{{ 'chat.loginRequiredSubtitle' | translate }}</p>
     <div class="actions">
       <button class="btn1" (click)="goLogin()">
-        <i class="fas fa-sign-in-alt"></i>
-        {{ 'chat.goToLogin' | translate }}
+        <i class="fas fa-sign-in-alt"></i> {{ 'chat.goToLogin' | translate }}
       </button>
     </div>
   </div>
@@ -29,10 +28,16 @@
           (click)="selectPeer(u)"
         >
           <span class="avatar">{{ (u.username || '').charAt(0) | uppercase }}</span>
+
           <div class="meta">
             <div class="name">{{ u.username }}</div>
             <div class="status">{{ 'chat.statusOnline' | translate }}</div>
           </div>
+
+          <!-- Badge non letti per peer -->
+          <span class="badge" *ngIf="unreadByPeer && unreadByPeer[u.id] > 0">
+            {{ unreadByPeer[u.id] }}
+          </span>
         </button>
       </div>
 
