@@ -1252,7 +1252,6 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
   }
 })();
 
-
 // ===========================
 //  SOCKET.IO - CHAT (globale + DM) con presenza IN MEMORIA
 // ===========================
@@ -1323,15 +1322,15 @@ io.on('connection', (socket) => {
   const wasOnline = activeUsers.has(u.id);
   activeUsers.set(u.id, { id: u.id, username: u.username, status: 'online' });
 
-  // 1) SNAPSHOT COMPLETO a TUTTI (robusto contro race)
+  // 1) SNAPSHOT SOLO AL NUOVO SOCKET (evita flash/race globali)
   const snap = presenceSnapshot();
-  io.emit('presence:list', snap);
-  io.emit('users:list', snap);
+  socket.emit('presence:list', snap);
+  socket.emit('users:list', snap);
 
-  // 2) Eventi incrementali (compat)
+  // 2) Eventi incrementali agli ALTRI
   if (!wasOnline) {
     socket.broadcast.emit('presence:update', { id: u.id, username: u.username, status: 'online' });
-    socket.broadcast.emit('users:online', { id: u.id, username: u.username });
+    socket.broadcast.emit('users:online',   { id: u.id, username: u.username });
   }
 
   // stanza globale
@@ -1344,7 +1343,7 @@ io.on('connection', (socket) => {
     socket.emit('users:list', now);
   });
 
-  // 👉👉 manuale: offline/online
+  // Manuale: offline/online
   socket.on('presence:manual', ({ off }) => {
     if (off) {
       const set = socketsByUser.get(u.id);
@@ -1436,14 +1435,9 @@ io.on('connection', (socket) => {
         socketsByUser.delete(u.id);
         activeUsers.delete(u.id);
 
-        // eventi incrementali
+        // Eventi incrementali agli altri
         socket.broadcast.emit('presence:remove', { id: u.id });
-        socket.broadcast.emit('users:offline', { id: u.id });
-
-        // SNAPSHOT aggiornato a tutti
-        const snap2 = presenceSnapshot();
-        io.emit('presence:list', snap2);
-        io.emit('users:list', snap2);
+        socket.broadcast.emit('users:offline',   { id: u.id });
       }
     }
   });

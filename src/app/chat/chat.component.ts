@@ -11,7 +11,7 @@ interface UiMessage {
   me: boolean;
 }
 
-type ThreadsMap = Record<string, UiMessage[]>; // key = peerId string
+type ThreadsMap = Record<string, UiMessage[]>;
 
 @Component({
   selector: 'app-chat',
@@ -19,30 +19,25 @@ type ThreadsMap = Record<string, UiMessage[]>; // key = peerId string
   styleUrls: ['./chat.component.css'],
 })
 export class ChatComponent implements OnInit, OnDestroy {
-  private static readonly THREAD_MAX = 200; // max messaggi per thread per non saturare storage
+  private static readonly THREAD_MAX = 200;
 
   mustLogin = false;
 
-  // Presence
   online: OnlineUser[] = [];
   activePeer: OnlineUser | null = null;
 
-  // Stato chat
   inputText = '';
-  messages: UiMessage[] = [];                     // thread attivo
-  private messagesByPeer = new Map<number, UiMessage[]>(); // thread per peerId
+  messages: UiMessage[] = [];
+  private messagesByPeer = new Map<number, UiMessage[]>();
 
-  // Unread (mostrati nella lista)
   unreadByPeer: Record<number, number> = {};
 
-  // 🔌 stato online per il toggle UI (deriva da manualOffline del service)
   isOnline = true;
 
   private subs: Subscription[] = [];
   private myUserId = this.getMyUserId();
   private isFocused = true;
 
-  // ====== Storage keys per utente ======
   private storageKeyThreads = this.myUserId ? `chat:${this.myUserId}:threads` : 'chat:0:threads';
   private storageKeyUnread  = this.myUserId ? `chat:${this.myUserId}:unread`  : 'chat:0:unread';
   private storageKeyActive  = this.myUserId ? `chat:${this.myUserId}:active`  : 'chat:0:active';
@@ -52,16 +47,19 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.mustLogin = !Boolean(localStorage.getItem('token'));
 
-    // sync stato online (manual offline invertito)
+    // forzo subito connessione e attività per sincronizzare presence
+    this.realtime.connect();
+    this.realtime.touchActivity();
+    this.realtime.installUnloadHooks?.();
+    this.realtime.initPresenceManager?.();
+
     this.isOnline = !this.realtime.manualOffline;
     this.subs.push(
       this.realtime.manualOffline$.subscribe(off => this.isOnline = !off)
     );
 
-    // Carica stato locale prima di agganciare gli stream
     this.loadAllFromStorage();
 
-    // Presence list
     this.subs.push(
       this.realtime.onlineUsers$.subscribe(list => {
         const myId = this.myUserId;
@@ -69,7 +67,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Unread map → oggetto per il template (e persiste)
     this.subs.push(
       this.realtime.unreadByPeer$.subscribe(map => {
         const obj: Record<number, number> = {};
@@ -79,7 +76,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Active peer changes
     this.subs.push(
       this.realtime.activePeer$.subscribe(peer => {
         this.activePeer = peer;
@@ -100,7 +96,6 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // DM messages stream (tutti i DM, li smisto per peer) + persistenza
     this.subs.push(
       this.realtime.dmMessage$.subscribe((m: ChatMessage) => {
         const peerId =
@@ -119,7 +114,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
         const arr = this.messagesByPeer.get(peerId) || [];
         arr.push(ui);
-        // tronca thread se supera la soglia
         if (arr.length > ChatComponent.THREAD_MAX) {
           arr.splice(0, arr.length - ChatComponent.THREAD_MAX);
         }
@@ -138,19 +132,16 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // focus/blur finestra: se torno con un peer aperto, azzero
     window.addEventListener('focus', this.onFocus);
     window.addEventListener('blur', this.onBlur);
 
-    // Se esiste un peer attivo salvato e non è ancora selezionato, potrei selezionarlo
     const savedActive = this.readActivePeer();
     if (savedActive && !this.activePeer) {
-      const fake: OnlineUser = { id: savedActive, username: '' }; // username arriverà dalla presence
+      const fake: OnlineUser = { id: savedActive, username: '' };
       this.realtime.selectPeer(fake);
     }
   }
 
-  // 🔘 switch manuale online/offline
   toggleOnline(): void {
     const nextOnline = !this.isOnline;
     if (nextOnline) this.realtime.touchActivity();
@@ -161,16 +152,32 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.realtime.selectPeer(u);
   }
 
-  /**
-   * Invio senza echo locale: niente push nel thread.
-   * Il messaggio apparirà quando rientra via `chat:dm:message` dal server.
-   */
   send(): void {
     const text = this.inputText.trim();
     if (!text || !this.activePeer) return;
 
     this.realtime.sendToActive(text);
+
+    // echo locale
+    const ui: UiMessage = {
+      id: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
+      author: this.getMyUsername(),
+      text,
+      time: new Date(),
+      me: true,
+    };
+    const pid = this.activePeer.id;
+    const arr = this.messagesByPeer.get(pid) || [];
+    arr.push(ui);
+    if (arr.length > ChatComponent.THREAD_MAX) {
+      arr.splice(0, arr.length - ChatComponent.THREAD_MAX);
+    }
+    this.messagesByPeer.set(pid, arr);
+    this.messages = arr.slice();
     this.inputText = '';
+
+    this.realtime.markRead(pid);
+    this.persistThread(pid, arr);
 
     setTimeout(() => {
       const el = document.getElementById('chat-scroll');
@@ -190,10 +197,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
     window.removeEventListener('focus', this.onFocus);
     window.removeEventListener('blur', this.onBlur);
-    // presenza globale gestita in AppComponent → niente disconnect qui
   }
 
-  // ===== Helpers =====
   private getMyUserId(): number | null {
     try {
       const token = localStorage.getItem('token');
@@ -218,31 +223,25 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.isFocused = false;
   };
 
-  // ======== Persistenza locale ========
-
-  /** Salva l'intero thread di un peer nel localStorage (per-utente). */
   private persistThread(peerId: number, arr: UiMessage[]): void {
     try {
       const all: ThreadsMap = this.readAllThreads();
       all[String(peerId)] = arr.map(m => ({
         ...m,
-        time: new Date(m.time).toISOString() as unknown as any // serializzo Date
+        time: new Date(m.time).toISOString() as unknown as any
       }));
       localStorage.setItem(this.storageKeyThreads, JSON.stringify(all));
-    } catch (e) {
-      // Se lo storage è pieno, prova a compattare (rimuovi i thread più vecchi)
+    } catch {
       this.compactThreadsAndRetry(peerId, arr);
     }
   }
 
-  /** Salva gli unread correnti. */
   private persistUnread(): void {
     try {
       localStorage.setItem(this.storageKeyUnread, JSON.stringify(this.unreadByPeer || {}));
     } catch {}
   }
 
-  /** Salva l'id del peer attivo (o null). */
   private persistActivePeer(peerId: number | null): void {
     try {
       if (peerId == null) localStorage.removeItem(this.storageKeyActive);
@@ -250,20 +249,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     } catch {}
   }
 
-  /** Carica tutti i dati da storage (threads, unread, active). */
   private loadAllFromStorage(): void {
-    // threads
     const all = this.readAllThreads();
     for (const key of Object.keys(all)) {
       const pid = Number(key);
       const arr = all[key].map(m => ({
         ...m,
-        time: new Date(m.time) // rehydrate date
+        time: new Date(m.time)
       }));
       this.messagesByPeer.set(pid, arr);
     }
 
-    // unread
     try {
       const raw = localStorage.getItem(this.storageKeyUnread);
       if (raw) {
@@ -272,17 +268,13 @@ export class ChatComponent implements OnInit, OnDestroy {
       }
     } catch {}
 
-    // active
     const active = this.readActivePeer();
     if (active && !this.activePeer) {
-      // Lo stato effettivo del peer sarà completato quando la presence arriva
-      // Qui basta ricordare che c'era un thread aperto: lo rifletto in UI subito
       const thread = this.messagesByPeer.get(active) || [];
       this.messages = thread.slice();
     }
   }
 
-  /** Ritorna la mappa completa threads dal localStorage. */
   private readAllThreads(): ThreadsMap {
     try {
       const raw = localStorage.getItem(this.storageKeyThreads);
@@ -293,7 +285,6 @@ export class ChatComponent implements OnInit, OnDestroy {
     return {};
   }
 
-  /** Ritorna l'id del peer attivo salvato (se esiste). */
   private readActivePeer(): number | null {
     try {
       const raw = localStorage.getItem(this.storageKeyActive);
@@ -303,41 +294,32 @@ export class ChatComponent implements OnInit, OnDestroy {
     } catch { return null; }
   }
 
-  /** Se lo storage è pieno, prova a eliminare i thread meno recenti e salva di nuovo. */
   private compactThreadsAndRetry(peerId: number, arr: UiMessage[]): void {
     try {
       const all = this.readAllThreads();
       const entries = Object.entries(all);
+      if (entries.length === 0) return;
 
-      if (entries.length === 0) return; // niente da compattare
-
-      // Stima "recency" dall'ultimo messaggio di ciascun thread
       entries.sort((a, b) => {
         const lastA = (a[1].at(-1)?.time) ? new Date(a[1].at(-1)!.time as any).getTime() : 0;
         const lastB = (b[1].at(-1)?.time) ? new Date(b[1].at(-1)!.time as any).getTime() : 0;
-        return lastA - lastB; // i più vecchi davanti
+        return lastA - lastB;
       });
 
-      // Rimuovi i 1-2 thread più vecchi e ritenta
       const toRemove = Math.min(2, Math.max(1, Math.floor(entries.length / 5)));
       for (let i = 0; i < toRemove; i++) {
         delete all[entries[i][0]];
       }
 
       localStorage.setItem(this.storageKeyThreads, JSON.stringify(all));
-
-      // Ritenta il salvataggio del thread corrente
       this.persistThread(peerId, arr);
     } catch {
-      // come fallback, tronca il thread corrente a metà e ritenta ancora una volta
       const truncated = arr.slice(-Math.ceil(arr.length / 2));
       try {
         const all = this.readAllThreads();
         all[String(peerId)] = truncated.map(m => ({ ...m, time: new Date(m.time).toISOString() as any }));
         localStorage.setItem(this.storageKeyThreads, JSON.stringify(all));
-      } catch {
-        // alla peggio, lasciamo perdere
-      }
+      } catch {}
     }
   }
 }

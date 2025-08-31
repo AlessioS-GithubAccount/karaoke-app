@@ -70,20 +70,26 @@ export class ChatRealtimeService {
     }
   };
 
-  // ====== API Presenza pubbliche ======
-
-  /** Segna attività (click/scroll/route change/...) e salva in localStorage. */
-  touchActivity(): void {
-    localStorage.setItem('presence.lastActivity', String(Date.now()));
-    if (!this.manualOffline) {
-      this.ensureConnected();
-    }
+  // ===== AUTO-BOOT DEL PRESENCE MANAGER =====
+  constructor() {
+    // Avvio “safe”: se non c’è token non si connette comunque
+    queueMicrotask(() => {
+      this.installUnloadHooks();
+      this.initPresenceManager();
+      this.touchActivity();     // porta “in vita” la presenza appena entro in app
+      this.connect();           // connessione esplicita (no-op se manualOffline o senza token)
+    });
   }
 
-  /**
-   * Installa gli hook di unload/visibilità per mantenere aggiornato lastActivity
-   * anche quando l’utente chiude la tab o passa in background.
-   */
+  // ====== API Presenza pubbliche ======
+
+  /** Segna attività e, se non in manual offline, garantisce la connessione. */
+  touchActivity(): void {
+    localStorage.setItem('presence.lastActivity', String(Date.now()));
+    if (!this.manualOffline) this.ensureConnected();
+  }
+
+  /** Hook di unload/visibilità per mantenere aggiornato lastActivity. */
   installUnloadHooks(): void {
     if (this.unloadHooksInstalled) return;
     this.unloadHooksInstalled = true;
@@ -93,22 +99,13 @@ export class ChatRealtimeService {
     document.addEventListener('visibilitychange', this.onVisibilityChange, { passive: true as any });
   }
 
-  /**
-   * Avvia il gestore di presenza globale: mantiene online l’utente
-   * per 1h dall’ultima attività in app, anche fuori dal componente Chat.
-   * Può essere chiamato più volte, è idempotente.
-   */
+  /** Avvia il gestore presenza globale (idempotente). */
   initPresenceManager(): void {
     if (this.presenceInited) return;
     this.presenceInited = true;
 
-    // Primo check immediato
-    this.evaluatePresence();
-
-    // Storage listener → sincronizza attività tra TAB/finestre
+    this.evaluatePresence(); // primo check immediato
     window.addEventListener('storage', this.onStorageActivity);
-
-    // Timer periodico per valutare presenza
     this.presenceTimer = window.setInterval(() => this.evaluatePresence(), this.CHECK_INTERVAL_MS);
   }
 
@@ -127,6 +124,7 @@ export class ChatRealtimeService {
     } else {
       try { this.socket?.emit('presence:manual', { off: false }); } catch {}
       this.touchActivity();
+      this.connect();
     }
   }
 
@@ -134,10 +132,11 @@ export class ChatRealtimeService {
 
   connect(): void {
     if (this.socket?.connected) return;
-    if (this.manualOffline) return; // non connettere se utente ha scelto offline
+    if (this.manualOffline) return;
 
     const raw = localStorage.getItem('token') || '';
     const token = raw.replace(/^Bearer\s+/i, '');
+    if (!token) return;
 
     try {
       const payload = JSON.parse(atob((token.split('.')[1] || '')));
@@ -146,29 +145,26 @@ export class ChatRealtimeService {
       this.myUserId = null;
     }
 
-    if (!token) return; // se non loggato, non connettere
-
-    // Crea la socket con fallback polling per affidabilità
     this.socket = io(environment.wsUrl, {
       path: '/socket.io',
-      transports: ['websocket', 'polling'],
+      transports: ['websocket', 'polling'], // fallback robusto
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 600,
-      auth: { token }, // token nudo, senza "Bearer"
+      auth: { token },
       autoConnect: true
     });
 
-    // Registra TUTTI i listener PRIMA di richiedere lo snapshot
+    // Listener PRIMA dello snapshot
     this.registerListeners(this.socket);
   }
 
   private registerListeners(s: Socket): void {
-    // ===== SNAPSHOT/LISTENERS PRESENCE PRIMA DI CHIEDERE LO SNAPSHOT =====
     const setList = (list: OnlineUser[]) => {
       this._onlineUsers.next(Array.isArray(list) ? list : []);
     };
 
+    // Presence snapshot + incrementali
     s.on('users:list', (list: OnlineUser[]) => setList(list));
     s.on('presence:list', (list: OnlineUser[]) => setList(list));
 
@@ -190,7 +186,7 @@ export class ChatRealtimeService {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
     });
 
-    // ===== DM: history ===== (non incrementa unread)
+    // History DM (non incrementa unread)
     s.on('chat:dm:history', (payload: { peerId: number; messages: any[] }) => {
       const arr = Array.isArray(payload?.messages) ? payload.messages : [];
       for (const m of arr) {
@@ -199,33 +195,26 @@ export class ChatRealtimeService {
       }
     });
 
-    // ===== Nuovi messaggi =====
+    // Nuovi messaggi (dedup)
     const handleIncoming = (m: any) => {
       const mapped = this.mapIncoming(m);
       if (!mapped) return;
-      if (this.seenIds.has(mapped.id)) return; // dedup
+      if (this.seenIds.has(mapped.id)) return;
       this.seenIds.add(mapped.id);
 
       this._dmMessage$.next(mapped);
-
-      if (this.isIncomingDmToMe(mapped)) {
-        this.incUnread(mapped.userId);
-      }
+      if (this.isIncomingDmToMe(mapped)) this.incUnread(mapped.userId);
     };
-
     s.on('chat:message', handleIncoming);
     s.on('chat:dm:message', handleIncoming);
 
-    // ===== CONN / ERROR =====
+    // Connessione / errori
     s.on('connect', () => {
-      // Ora che i listener sono pronti, chiedi lo snapshot.
       try { s.emit('presence:get'); } catch {}
     });
-
     s.on('connect_error', (err: any) => {
       console.error('[ws] connect_error', err?.message || err);
     });
-
     s.on('error', (err: any) => {
       console.error('[ws] error', err?.message || err);
     });
@@ -233,7 +222,7 @@ export class ChatRealtimeService {
 
   selectPeer(u: OnlineUser): void {
     this._activePeer.next(u);
-    this.markRead(u.id); // azzero subito quando apro
+    this.markRead(u.id);
     if (!this.socket?.connected) return;
     this.socket.emit('chat:dm:open', { peerId: u.id });
   }
@@ -283,11 +272,7 @@ export class ChatRealtimeService {
   private mapIncoming(m: any): ChatMessage | null {
     if (!m) return null;
 
-    const fromUserId = Number(
-      m?.fromUserId ??
-      m?.userId ?? 0
-    );
-
+    const fromUserId = Number(m?.fromUserId ?? m?.userId ?? 0);
     const toUserId =
       m?.toUserId != null
         ? Number(m.toUserId)
@@ -303,12 +288,9 @@ export class ChatRealtimeService {
     };
   }
 
-  /** True se è un DM in arrivo verso di me (fallback se manca toUserId) */
   private isIncomingDmToMe(m: ChatMessage): boolean {
     if (!this.myUserId) return false;
-    if (m.toUserId != null) {
-      return m.userId !== this.myUserId && m.toUserId === this.myUserId;
-    }
+    if (m.toUserId != null) return m.userId !== this.myUserId && m.toUserId === this.myUserId;
     return m.userId !== this.myUserId;
   }
 
@@ -331,21 +313,14 @@ export class ChatRealtimeService {
       this.disconnect();
       return;
     }
-
     const last = this.readLastActivity();
     const age = Date.now() - last;
-
-    if (age <= this.PRESENCE_TTL_MS) {
-      this.ensureConnected();
-    } else {
-      this.disconnect();
-    }
+    if (age <= this.PRESENCE_TTL_MS) this.ensureConnected();
+    else this.disconnect();
   }
 
   private ensureConnected(): void {
-    if (!this.socket?.connected) {
-      this.connect();
-    }
+    if (!this.socket?.connected) this.connect();
   }
 
   private readLastActivity(): number {
@@ -359,9 +334,7 @@ export class ChatRealtimeService {
 
   private onStorageActivity = (e: StorageEvent) => {
     if (e.key === 'presence.lastActivity' || e.key === 'presence.manualOffline') {
-      if (e.key === 'presence.manualOffline') {
-        this._manualOffline.next(this.readManualOffline());
-      }
+      if (e.key === 'presence.manualOffline') this._manualOffline.next(this.readManualOffline());
       this.evaluatePresence();
     }
   };
