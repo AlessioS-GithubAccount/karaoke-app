@@ -1277,12 +1277,15 @@ const historyGlobal = [];         // ultimi N messaggi globali
 const historyDm     = new Map();  // "a:b" -> array messaggi
 const MAX_HISTORY   = 50;
 
+function presenceSnapshot() {
+  return Array.from(activeUsers.values());
+}
+
 // Auth WS: SOLO UTENTI LOGGATI (no guest)
 io.use((socket, next) => {
   try {
     const fromAuth  = socket.handshake?.auth?.token;
     const fromQuery = socket.handshake?.query?.token;
-    // NB: header Authorization spesso non arriva lato browser su WS
     const token = (fromAuth || fromQuery || '').toString().trim();
     if (!token) return next(new Error('Unauthorized'));
 
@@ -1320,21 +1323,30 @@ io.on('connection', (socket) => {
   const wasOnline = activeUsers.has(u.id);
   activeUsers.set(u.id, { id: u.id, username: u.username, status: 'online' });
 
-  // manda lista completa a me (compat: presence:list + users:list)
-  const list = Array.from(activeUsers.values());
-  socket.emit('presence:list', list);
-  socket.emit('users:list', list);
+  // 1) SNAPSHOT COMPLETO a TUTTI (robusto contro race)
+  const snap = presenceSnapshot();
+  io.emit('presence:list', snap);
+  io.emit('users:list', snap);
 
-  // informa gli altri che sono online (compat: presence:update + users:online)
+  // 2) Eventi incrementali (compat)
   if (!wasOnline) {
     socket.broadcast.emit('presence:update', { id: u.id, username: u.username, status: 'online' });
     socket.broadcast.emit('users:online', { id: u.id, username: u.username });
   }
 
-  // 👉👉 NUOVO: gestione offline/online manuale
+  // stanza globale
+  socket.join('global');
+
+  // === SYNC esplicita richiesta dal client quando è "pronto"
+  socket.on('presence:get', () => {
+    const now = presenceSnapshot();
+    socket.emit('presence:list', now);
+    socket.emit('users:list', now);
+  });
+
+  // 👉👉 manuale: offline/online
   socket.on('presence:manual', ({ off }) => {
     if (off) {
-      // disconnette TUTTE le socket dell’utente (tutte le tab)
       const set = socketsByUser.get(u.id);
       if (set) {
         for (const sid of Array.from(set)) {
@@ -1342,15 +1354,10 @@ io.on('connection', (socket) => {
           try { s?.disconnect(true); } catch {}
         }
       }
-      // Niente broadcast qui: il cleanup/disconnect di ognuna
-      // attiverà già la rimozione e il broadcast finale quando l’ultima socket si chiude.
     } else {
-      // il client tornerà online con la normale connect()
+      // tornerà online con la normale connect()
     }
   });
-
-  // stanza globale
-  socket.join('global');
 
   // === HISTORY ===
   socket.on('chat:history', (payload) => {
@@ -1395,9 +1402,9 @@ io.on('connection', (socket) => {
 
     // consegna a TUTTE le tab dei due utenti (solo evento DM)
     const toSockets = socketsByUser.get(pid);
-    if (toSockets) for (const sid of toSockets) io.to(sid).emit('chat:dm:message', msg);
+    if (toSockets) for (const sid of Array.from(toSockets)) io.to(sid).emit('chat:dm:message', msg);
     const meSockets = socketsByUser.get(u.id);
-    if (meSockets) for (const sid of meSockets) io.to(sid).emit('chat:dm:message', msg);
+    if (meSockets) for (const sid of Array.from(meSockets)) io.to(sid).emit('chat:dm:message', msg);
 
     // e anche alla stanza DM (se aperta)
     io.to(`dm:${key}`).emit('chat:dm:message', msg);
@@ -1428,8 +1435,15 @@ io.on('connection', (socket) => {
       if (set.size === 0) {
         socketsByUser.delete(u.id);
         activeUsers.delete(u.id);
+
+        // eventi incrementali
         socket.broadcast.emit('presence:remove', { id: u.id });
         socket.broadcast.emit('users:offline', { id: u.id });
+
+        // SNAPSHOT aggiornato a tutti
+        const snap2 = presenceSnapshot();
+        io.emit('presence:list', snap2);
+        io.emit('users:list', snap2);
       }
     }
   });
