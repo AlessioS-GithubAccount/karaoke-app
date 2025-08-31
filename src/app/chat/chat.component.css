@@ -475,7 +475,7 @@
 
   /* Sidebar più corta per lasciare spazio ai messaggi */
   .sidebar {
-    flex: 0 0 clamp(96px, 18vh, 200px);
+    flex: 0 0 clamp(96px, 22vh, 200px);
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
