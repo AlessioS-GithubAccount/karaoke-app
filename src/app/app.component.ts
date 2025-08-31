@@ -1,10 +1,10 @@
 import { Component, OnInit, Renderer2, HostListener, ElementRef, inject, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { ToastrService } from 'ngx-toastr';
-import { Subscription } from 'rxjs';
+import { Subscription, filter } from 'rxjs';
 import { ChatRealtimeService } from './chat/chat-realtime.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class AppComponent implements OnInit, OnDestroy {
   menuOpen = false;
   currentLang = 'en';
 
-  // 🔔 totale non letti per badge navbar
+  // 🔔 totale non letti per badge in navbar
   unreadTotal = 0;
 
   private subs: Subscription[] = [];
@@ -32,20 +32,57 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     private eRef: ElementRef,
     private toastr: ToastrService,
-    private realtime: ChatRealtimeService
+    private chatRealtime: ChatRealtimeService
   ) {}
 
   ngOnInit(): void {
-    // Se siamo appena rientrati dopo un aggiornamento, mostra esito
+    // === PRESENCE MANAGER: resta online fino a 1h dall'ultima attività ===
+    if (this.authService.isLoggedIn()) {
+      this.chatRealtime.touchActivity();
+      this.chatRealtime.initPresenceManager();
+
+      // ⬅️ NEW: installo gli hook di uscita (pagehide/beforeunload/visibilitychange)
+      this.chatRealtime.installUnloadHooks();
+
+      // Navigazioni = attività
+      this.subs.push(
+        this.router.events
+          .pipe(filter(e => e instanceof NavigationEnd))
+          .subscribe(() => this.chatRealtime.touchActivity())
+      );
+
+      // Attività globali (click/scroll/keypress/touch/...)
+      const touch = () => this.chatRealtime.touchActivity();
+      window.addEventListener('click', touch);
+      window.addEventListener('keydown', touch);
+      window.addEventListener('mousemove', touch, { passive: true });
+      window.addEventListener('scroll', touch, { passive: true });
+      window.addEventListener('touchstart', touch, { passive: true });
+
+      this.subs.push({
+        unsubscribe: () => {
+          window.removeEventListener('click', touch);
+          window.removeEventListener('keydown', touch);
+          window.removeEventListener('mousemove', touch);
+          window.removeEventListener('scroll', touch);
+          window.removeEventListener('touchstart', touch);
+        }
+      } as Subscription);
+
+      // 🔔 Totale non letti per badge
+      this.subs.push(
+        this.chatRealtime.totalUnread$.subscribe(n => this.unreadTotal = n || 0)
+      );
+    }
+
+    // === Toast post-update PWA ===
     const justUpdated = sessionStorage.getItem('justUpdated');
     if (justUpdated === '1') {
       sessionStorage.removeItem('justUpdated');
-      this.toastr.success('App aggiornata all’ultima versione ✅', 'Aggiornamento', {
-        timeOut: 4000
-      });
+      this.toastr.success('App aggiornata all’ultima versione ✅', 'Aggiornamento', { timeOut: 4000 });
     }
 
-    // Modalità scura
+    // Dark mode
     const savedMode = localStorage.getItem('darkMode');
     if (savedMode === null) {
       this.darkMode = true;
@@ -63,26 +100,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.currentLang = savedLang || (browserLang?.match(/en|it/) ? browserLang : 'en');
     this.translate.use(this.currentLang);
 
-    // Effetto animazione navbar
+    // Effetto navbar
     setTimeout(() => this.triggerNavbarAnimation(), 100);
 
-    // ====== CHAT REALTIME per badge navbar ======
-    // se l'utente è loggato, assicura la connessione realtime
-    if (this.authService.isLoggedIn()) {
-      this.realtime.connect();
-    }
-
-    // inizializza il totale non letti da localStorage (se presente)
-    this.unreadTotal = this.loadTotalUnreadFromStorage();
-
-    // ascolta gli aggiornamenti del totale non letti
-    this.subs.push(
-      this.realtime.totalUnread$.subscribe(n => {
-        this.unreadTotal = n;
-      })
-    );
-
-    // ====== AGGIORNAMENTI PWA: AUTO + TOAST ======
+    // ====== AGGIORNAMENTI PWA ======
     if (this.swUpdate?.isEnabled) {
       this.swUpdate.versionUpdates.subscribe((e: VersionEvent) => {
         switch (e.type) {
@@ -103,13 +124,12 @@ export class AppComponent implements OnInit, OnDestroy {
         }
       });
 
-      // Controlli aggiornamenti:
-      this.checkForUpdateSafe(); // all’avvio
+      this.checkForUpdateSafe();
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') this.checkForUpdateSafe();
       });
       window.addEventListener('online', () => this.checkForUpdateSafe());
-      setInterval(() => this.checkForUpdateSafe(), 5 * 60 * 1000); // ogni 5 min
+      setInterval(() => this.checkForUpdateSafe(), 5 * 60 * 1000);
     }
   }
 
@@ -117,46 +137,19 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  private loadTotalUnreadFromStorage(): number {
-    try {
-      const raw = localStorage.getItem('chat_unread');
-      if (!raw) return 0;
-      const obj = JSON.parse(raw);
-      let tot = 0;
-      for (const k of Object.keys(obj)) {
-        const v = Number((obj as any)[k]);
-        if (v > 0) tot += v;
-      }
-      return tot;
-    } catch {
-      return 0;
-    }
-  }
-
   private async checkForUpdateSafe() {
-    try {
-      await this.swUpdate?.checkForUpdate();
-    } catch {
-      // ignora eventuali errori silenziosamente
-    }
+    try { await this.swUpdate?.checkForUpdate(); } catch {}
   }
 
   private async activateUpdateAndReload() {
-    try {
-      await this.swUpdate?.activateUpdate();
-    } catch {
-      // anche se fallisce l'attivazione esplicita, il reload solitamente riallinea
-    }
+    try { await this.swUpdate?.activateUpdate(); } catch {}
     location.reload();
   }
 
-  // ====== UI esistente ======
-
+  // ====== UI ======
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
-    if (window.scrollY === 0) {
-      this.triggerNavbarAnimation();
-    }
+    if (window.scrollY === 0) this.triggerNavbarAnimation();
   }
 
   @HostListener('document:click', ['$event'])
@@ -171,7 +164,6 @@ export class AppComponent implements OnInit, OnDestroy {
     const navbar = document.querySelector('.navbar');
     if (navbar) {
       navbar.classList.remove('animate-in');
-      // Forza reflow per ripristinare animazione
       void (navbar as HTMLElement).offsetWidth;
       navbar.classList.add('animate-in');
     }
@@ -222,12 +214,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.closeMenu();
   }
 
-  get isLightMode(): boolean {
-    return !this.darkMode;
-  }
-
-  // 🔒 esposto al template per mostrare la voce "Chat" solo ai loggati (se vuoi usarlo nel template)
-  get isLoggedIn(): boolean {
-    return this.authService.isLoggedIn();
-  }
+  get isLightMode(): boolean { return !this.darkMode; }
+  get isLoggedIn(): boolean { return this.authService.isLoggedIn(); }
 }

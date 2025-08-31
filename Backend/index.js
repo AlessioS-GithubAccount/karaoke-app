@@ -1331,6 +1331,24 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('users:online', { id: u.id, username: u.username });
   }
 
+  // 👉👉 NUOVO: gestione offline/online manuale
+  socket.on('presence:manual', ({ off }) => {
+    if (off) {
+      // disconnette TUTTE le socket dell’utente (tutte le tab)
+      const set = socketsByUser.get(u.id);
+      if (set) {
+        for (const sid of Array.from(set)) {
+          const s = io.sockets.sockets.get(sid);
+          try { s?.disconnect(true); } catch {}
+        }
+      }
+      // Niente broadcast qui: il cleanup/disconnect di ognuna
+      // attiverà già la rimozione e il broadcast finale quando l’ultima socket si chiude.
+    } else {
+      // il client tornerà online con la normale connect()
+    }
+  });
+
   // stanza globale
   socket.join('global');
 

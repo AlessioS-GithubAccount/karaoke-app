@@ -16,6 +16,10 @@ export interface ChatMessage {
 
 @Injectable({ providedIn: 'root' })
 export class ChatRealtimeService {
+  // ===== Config presenza =====
+  private readonly PRESENCE_TTL_MS = 60 * 60 * 1000; // 1 ora
+  private readonly CHECK_INTERVAL_MS = 15 * 1000;    // ogni 15s ricontrollo
+
   private socket?: Socket;
   private myUserId: number | null = null;
 
@@ -41,20 +45,116 @@ export class ChatRealtimeService {
   private _totalUnread = new BehaviorSubject<number>(0);
   public  totalUnread$ = this._totalUnread.asObservable();
 
+  // === MANUAL OFFLINE (toggle utente) ===
+  private _manualOffline = new BehaviorSubject<boolean>(this.readManualOffline());
+  public  manualOffline$ = this._manualOffline.asObservable();
+  get manualOffline(): boolean { return this._manualOffline.value; }
+
+  // Presence manager
+  private presenceTimer: number | null = null;
+  private presenceInited = false;
+
+  // Unload hooks
+  private unloadHooksInstalled = false;
+  private onBeforeUnload = () => {
+    // Aggiorna il "lastActivity" così il server ti tiene in grace 1h anche se chiudi la tab
+    try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
+    // Non mandiamo nessun "manual offline" qui.
+  };
+  private onPageHide = () => {
+    try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
+  };
+  private onVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
+    } else {
+      // al ritorno in foreground, conta come attività
+      this.touchActivity();
+    }
+  };
+
+  // ====== API Presenza pubbliche ======
+
+  /** Segna attività (click/scroll/route change/...) e salva in localStorage. */
+  touchActivity(): void {
+    localStorage.setItem('presence.lastActivity', String(Date.now()));
+    if (!this.manualOffline) {
+      this.ensureConnected();
+    }
+  }
+
+  /**
+   * Installa gli hook di unload/visibilità per mantenere aggiornato lastActivity
+   * anche quando l’utente chiude la tab o passa in background.
+   */
+  installUnloadHooks(): void {
+    if (this.unloadHooksInstalled) return;
+    this.unloadHooksInstalled = true;
+
+    window.addEventListener('beforeunload', this.onBeforeUnload);
+    // pagehide copre Safari/iOS
+    window.addEventListener('pagehide', this.onPageHide);
+    document.addEventListener('visibilitychange', this.onVisibilityChange, { passive: true as any });
+  }
+
+  /**
+   * Avvia il gestore di presenza globale: mantiene online l’utente
+   * per 1h dall’ultima attività in app, anche fuori dal componente Chat.
+   * Può essere chiamato più volte, è idempotente.
+   */
+  initPresenceManager(): void {
+    if (this.presenceInited) return;
+    this.presenceInited = true;
+
+    // Primo check immediato
+    this.evaluatePresence();
+
+    // Storage listener → sincronizza attività tra TAB/finestre
+    window.addEventListener('storage', this.onStorageActivity);
+
+    // Timer periodico per valutare presenza
+    this.presenceTimer = window.setInterval(() => this.evaluatePresence(), this.CHECK_INTERVAL_MS);
+  }
+
+  /**
+   * Imposta manualmente offline/online.
+   * - true  => offline forzato (disconnessione immediata, scompari dalla lista)
+   * - false => torni gestito dal presence manager (se c’è attività < 1h, resti connesso)
+   */
+  setManualOffline(off: boolean): void {
+    localStorage.setItem('presence.manualOffline', off ? '1' : '0');
+    this._manualOffline.next(off);
+
+    if (off) {
+      // Avvisa il server che vai OFFLINE manualmente
+      try { this.socket?.emit('presence:manual', { off: true }); } catch {}
+      // Stacca la socket locale
+      this.disconnect();
+    } else {
+      // 👉 NUOVO: avvisa il server che torni a gestione automatica (facoltativo ma pulito)
+      try { this.socket?.emit('presence:manual', { off: false }); } catch {}
+      // Torno online: registro attività per innescare la connessione
+      this.touchActivity();
+    }
+  }
+
+  // ====== Socket & Chat ======
+
   connect(): void {
     if (this.socket?.connected) return;
+    if (this.manualOffline) return; // non connettere se utente ha scelto offline
 
-    // Prendo il token e tolgo un eventuale prefisso "Bearer "
     const raw = localStorage.getItem('token') || '';
     const token = raw.replace(/^Bearer\s+/i, '');
 
-    // Ricavo il mio userId dal JWT (se presente)
     try {
       const payload = JSON.parse(atob((token.split('.')[1] || '')));
       this.myUserId = typeof payload?.id === 'number' ? payload.id : null;
     } catch {
       this.myUserId = null;
     }
+
+    if (!token) return; // se non loggato, non connettere
 
     this.socket = io(environment.wsUrl, {
       path: '/socket.io',
@@ -67,10 +167,6 @@ export class ChatRealtimeService {
 
     this.socket.on('connect', () => {
       this.socket?.emit('presence:get');
-
-      // invia (se esiste) lo stato manuale salvato
-      const manualOnline = localStorage.getItem('chat:manualOnline') !== '0';
-      this.emitPresenceManual(manualOnline);
     });
 
     this.socket.on('connect_error', (err: any) => {
@@ -96,7 +192,6 @@ export class ChatRealtimeService {
     });
     this.socket.on('users:offline', (u: OnlineUser) => {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
-      // contatori non toccati
     });
     this.socket.on('presence:update', (u: OnlineUser & { status?: string }) => {
       const cur = this._onlineUsers.value.slice();
@@ -143,21 +238,9 @@ export class ChatRealtimeService {
     this.socket.on('chat:dm:message', handleIncoming);
   }
 
-  /** Imposta lo stato manuale (salva in storage + notifica il server se supportato) */
-  setManualOnline(online: boolean): void {
-    localStorage.setItem('chat:manualOnline', online ? '1' : '0');
-    this.emitPresenceManual(online);
-  }
-
-  private emitPresenceManual(online: boolean): void {
-    if (!this.socket?.connected) return;
-    // Se il backend lo supporta, comunichiamo lo stato (altrimenti viene ignorato)
-    this.socket.emit('presence:manual', { online });
-  }
-
   selectPeer(u: OnlineUser): void {
     this._activePeer.next(u);
-    this.markRead(u.id); // azzera subito quando apro
+    this.markRead(u.id); // azzero subito quando apro
     if (!this.socket?.connected) return;
     this.socket.emit('chat:dm:open', { peerId: u.id });
   }
@@ -165,15 +248,20 @@ export class ChatRealtimeService {
   sendToActive(text: string): void {
     const peer = this._activePeer.value;
     if (!peer || !this.socket?.connected) return;
-    this.socket.emit('chat:send', { to: peer.id, text });
-    // il server farà eco con 'chat:message'
+    // lato server gestiamo "chat:dm:send"
+    this.socket.emit('chat:dm:send', { to: peer.id, text });
   }
 
   disconnect(): void {
-    this.socket?.removeAllListeners();
-    this.socket?.disconnect();
-    this.socket = undefined;
-    this.seenIds.clear();
+    try {
+      this.socket?.removeAllListeners();
+      this.socket?.disconnect();
+    } finally {
+      this.socket = undefined;
+      this.seenIds.clear();
+      // Svuoto la lista online (server non spingerà più aggiornamenti)
+      this._onlineUsers.next([]);
+    }
   }
 
   // ===== UNREAD API =====
@@ -251,4 +339,50 @@ export class ChatRealtimeService {
     map.forEach(v => { if (v > 0) tot += v; });
     this._totalUnread.next(tot);
   }
+
+  // ===== Presence manager internals =====
+  private evaluatePresence(): void {
+    if (this.manualOffline) {
+      // Offline forzato → disconnetti subito
+      this.disconnect();
+      return;
+    }
+
+    const last = this.readLastActivity();
+    const age = Date.now() - last;
+
+    if (age <= this.PRESENCE_TTL_MS) {
+      // Attività recente → assicurati connesso
+      this.ensureConnected();
+    } else {
+      // Inattivo da > 1h → disconnetti
+      this.disconnect();
+    }
+  }
+
+  private ensureConnected(): void {
+    if (!this.socket?.connected) {
+      this.connect();
+    }
+  }
+
+  private readLastActivity(): number {
+    const v = Number(localStorage.getItem('presence.lastActivity') || 0);
+    return Number.isFinite(v) && v > 0 ? v : Date.now();
+    // default: se non c'è, considero ora (ti porta online appena apri l'app)
+  }
+
+  private readManualOffline(): boolean {
+    return localStorage.getItem('presence.manualOffline') === '1';
+  }
+
+  private onStorageActivity = (e: StorageEvent) => {
+    if (e.key === 'presence.lastActivity' || e.key === 'presence.manualOffline') {
+      // sincronizza stato tra tab
+      if (e.key === 'presence.manualOffline') {
+        this._manualOffline.next(this.readManualOffline());
+      }
+      this.evaluatePresence();
+    }
+  };
 }
