@@ -161,31 +161,16 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.realtime.selectPeer(u);
   }
 
+  /**
+   * Invio senza echo locale: niente push nel thread.
+   * Il messaggio apparirà quando rientra via `chat:dm:message` dal server.
+   */
   send(): void {
     const text = this.inputText.trim();
     if (!text || !this.activePeer) return;
 
     this.realtime.sendToActive(text);
-
-    const ui: UiMessage = {
-      id: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
-      author: this.getMyUsername(),
-      text,
-      time: new Date(),
-      me: true,
-    };
-    const pid = this.activePeer.id;
-    const arr = this.messagesByPeer.get(pid) || [];
-    arr.push(ui);
-    if (arr.length > ChatComponent.THREAD_MAX) {
-      arr.splice(0, arr.length - ChatComponent.THREAD_MAX);
-    }
-    this.messagesByPeer.set(pid, arr);
-    this.messages = arr.slice();
     this.inputText = '';
-
-    this.realtime.markRead(pid);
-    this.persistThread(pid, arr);
 
     setTimeout(() => {
       const el = document.getElementById('chat-scroll');
