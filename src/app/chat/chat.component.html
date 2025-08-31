@@ -13,105 +13,108 @@
 
 <!-- 💬 Layout con sidebar contatti + thread -->
 <ng-template #chatLayout>
-<!-- 🔘 Presenza: btn toggle Online/Offline, separato dalla lista -->
-      <div class="presence-box">
-        <div class="presence-row">
-          <span class="status-dot" [class.off]="!isOnline"></span>
-          <span class="status-text" [class.off]="!isOnline">
-            {{ isOnline ? 'Status: Online' : 'Status: Offline' }}
-          </span>
+  <!-- ✅ WRAPPER A COLONNA CHE OCCUPA TUTTA L’ALTEZZA -->
+  <div class="chat-wrap">
 
-          <button class="presence-btn" (click)="toggleOnline()">
-            <i [class]="'fas ' + (isOnline ? 'fa-toggle-on' : 'fa-toggle-off')"></i>
-            <span>{{ isOnline ? 'Switch offline' : 'Switch online' }}</span>
+    <!-- 🔘 Presenza: btn toggle Online/Offline -->
+    <div class="presence-box">
+      <div class="presence-row">
+        <span class="status-dot" [class.off]="!isOnline"></span>
+        <span class="status-text" [class.off]="!isOnline">
+          {{ isOnline ? 'Status: Online' : 'Status: Offline' }}
+        </span>
+
+        <button class="presence-btn" (click)="toggleOnline()" [class.is-offline]="!isOnline">
+          <i [class]="'fas ' + (isOnline ? 'fa-toggle-on' : 'fa-toggle-off')"></i>
+          <span>{{ isOnline ? 'Switch offline' : 'Switch online' }}</span>
+        </button>
+      </div>
+      <hr />
+    </div>
+
+    <!-- 💬 Griglia chat (ora prende lo spazio rimanente) -->
+    <div class="chat two-cols layout-animate">
+      <!-- Sidebar con utenti online -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h3 class="title-userList">{{ 'chat.onlineUsers' | translate }}</h3>
+        </div>
+
+        <div class="users" *ngIf="online.length; else noOnline">
+          <button
+            class="user-item"
+            *ngFor="let u of online; trackBy: trackByIndex"
+            [class.active]="activePeer?.id === u.id"
+            (click)="selectPeer(u)"
+          >
+            <span class="avatar">{{ (u.username || '').charAt(0) | uppercase }}</span>
+
+            <div class="meta">
+              <div class="name">{{ u.username }}</div>
+              <div class="status">{{ 'chat.statusOnline' | translate }}</div>
+            </div>
+
+            <!-- Badge non letti per peer -->
+            <span class="badge" *ngIf="unreadByPeer && unreadByPeer[u.id] > 0">
+              {{ unreadByPeer[u.id] }}
+            </span>
           </button>
         </div>
-        <hr />
-      </div>
 
-  <div class="chat two-cols layout-animate">
-    <!-- Sidebar con utenti online -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h3 class="title-userList">{{ 'chat.onlineUsers' | translate }}</h3>
-      </div>
-
-      
-
-      <div class="users" *ngIf="online.length; else noOnline">
-        <button
-          class="user-item"
-          *ngFor="let u of online; trackBy: trackByIndex"
-          [class.active]="activePeer?.id === u.id"
-          (click)="selectPeer(u)"
-        >
-          <span class="avatar">{{ (u.username || '').charAt(0) | uppercase }}</span>
-
-          <div class="meta">
-            <div class="name">{{ u.username }}</div>
-            <div class="status">{{ 'chat.statusOnline' | translate }}</div>
+        <ng-template #noOnline>
+          <div class="empty">
+            <i class="fas fa-user-slash"></i>
+            <p>{{ 'chat.noOnline' | translate }}</p>
           </div>
+        </ng-template>
+      </aside>
 
-          <!-- Badge non letti per peer -->
-          <span class="badge" *ngIf="unreadByPeer && unreadByPeer[u.id] > 0">
-            {{ unreadByPeer[u.id] }}
-          </span>
-        </button>
-      </div>
+      <!-- Pannello chat -->
+      <section class="panel">
+        <header class="thread-header" *ngIf="activePeer as peer; else pickPeer">
+          <div class="peer">
+            <span class="avatar">{{ (peer.username || '').charAt(0) | uppercase }}</span>
+            <div>
+              <div class="name">{{ peer.username }}</div>
+              <div class="status dm">{{ 'chat.privateDm' | translate }}</div>
+            </div>
+          </div>
+        </header>
 
-      <ng-template #noOnline>
-        <div class="empty">
-          <i class="fas fa-user-slash"></i>
-          <p>{{ 'chat.noOnline' | translate }}</p>
-        </div>
-      </ng-template>
-    </aside>
+        <ng-template #pickPeer>
+          <div class="thread-empty">
+            <i class="fas fa-comments"></i>
+            <p>{{ 'chat.pickPeer' | translate }}</p>
+          </div>
+        </ng-template>
 
-    <!-- Pannello chat -->
-    <section class="panel">
-      <header class="thread-header" *ngIf="activePeer as peer; else pickPeer">
-        <div class="peer">
-          <span class="avatar">{{ (peer.username || '').charAt(0) | uppercase }}</span>
-          <div>
-            <div class="name">{{ peer.username }}</div>
-            <div class="status dm">{{ 'chat.privateDm' | translate }}</div>
+        <div class="messages" id="chat-scroll" *ngIf="activePeer">
+          <div
+            class="message"
+            *ngFor="let m of messages; trackBy: trackByIndex"
+            [class.me]="m.me"
+          >
+            <div class="meta">
+              <span class="author">{{ m.author }}</span>
+              <span class="time">{{ m.time | date:'shortTime' }}</span>
+            </div>
+            <div class="bubble">{{ m.text }}</div>
           </div>
         </div>
-      </header>
 
-      <ng-template #pickPeer>
-        <div class="thread-empty">
-          <i class="fas fa-comments"></i>
-          <p>{{ 'chat.pickPeer' | translate }}</p>
+        <div class="composer" *ngIf="activePeer">
+          <input
+            type="text"
+            [(ngModel)]="inputText"
+            [placeholder]="'chat.placeholder' | translate"
+            (keydown.enter)="send()"
+            autocomplete="off"
+          />
+          <button class="btn" (click)="send()">
+            <i class="fas fa-paper-plane"></i> {{ 'chat.send' | translate }}
+          </button>
         </div>
-      </ng-template>
-
-      <div class="messages" id="chat-scroll" *ngIf="activePeer">
-        <div
-          class="message"
-          *ngFor="let m of messages; trackBy: trackByIndex"
-          [class.me]="m.me"
-        >
-          <div class="meta">
-            <span class="author">{{ m.author }}</span>
-            <span class="time">{{ m.time | date:'shortTime' }}</span>
-          </div>
-          <div class="bubble">{{ m.text }}</div>
-        </div>
-      </div>
-
-      <div class="composer" *ngIf="activePeer">
-        <input
-          type="text"
-          [(ngModel)]="inputText"
-          [placeholder]="'chat.placeholder' | translate"
-          (keydown.enter)="send()"
-          autocomplete="off"
-        />
-        <button class="btn" (click)="send()">
-          <i class="fas fa-paper-plane"></i> {{ 'chat.send' | translate }}
-        </button>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </ng-template>

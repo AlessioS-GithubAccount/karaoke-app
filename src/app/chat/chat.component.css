@@ -8,17 +8,29 @@
 }
 
 /* ===========================
+   Wrapper verticale (presence + chat)
+   =========================== */
+.chat-wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* fondamentale per lo scroll dei figli */
+}
+
+/* ===========================
    Layout base
    =========================== */
 .chat.two-cols {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 0;
-  height: 100%;
-  max-height: 100%;
-  overflow: hidden;
+  /* height/max-height rimossi: il wrapper gestisce l'altezza */
   background: var(--background-color, #0f1222);
   color: var(--text-color, #e9ecf1);
+
+  /* cresce per occupare lo spazio rimanente nel wrapper */
+  flex: 1 1 auto;
+  min-height: 0; /* abilita scroll interno ai figli (.panel/.messages) */
 }
 
 /* leggero fade-in del layout quando appare */
@@ -101,7 +113,7 @@
 }
 .presence-btn:active{ transform: translateY(1px); }
 .presence-btn:hover{ filter: brightness(1.05); }
-/* colore icona: verde se online, rosso se offline (aggiungi la classe .is-offline dal template se vuoi) */
+/* colore icona: verde se online, rosso se offline */
 .presence-btn i { color: #2fcf7a; }
 .presence-btn.is-offline i { color: #ff3b3b; }
 
@@ -355,7 +367,7 @@
 .composer .btn:hover { filter: brightness(1.05); }
 
 /* ===========================
-   Gate (login richiesto) – stile Prenota Canzoni
+   Gate (login richiesto)
    =========================== */
 .chat-login-gate {
   display:flex; align-items:center; justify-content:center;
