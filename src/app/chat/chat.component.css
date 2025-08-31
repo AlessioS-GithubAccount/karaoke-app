@@ -1,15 +1,24 @@
 /* ===========================
+   Root component: blocca scroll pagina
+   =========================== */
+:host {
+  display: block;
+  height: calc(100vh - var(--navbar-height, 60px));
+  overflow: hidden; /* no scroll della pagina */
+}
+
+/* ===========================
    Layout base
    =========================== */
 .chat.two-cols {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 0;
-  height: calc(100vh - 120px);
-  max-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
-  background: var(--c-bg, #0f1222);
-  color: var(--c-fg, #e9ecf1);
+  background: var(--background-color, #0f1222);
+  color: var(--text-color, #e9ecf1);
 }
 
 /* leggero fade-in del layout quando appare */
@@ -21,15 +30,25 @@
    Sidebar
    =========================== */
 .sidebar {
-  padding: 18px 18px 14px;  /* più respiro ai lati */
-  overflow: visible;        /* non taglia gli shadow dei figli */
   border-right: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 10px;
+  overflow: hidden;             /* nessuno scroll della sidebar */
   display: flex;
   flex-direction: column;
+  min-height: 0;                /* fondamentale per lo scroll del figlio (.users) */
+
+  /* hide scrollbar se la sidebar stessa dovesse scorrere su layout piccoli */
+  -ms-overflow-style: none;     /* IE/Edge legacy */
+  scrollbar-width: none;        /* Firefox */
+}
+.sidebar::-webkit-scrollbar {   /* Chrome/Safari/Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .sidebar-header {
   padding: 6px 6px 12px 6px;
+  margin-left: 1rem;
 }
 .sidebar-header h3 {
   margin: 0;
@@ -38,67 +57,136 @@
   opacity: .9;
 }
 
+/* ==== Btn online/offline ==== */
+.presence-box{
+  margin-left: 2rem;
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2fcf7a;           /* online (verde) */
+  box-shadow: 0 0 10px rgba(47,207,122,.6);
+  flex: 0 0 10px;
+}
+.status-dot.off{
+  background: #ff3b3b;           /* offline (rosso) */
+  box-shadow: 0 0 10px rgba(255,59,59,.5);
+}
+
+.status-text{
+  font-size: 12px;
+  opacity: .9;
+}
+.status-text.off{ color: #ff7b7b; }
+
+.presence-btn{
+  margin-left: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--button-gradient-1, #4b6bfb), var(--button-gradient-2, #9f67ff));
+  color: var(--text-color, #fff);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--glow-color, rgba(243,130,255,0.4));
+  transition: transform .06s ease-in-out, filter .15s;
+}
+.presence-btn:active{ transform: translateY(1px); }
+.presence-btn:hover{ filter: brightness(1.05); }
+/* colore icona: verde se online, rosso se offline (aggiungi la classe .is-offline dal template se vuoi) */
+.presence-btn i { color: #2fcf7a; }
+.presence-btn.is-offline i { color: #ff3b3b; }
+
 /* ===========================
    Lista utenti
    =========================== */
 .users {
   margin-top: 10px;
-  padding: 16px 14px 24px;  /* padding più ampio: evita clip top/bottom e aiuta gli shadow */
-  overflow-y: auto;
-  overflow-x: hidden;
+  flex: 1 1 auto;               /* riempie lo spazio verticale della sidebar */
+  min-height: 0;                /* abilita lo scroll interno */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px;                /* respiro extra per ombre e avatar a sinistra */
 
-  /* nascondi scrollbar visivamente */
-  -ms-overflow-style: none;   /* IE/Edge legacy */
-  scrollbar-width: none;      /* Firefox */
+  /* HIDE SCROLLBARS (keep scroll) */
+  -ms-overflow-style: none;     /* IE/Edge legacy */
+  scrollbar-width: none;        /* Firefox */
 }
-.users::-webkit-scrollbar {    /* Chrome/Safari/Edge Chromium */
-  display: none;
+.users::-webkit-scrollbar {     /* Chrome/Safari/Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+.users::-webkit-scrollbar-thumb,
+.users::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+/* spazio respirazione in fondo così l'ultima card non viene "tagliata" */
+.users::after {
+  content: "";
+  display: block;
+  height: 8px;
 }
 
-/* Card utente: shadow contenuto e niente overflow */
 .user-item {
-  box-sizing: border-box;   /* padding/border inclusi nella larghezza */
   width: 100%;
-  max-width: 100%;
-  margin: 10px 0;           /* niente margini laterali per evitare sforamento */
-  padding: 12px 14px 12px 20px; /* + padding sinistro per staccare l’avatar dal bordo */
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.28);
-  display: flex;
-  align-items: center;
-  gap: 12px;                /* più spazio tra avatar e testo */
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.08);
   color: inherit;
   text-align: left;
+
+  display:flex; align-items:center; gap:12px;
+  padding: 10px 12px 10px 14px;  /* +padding sinistra per allontanare l'avatar dal bordo */
+  margin: 8px 4px;               /* respiro vs i bordi del contenitore */
+  border-radius: 12px;
   cursor: pointer;
-  transition: background .15s ease, transform .08s ease, box-shadow .15s ease;
+
+  /* shadow box per ogni contatto online */
+  box-shadow: 0 0 10px 0 var(--glow-color, rgba(243,130,255,0.35));
+  transition:
+    background .15s ease-in-out,
+    transform .06s ease-in-out,
+    box-shadow .2s ease-in-out,
+    border-color .2s ease-in-out;
+  position: relative; /* per il badge a destra */
 }
 .user-item:hover {
-  background: rgba(255,255,255,0.06);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.34);
-  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+  box-shadow:
+    0 0 16px 0 var(--glow-color, rgba(243,130,255,0.55)),
+    0 0 8px 0 var(--accent-hover, rgba(0,255,255,0.25));
 }
 .user-item.active {
-  background: rgba(75,107,251,.18);
+  background: rgba(75,107,251,.22);
   border-color: rgba(75,107,251,.35);
-  box-shadow: 0 6px 20px rgba(75,107,251,.28);
+  box-shadow: 0 0 18px 0 var(--accent-hover, rgba(0,255,255,0.35));
 }
+.user-item:active { transform: scale(.99); }
 
 .user-item .avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: #2b2f4a;
   color: #cdd7ff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex; align-items:center; justify-content:center;
   font-weight: 700;
-  flex: 0 0 36px;          /* evita schiacciamenti */
+  flex: 0 0 34px;
 }
-.user-item .meta { display:flex; flex-direction:column; gap:2px; min-width: 0; }
-.user-item .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-item .meta {
+  display:flex; flex-direction:column; gap:2px;
+  min-width: 0; /* per evitare overflow del testo */
+}
+.user-item .name {
+  font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 160px;
+}
 .user-item .status { font-size: 11px; opacity: .8; }
 .user-item .status.online { color: #52d17f; }
 
@@ -137,6 +225,7 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   height: 100%;
+  min-height: 0; /* abilita lo scroll del figlio .messages */
 }
 
 /* Header thread */
@@ -171,24 +260,25 @@
 .thread-empty i { font-size: 36px; }
 
 /* ===========================
-   Messaggi
+   Messaggi (scroll invisibile)
    =========================== */
 .messages {
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 
+  /* hide scrollbar */
   -ms-overflow-style: none;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  min-height: 0; /* essenziale per scroll in grid */
 }
-.messages::-webkit-scrollbar { width: 6px; }
-.messages::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.12);
-  border-radius: 6px;
+.messages::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
 }
-.messages::-webkit-scrollbar-track { background: transparent; }
 
 .message {
   max-width: 70%;
@@ -206,7 +296,9 @@
   opacity: .8;
   display:flex; gap: 8px;
 }
-.message.me .meta { justify-content: flex-end; }
+.message.me .meta {
+  justify-content: flex-end;
+}
 .bubble {
   padding: 10px 12px;
   border-radius: 14px;
@@ -244,8 +336,12 @@
 
 .composer .btn {
   flex: 0 0 auto;
-  background: #4b6bfb;
-  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--button-gradient-1, #4b6bfb),
+    var(--button-gradient-2, #9f67ff)
+  );
+  color: var(--text-color, #fff);
   border: none;
   border-radius: 12px;
   padding: 0 14px;
@@ -263,7 +359,7 @@
    =========================== */
 .chat-login-gate {
   display:flex; align-items:center; justify-content:center;
-  min-height: calc(100vh - 120px);
+  height: 100%;
   padding: 32px 16px;
 }
 
@@ -283,7 +379,7 @@
 .gate-card .subtitle { opacity: .9; margin: 0 0 16px 0; }
 .gate-card .actions { display:flex; justify-content:center; }
 
-/* bottone stile “Prenota Canzoni” (+ fallback) */
+/* bottone stile globale */
 .btn1 {
   font-size: 0.95rem;
   padding: 0.55rem 1rem;
@@ -315,15 +411,23 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 @keyframes neonAlertPink {
-  0%, 100% { box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40); transform: translateX(0); }
-  50% { box-shadow: 0 0 15px 4px rgba(243, 130, 255, 0.60); transform: translateX(1px); }
+  0%, 100% {
+    box-shadow: 0 0 15px 2px rgba(243, 130, 255, 0.40);
+    transform: translateX(0);
+  }
+  50% {
+    box-shadow: 0 0 15px 4px rgba(243, 130, 255, 0.60);
+    transform: translateX(1px);
+  }
   60% { transform: translateX(1px); }
 }
 @keyframes fadeInMsg {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.alert-animated { animation: fadeInSoft 0.9s ease-out both; }
+.alert-animated {
+  animation: fadeInSoft 0.9s ease-out both;
+}
 
 /* ===========================
    Responsive
@@ -331,20 +435,20 @@
 @media (max-width: 960px) {
   .chat.two-cols {
     grid-template-columns: 1fr;
-    height: calc(100vh - 96px);
   }
   .sidebar {
     height: 40vh;
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
-  .panel { height: 60vh; }
+  .panel {
+    height: calc(100% - 40vh);
+    min-height: 0;  /* mantiene lo scroll interno ai messaggi */
+  }
 }
 
 @media (max-width: 480px) {
-  .sidebar { padding: 16px 12px 12px; }
-  .users   { padding: 14px 10px 20px; }
-  .user-item { margin: 8px 0; padding-left: 18px; }
   .gate-card { padding: 18px; }
   .btn1 { font-size: 0.85rem; }
+  .user-item .name { max-width: 120px; }
 }

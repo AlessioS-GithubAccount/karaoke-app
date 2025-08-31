@@ -13,12 +13,30 @@
 
 <!-- 💬 Layout con sidebar contatti + thread -->
 <ng-template #chatLayout>
+<!-- 🔘 Presenza: btn toggle Online/Offline, separato dalla lista -->
+      <div class="presence-box">
+        <div class="presence-row">
+          <span class="status-dot" [class.off]="!isOnline"></span>
+          <span class="status-text" [class.off]="!isOnline">
+            {{ isOnline ? 'Status: Online' : 'Status: Offline' }}
+          </span>
+
+          <button class="presence-btn" (click)="toggleOnline()">
+            <i [class]="'fas ' + (isOnline ? 'fa-toggle-on' : 'fa-toggle-off')"></i>
+            <span>{{ isOnline ? 'Switch offline' : 'Switch online' }}</span>
+          </button>
+        </div>
+        <hr />
+      </div>
+
   <div class="chat two-cols layout-animate">
     <!-- Sidebar con utenti online -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h3>{{ 'chat.onlineUsers' | translate }}</h3>
+        <h3 class="title-userList">{{ 'chat.onlineUsers' | translate }}</h3>
       </div>
+
+      
 
       <div class="users" *ngIf="online.length; else noOnline">
         <button

@@ -23,6 +23,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   online: OnlineUser[] = [];
   activePeer: OnlineUser | null = null;
 
+  // Stato presenza manuale (UI + storage)
+  isOnline = true;
+
   // Stato chat
   inputText = '';
   messages: UiMessage[] = [];                     // thread attivo
@@ -39,6 +42,12 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.mustLogin = !Boolean(localStorage.getItem('token'));
+
+    // Presenza manuale: carico da storage (default true)
+    const saved = localStorage.getItem('chat:manualOnline');
+    this.isOnline = saved !== '0';
+    this.realtime.setManualOnline(this.isOnline);
+
     this.realtime.connect();
 
     // Presence list
@@ -115,6 +124,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     // focus/blur finestra: se torno con un peer aperto, azzero
     window.addEventListener('focus', this.onFocus);
     window.addEventListener('blur', this.onBlur);
+  }
+
+  /** Toggle online/offline (UI + storage + ping servizio) */
+  toggleOnline(): void {
+    this.isOnline = !this.isOnline;
+    localStorage.setItem('chat:manualOnline', this.isOnline ? '1' : '0');
+    this.realtime.setManualOnline(this.isOnline);
   }
 
   selectPeer(u: OnlineUser): void {

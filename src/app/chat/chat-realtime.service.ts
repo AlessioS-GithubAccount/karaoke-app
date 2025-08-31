@@ -63,11 +63,14 @@ export class ChatRealtimeService {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 600,
       auth: { token }, // token nudo, senza "Bearer"
-      // NB: extraHeaders in browser sono ignorati
     });
 
     this.socket.on('connect', () => {
       this.socket?.emit('presence:get');
+
+      // invia (se esiste) lo stato manuale salvato
+      const manualOnline = localStorage.getItem('chat:manualOnline') !== '0';
+      this.emitPresenceManual(manualOnline);
     });
 
     this.socket.on('connect_error', (err: any) => {
@@ -93,7 +96,7 @@ export class ChatRealtimeService {
     });
     this.socket.on('users:offline', (u: OnlineUser) => {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
-      // non tocchiamo i contatori (restano i non letti)
+      // contatori non toccati
     });
     this.socket.on('presence:update', (u: OnlineUser & { status?: string }) => {
       const cur = this._onlineUsers.value.slice();
@@ -140,9 +143,21 @@ export class ChatRealtimeService {
     this.socket.on('chat:dm:message', handleIncoming);
   }
 
+  /** Imposta lo stato manuale (salva in storage + notifica il server se supportato) */
+  setManualOnline(online: boolean): void {
+    localStorage.setItem('chat:manualOnline', online ? '1' : '0');
+    this.emitPresenceManual(online);
+  }
+
+  private emitPresenceManual(online: boolean): void {
+    if (!this.socket?.connected) return;
+    // Se il backend lo supporta, comunichiamo lo stato (altrimenti viene ignorato)
+    this.socket.emit('presence:manual', { online });
+  }
+
   selectPeer(u: OnlineUser): void {
     this._activePeer.next(u);
-    this.markRead(u.id); // azzero subito quando apro
+    this.markRead(u.id); // azzera subito quando apro
     if (!this.socket?.connected) return;
     this.socket.emit('chat:dm:open', { peerId: u.id });
   }
@@ -151,7 +166,7 @@ export class ChatRealtimeService {
     const peer = this._activePeer.value;
     if (!peer || !this.socket?.connected) return;
     this.socket.emit('chat:send', { to: peer.id, text });
-    // il server farà eco con 'chat:message' (mio), ma NON deve aumentare unread
+    // il server farà eco con 'chat:message'
   }
 
   disconnect(): void {
