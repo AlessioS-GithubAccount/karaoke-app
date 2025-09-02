@@ -45,6 +45,19 @@ export class ChatComponent implements OnInit, OnDestroy {
     return `${peerId}|${text.trim()}`;
   }
 
+  // dedup locale: clientId dei messaggi appena inviati da QUESTA tab
+  private sentClientIds = new Set<string>();
+  private rememberSent(clientId: string) {
+    this.sentClientIds.add(clientId);
+    // limita la dimensione per non crescere all'infinito
+    if (this.sentClientIds.size > 300) {
+      const first = this.sentClientIds.values().next().value;
+      if (first) this.sentClientIds.delete(first);
+    }
+    // rimuovi dopo 20s (sufficiente per eventuali rimbalzi server)
+    setTimeout(() => this.sentClientIds.delete(clientId), 20000);
+  }
+
   private storageKeyThreads = this.myUserId ? `chat:${this.myUserId}:threads` : 'chat:0:threads';
   private storageKeyUnread  = this.myUserId ? `chat:${this.myUserId}:unread`  : 'chat:0:unread';
   private storageKeyActive  = this.myUserId ? `chat:${this.myUserId}:active`  : 'chat:0:active';
@@ -54,8 +67,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.mustLogin = !Boolean(localStorage.getItem('token'));
 
-    // ❌ niente connect() qui: il service si auto-connette da solo nel constructor
-    // (ok solo segnare attività)
+    // niente connect(): il service si auto-connette
     this.realtime.touchActivity?.();
 
     this.isOnline = !this.realtime.manualOffline;
@@ -99,8 +111,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
     );
 
+    // ➜ DEDUP in arrivo con clientId
     this.subs.push(
       this.realtime.dmMessage$.subscribe((m: ChatMessage) => {
+        // Se il server ci rimanda il nostro invio con lo stesso clientId, ignoralo in QUESTA tab
+        if (m.clientId && this.sentClientIds.has(m.clientId)) return;
+
         const peerId =
           (m.userId && m.userId !== this.myUserId) ? m.userId :
           (m.toUserId && m.toUserId !== this.myUserId) ? m.toUserId :
@@ -170,11 +186,13 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.lastSig = sig;
     this.lastSendTs = now;
 
-    this.realtime.sendToActive(text);
-
+    // genera clientId e invialo al server
     const clientId = globalThis.crypto?.randomUUID?.() ?? String(now);
+    this.realtime.sendToActive(text, { clientId, time: now });
+
+    // echo locale
     const ui: UiMessage = {
-      id: clientId,
+      id: clientId, // usiamo lo stesso id dell'eco
       author: this.getMyUsername(),
       text,
       time: new Date(now),
@@ -189,6 +207,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.messages = arr.slice();
     this.inputText = '';
 
+    this.rememberSent(clientId); // <-- così ignoriamo l'eventuale rimbalzo server
     this.realtime.markRead(pid);
     this.persistThread(pid, arr);
 

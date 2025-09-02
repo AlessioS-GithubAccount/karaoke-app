@@ -7,11 +7,12 @@ export interface OnlineUser { id: number; username: string; }
 
 export interface ChatMessage {
   id: string;
+  clientId?: string;   // <- NEW: id generato dal client per dedup locale
   author: string;
   text: string;
-  time: number;      // epoch ms
-  userId: number;    // mittente
-  toUserId?: number; // destinatario (solo per DM)
+  time: number;        // epoch ms
+  userId: number;      // mittente
+  toUserId?: number;   // destinatario (solo per DM)
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,7 +24,7 @@ export class ChatRealtimeService {
   private socket?: Socket;
   private myUserId: number | null = null;
 
-  // Dedup messaggi
+  // Dedup messaggi by message-id
   private seenIds = new Set<string>();
 
   // Presence (lista peers online)
@@ -131,12 +132,20 @@ export class ChatRealtimeService {
   // ====== Socket & Chat ======
 
   connect(): void {
-    if (this.socket?.connected) return;
     if (this.manualOffline) return;
 
     const raw = localStorage.getItem('token') || '';
     const token = raw.replace(/^Bearer\s+/i, '');
     if (!token) return;
+
+    // 🔒 evita socket paralleli: chiudi eventuale istanza precedente
+    if (this.socket) {
+      try {
+        this.socket.removeAllListeners();
+        this.socket.disconnect();
+      } catch {}
+      this.socket = undefined;
+    }
 
     try {
       const payload = JSON.parse(atob((token.split('.')[1] || '')));
@@ -145,7 +154,7 @@ export class ChatRealtimeService {
       this.myUserId = null;
     }
 
-    this.socket = io(environment.wsUrl, {
+    const s = io(environment.wsUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'], // fallback robusto
       reconnection: true,
@@ -155,8 +164,9 @@ export class ChatRealtimeService {
       autoConnect: true
     });
 
+    this.socket = s;
     // Listener PRIMA dello snapshot
-    this.registerListeners(this.socket);
+    this.registerListeners(s);
   }
 
   private registerListeners(s: Socket): void {
@@ -195,7 +205,7 @@ export class ChatRealtimeService {
       }
     });
 
-    // Nuovi messaggi (dedup)
+    // Nuovi messaggi (dedup by id)
     const handleIncoming = (m: any) => {
       const mapped = this.mapIncoming(m);
       if (!mapped) return;
@@ -227,10 +237,14 @@ export class ChatRealtimeService {
     this.socket.emit('chat:dm:open', { peerId: u.id });
   }
 
-  sendToActive(text: string): void {
+  // <- NEW: accetta clientId/time per dedup locale lato component
+  sendToActive(text: string, opts?: { clientId?: string; time?: number }): void {
     const peer = this._activePeer.value;
     if (!peer || !this.socket?.connected) return;
-    this.socket.emit('chat:dm:send', { to: peer.id, text });
+    const payload: any = { to: peer.id, text };
+    if (opts?.clientId) payload.clientId = opts.clientId;
+    if (opts?.time) payload.time = opts.time;
+    this.socket.emit('chat:dm:send', payload);
   }
 
   disconnect(): void {
@@ -280,6 +294,7 @@ export class ChatRealtimeService {
 
     return {
       id: String(m?.id ?? (globalThis.crypto?.randomUUID?.() ?? Date.now())),
+      clientId: m?.clientId ? String(m.clientId) : undefined, // <- NEW
       author: String(m?.author ?? ''),
       text: String(m?.text ?? ''),
       time: Number(m?.time ?? Date.now()),
