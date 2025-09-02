@@ -38,12 +38,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   private myUserId = this.getMyUserId();
   private isFocused = true;
 
-  // anti-doppio invio mobile
+  // anti-doppio invio
   private lastSendTs = 0;
+  private lastSig = '';
   private mkSig(text: string, peerId: number) {
     return `${peerId}|${text.trim()}`;
   }
-  private lastSig = '';
 
   private storageKeyThreads = this.myUserId ? `chat:${this.myUserId}:threads` : 'chat:0:threads';
   private storageKeyUnread  = this.myUserId ? `chat:${this.myUserId}:unread`  : 'chat:0:unread';
@@ -54,16 +54,12 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.mustLogin = !Boolean(localStorage.getItem('token'));
 
-    // forzo subito connessione e attività per sincronizzare presence
-    this.realtime.connect();
-    this.realtime.touchActivity();
-    this.realtime.installUnloadHooks?.();
-    this.realtime.initPresenceManager?.();
+    // ❌ niente connect() qui: il service si auto-connette da solo nel constructor
+    // (ok solo segnare attività)
+    this.realtime.touchActivity?.();
 
     this.isOnline = !this.realtime.manualOffline;
-    this.subs.push(
-      this.realtime.manualOffline$.subscribe(off => this.isOnline = !off)
-    );
+    this.subs.push(this.realtime.manualOffline$.subscribe(off => this.isOnline = !off));
 
     this.loadAllFromStorage();
 
@@ -159,7 +155,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.realtime.selectPeer(u);
   }
 
-  // versione "form-safe" + anti-doppio mobile
+  // form-safe + anti-doppio
   send(event?: Event): void {
     if (event) event.preventDefault();
 
@@ -170,15 +166,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     const sig = this.mkSig(text, pid);
     const now = Date.now();
 
-    // evita doppio invio (tap mobile/IME) entro 500ms con stesso testo e stesso peer
     if (sig === this.lastSig && now - this.lastSendTs < 500) return;
     this.lastSig = sig;
     this.lastSendTs = now;
 
-    // invio al server
     this.realtime.sendToActive(text);
 
-    // eco locale
     const clientId = globalThis.crypto?.randomUUID?.() ?? String(now);
     const ui: UiMessage = {
       id: clientId,
@@ -209,13 +202,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
-  // nuovo trackBy (se aggiorni il template a usarlo)
-  trackByMsg = (_: number, m: UiMessage) => m.id ?? _;
-
-  // legacy (se il template usa ancora trackByIndex)
-  trackByIndex(i: number): number {
-    return i;
-  }
+  trackByMsg = (_: number, m: UiMessage) => m.id ?? _; // usato nel template
+  trackByIndex(i: number): number { return i; }        // legacy
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
@@ -229,9 +217,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       if (!token) return null;
       const payload = JSON.parse(atob(token.split('.')[1]));
       return typeof payload?.id === 'number' ? payload.id : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   private getMyUsername(): string {
@@ -243,9 +229,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (this.activePeer) this.realtime.markRead(this.activePeer.id);
   };
 
-  private onBlur = () => {
-    this.isFocused = false;
-  };
+  private onBlur = () => { this.isFocused = false; };
 
   private persistThread(peerId: number, arr: UiMessage[]): void {
     try {
@@ -286,10 +270,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     try {
       const raw = localStorage.getItem(this.storageKeyUnread);
-      if (raw) {
-        const obj = JSON.parse(raw) as Record<number, number>;
-        this.unreadByPeer = obj;
-      }
+      if (raw) this.unreadByPeer = JSON.parse(raw) as Record<number, number>;
     } catch {}
 
     const active = this.readActivePeer();
@@ -331,9 +312,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
 
       const toRemove = Math.min(2, Math.max(1, Math.floor(entries.length / 5)));
-      for (let i = 0; i < toRemove; i++) {
-        delete all[entries[i][0]];
-      }
+      for (let i = 0; i < toRemove; i++) delete all[entries[i][0]];
 
       localStorage.setItem(this.storageKeyThreads, JSON.stringify(all));
       this.persistThread(peerId, arr);
