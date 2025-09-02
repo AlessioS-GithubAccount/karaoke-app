@@ -13,9 +13,7 @@
 
 <!-- 💬 Layout con sidebar contatti + thread -->
 <ng-template #chatLayout>
-  <!-- ✅ WRAPPER A COLONNA CHE OCCUPA TUTTA L’ALTEZZA -->
   <div class="chat-wrap">
-
     <!-- 🔘 Presenza: btn toggle Online/Offline -->
     <div class="presence-box">
       <div class="presence-row">
@@ -24,7 +22,7 @@
           {{ isOnline ? 'Status: Online' : 'Status: Offline' }}
         </span>
 
-        <button class="presence-btn" (click)="toggleOnline()" [class.is-offline]="!isOnline">
+        <button class="presence-btn" (click)="toggleOnline()" [class.is-offline]="!isOnline" type="button">
           <i [class]="'fas ' + (isOnline ? 'fa-toggle-on' : 'fa-toggle-off')"></i>
           <span>{{ isOnline ? 'Switch offline' : 'Switch online' }}</span>
         </button>
@@ -32,7 +30,6 @@
       <hr />
     </div>
 
-    <!-- 💬 Contenitore FLEX (desktop: righe affiancate, mobile: colonna) -->
     <div class="chat two-cols layout-animate">
       <!-- Sidebar con utenti online -->
       <aside class="sidebar">
@@ -46,6 +43,7 @@
             *ngFor="let u of online; trackBy: trackByIndex"
             [class.active]="activePeer?.id === u.id"
             (click)="selectPeer(u)"
+            type="button"
           >
             <span class="avatar">{{ (u.username || '').charAt(0) | uppercase }}</span>
 
@@ -54,7 +52,6 @@
               <div class="status">{{ 'chat.statusOnline' | translate }}</div>
             </div>
 
-            <!-- Badge non letti per peer -->
             <span class="badge" *ngIf="unreadByPeer && unreadByPeer[u.id] > 0">
               {{ unreadByPeer[u.id] }}
             </span>
@@ -91,7 +88,7 @@
         <div class="messages" id="chat-scroll" *ngIf="activePeer">
           <div
             class="message"
-            *ngFor="let m of messages; trackBy: trackByIndex"
+            *ngFor="let m of messages; trackBy: trackByMsg"
             [class.me]="m.me"
           >
             <div class="meta">
@@ -102,18 +99,22 @@
           </div>
         </div>
 
-        <div class="composer" *ngIf="activePeer">
+        <!-- ✅ Unico punto d’invio: form + ngSubmit -->
+        <form class="composer" *ngIf="activePeer" (ngSubmit)="send($event)" autocomplete="off">
           <input
             type="text"
             [(ngModel)]="inputText"
+            name="msg"
             [placeholder]="'chat.placeholder' | translate"
-            (keydown.enter)="send()"
             autocomplete="off"
+            autocapitalize="sentences"
+            autocorrect="on"
+            inputmode="text"
           />
-          <button class="btn" (click)="send()">
+          <button class="btn" type="submit">
             <i class="fas fa-paper-plane"></i> {{ 'chat.send' | translate }}
           </button>
-        </div>
+        </form>
       </section>
     </div>
   </div>

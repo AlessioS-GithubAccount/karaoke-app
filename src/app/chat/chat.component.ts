@@ -38,6 +38,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   private myUserId = this.getMyUserId();
   private isFocused = true;
 
+  // anti-doppio invio mobile
+  private lastSendTs = 0;
+  private mkSig(text: string, peerId: number) {
+    return `${peerId}|${text.trim()}`;
+  }
+  private lastSig = '';
+
   private storageKeyThreads = this.myUserId ? `chat:${this.myUserId}:threads` : 'chat:0:threads';
   private storageKeyUnread  = this.myUserId ? `chat:${this.myUserId}:unread`  : 'chat:0:unread';
   private storageKeyActive  = this.myUserId ? `chat:${this.myUserId}:active`  : 'chat:0:active';
@@ -152,21 +159,34 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.realtime.selectPeer(u);
   }
 
-  send(): void {
+  // versione "form-safe" + anti-doppio mobile
+  send(event?: Event): void {
+    if (event) event.preventDefault();
+
     const text = this.inputText.trim();
     if (!text || !this.activePeer) return;
 
+    const pid = this.activePeer.id;
+    const sig = this.mkSig(text, pid);
+    const now = Date.now();
+
+    // evita doppio invio (tap mobile/IME) entro 500ms con stesso testo e stesso peer
+    if (sig === this.lastSig && now - this.lastSendTs < 500) return;
+    this.lastSig = sig;
+    this.lastSendTs = now;
+
+    // invio al server
     this.realtime.sendToActive(text);
 
-    // echo locale
+    // eco locale
+    const clientId = globalThis.crypto?.randomUUID?.() ?? String(now);
     const ui: UiMessage = {
-      id: globalThis.crypto?.randomUUID?.() ?? String(Date.now()),
+      id: clientId,
       author: this.getMyUsername(),
       text,
-      time: new Date(),
+      time: new Date(now),
       me: true,
     };
-    const pid = this.activePeer.id;
     const arr = this.messagesByPeer.get(pid) || [];
     arr.push(ui);
     if (arr.length > ChatComponent.THREAD_MAX) {
@@ -189,6 +209,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.router.navigate(['/login']);
   }
 
+  // nuovo trackBy (se aggiorni il template a usarlo)
+  trackByMsg = (_: number, m: UiMessage) => m.id ?? _;
+
+  // legacy (se il template usa ancora trackByIndex)
   trackByIndex(i: number): number {
     return i;
   }
