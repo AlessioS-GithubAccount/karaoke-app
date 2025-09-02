@@ -1,8 +1,8 @@
-import { Component, OnInit, Renderer2, HostListener, ElementRef, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, Renderer2, HostListener, ElementRef, inject, OnDestroy, isDevMode } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router, NavigationEnd } from '@angular/router';
-import { SwUpdate, VersionEvent } from '@angular/service-worker';
+import { SwUpdate, VersionEvent, VersionReadyEvent } from '@angular/service-worker';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, filter } from 'rxjs';
 import { ChatRealtimeService } from './chat/chat-realtime.service';
@@ -36,19 +36,26 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // === Rimuovo l'overlay di loading il prima possibile ===
+    this.removeAppLoader();
+
     // === PRESENCE MANAGER: resta online fino a 1h dall'ultima attività ===
     if (this.authService.isLoggedIn()) {
       this.chatRealtime.touchActivity();
       this.chatRealtime.initPresenceManager();
 
-      // ⬅️ NEW: installo gli hook di uscita (pagehide/beforeunload/visibilitychange)
+      // ⬅️ hook di uscita (pagehide/beforeunload/visibilitychange)
       this.chatRealtime.installUnloadHooks();
 
       // Navigazioni = attività
       this.subs.push(
         this.router.events
           .pipe(filter(e => e instanceof NavigationEnd))
-          .subscribe(() => this.chatRealtime.touchActivity())
+          .subscribe(() => {
+            this.chatRealtime.touchActivity();
+            // ulteriore occasione per togliere il loader se rimasto
+            this.removeAppLoader();
+          })
       );
 
       // Attività globali (click/scroll/keypress/touch/...)
@@ -101,20 +108,26 @@ export class AppComponent implements OnInit, OnDestroy {
     this.translate.use(this.currentLang);
 
     // Effetto navbar
-    setTimeout(() => this.triggerNavbarAnimation(), 100);
+    setTimeout(() => {
+      this.triggerNavbarAnimation();
+      this.removeAppLoader(); // doppia sicurezza post-bootstrap
+    }, 100);
 
     // ====== AGGIORNAMENTI PWA ======
-    if (this.swUpdate?.isEnabled) {
+    if (this.swUpdate?.isEnabled && !isDevMode()) {
       this.swUpdate.versionUpdates.subscribe((e: VersionEvent) => {
         switch (e.type) {
           case 'VERSION_DETECTED':
             this.toastr.info('Sto scaricando un aggiornamento…', 'Aggiornamento', { timeOut: 3000 });
             break;
-          case 'VERSION_READY':
+          case 'VERSION_READY': {
+            const _e = e as VersionReadyEvent; // type narrowing
+            // opzionale: potresti comparare _e.currentVersion / _e.latestVersion
             this.toastr.info('Nuova versione pronta. Installo e riapro…', 'Aggiornamento', { timeOut: 2500 });
             sessionStorage.setItem('justUpdated', '1');
             this.activateUpdateAndReload();
             break;
+          }
           case 'VERSION_INSTALLATION_FAILED':
             this.toastr.error('Installazione aggiornamento non riuscita.', 'Aggiornamento', { timeOut: 5000 });
             break;
@@ -129,8 +142,12 @@ export class AppComponent implements OnInit, OnDestroy {
         if (document.visibilityState === 'visible') this.checkForUpdateSafe();
       });
       window.addEventListener('online', () => this.checkForUpdateSafe());
+      // polling blando: chi torna “dopo tanto” prende subito l’update
       setInterval(() => this.checkForUpdateSafe(), 5 * 60 * 1000);
     }
+
+    // Failsafe finale: se per qualche motivo l'app non ha rimosso il loader
+    setTimeout(() => this.removeAppLoader(), 6000);
   }
 
   ngOnDestroy(): void {
@@ -144,6 +161,17 @@ export class AppComponent implements OnInit, OnDestroy {
   private async activateUpdateAndReload() {
     try { await this.swUpdate?.activateUpdate(); } catch {}
     location.reload();
+  }
+
+  /** Nasconde/sgancia l'overlay #app-loading se ancora presente */
+  private removeAppLoader(): void {
+    const el = document.getElementById('app-loading');
+    if (el) {
+      // nascondo subito per evitare flicker
+      (el as HTMLElement).style.display = 'none';
+      // dopo un frame lo rimuovo dal DOM
+      requestAnimationFrame(() => el.remove());
+    }
   }
 
   // ====== UI ======

@@ -68,18 +68,18 @@ export function HttpLoaderFactory(http: HttpClient) {
     }),
 
     ToastrModule.forRoot({
-      positionClass: 'toast-center-bottom', // se vuoi standard: 'toast-bottom-center'
+      positionClass: 'toast-center-bottom',
       timeOut: 5000,
       progressBar: true,
       closeButton: false,
-      preventDuplicates: true,
+      preventDuplicates: true
     }),
 
-    // Service Worker: registra SUBITO in produzione
+    // Service Worker: registra quando l'app è stabile o dopo 30s
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerImmediately'
-    }),
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [
     KaraokeService,

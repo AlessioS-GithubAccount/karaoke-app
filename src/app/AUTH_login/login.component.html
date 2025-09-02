@@ -14,6 +14,7 @@
 
     <form *ngIf="!isLoading" (ngSubmit)="login('client')" #loginForm="ngForm" class="login-form">
       
+      <!-- Inserimento dati per login -->
       <div class="form-group">
         <label for="username" class="glitch-text" attr.data-text="{{ 'login.username_label' | translate }}" style="animation-delay: 0.2s;">
           {{ 'login.username_label' | translate }}

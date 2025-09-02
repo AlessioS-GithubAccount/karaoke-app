@@ -45,6 +45,8 @@
   "navigationUrls": [
     "/**",
     "!/api/**",
-    "!/assets/**"
+    "!/assets/**",
+    "!/_headers",
+    "!/_redirects"
   ]
 }
