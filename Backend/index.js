@@ -1378,18 +1378,23 @@ io.on('connection', (socket) => {
   });
 
   // === INVIO MESSAGGI DM ===
-  socket.on('chat:dm:send', ({ to, text }) => {
-    const pid = Number(to);
-    const textRaw = String(text ?? '');
+  socket.on('chat:dm:send', (data) => {
+    const pid = Number(data?.to);
+    const textRaw = String(data?.text ?? '');
     if (!pid || pid === u.id || !textRaw.trim()) return;
+
     const safeText = textRaw.slice(0, 2000);
+    const clientId = (typeof data?.clientId === 'string' && data.clientId.length <= 100)
+      ? data.clientId
+      : undefined;
 
     const msg = {
       id: (typeof randomUUID === 'function' ? randomUUID() : String(Date.now())),
+      clientId,               // torna ai client per eventuale dedup
       author: u.username,
       text: safeText,
       time: Date.now(),
-      fromUserId: u.id,     // campi attesi dal client
+      fromUserId: u.id,       // campi attesi dal client
       toUserId: pid
     };
 
@@ -1399,14 +1404,24 @@ io.on('connection', (socket) => {
     if (arr.length > MAX_HISTORY) arr.shift();
     historyDm.set(key, arr);
 
-    // consegna a TUTTE le tab dei due utenti (solo evento DM)
+    // consegna al DESTINATARIO (tutte le sue tab)
     const toSockets = socketsByUser.get(pid);
-    if (toSockets) for (const sid of Array.from(toSockets)) io.to(sid).emit('chat:dm:message', msg);
-    const meSockets = socketsByUser.get(u.id);
-    if (meSockets) for (const sid of Array.from(meSockets)) io.to(sid).emit('chat:dm:message', msg);
+    if (toSockets) {
+      for (const sid of Array.from(toSockets)) {
+        io.to(sid).emit('chat:dm:message', msg);
+      }
+    }
 
-    // e anche alla stanza DM (se aperta)
-    io.to(`dm:${key}`).emit('chat:dm:message', msg);
+    // consegna alle ALTRE tab del MITTENTE (escludi il socket corrente)
+    const meSockets = socketsByUser.get(u.id);
+    if (meSockets) {
+      for (const sid of Array.from(meSockets)) {
+        if (sid !== socket.id) io.to(sid).emit('chat:dm:message', msg);
+      }
+    }
+
+    // ❌ niente broadcast alla stanza DM: evitato per non duplicare
+    // io.to(`dm:${key}`).emit('chat:dm:message', msg);
   });
 
   // (opzionale) chat globale
@@ -1423,6 +1438,8 @@ io.on('connection', (socket) => {
     historyGlobal.push(msg);
     if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
     io.to('global').emit('chat:message', msg);
+    // Se fai eco locale anche nella globale, valuta:
+    // socket.to('global').emit('chat:message', msg);
   });
 
   // cleanup su disconnect
@@ -1442,6 +1459,7 @@ io.on('connection', (socket) => {
     }
   });
 });
+
 
 server.listen(PORT, () => {
   console.log(`🚀 HTTP+WS attivi su http://localhost:${PORT}`);
