@@ -42,7 +42,7 @@ const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.SECRET_KEY || 'dev_secret_change_me';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'dev_refresh_change_me';
 
-const PIN_ADMIN = '0000';
+const PIN_ADMIN = '0000';  //credenziale di cortesia lasciata in backend per facilitare il testing live online dell'applicazione (consente register admin mode)
 const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
 
 let refreshTokens = [];
