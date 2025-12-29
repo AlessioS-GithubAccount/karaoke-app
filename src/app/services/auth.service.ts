@@ -12,10 +12,9 @@ export class AuthService {
   private logoutUrl = `${this.baseUrl}/auth/logout`;
   private refreshUrl = `${this.baseUrl}/auth/token`;
 
-  // nuovo endpoint guest 
+  // endpoint guest
   private guestUrl = `${this.baseUrl}/auth/guest`;
 
-  // NON chiamare hasValidToken() qui: i Subject non esistono ancora
   private loggedIn = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this.loggedIn.asObservable();
 
@@ -23,7 +22,6 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Inizializza lo stato SOLO dopo che i Subject esistono
     const validUser = this.hasValidUserToken();
     this.loggedIn.next(validUser);
 
@@ -65,7 +63,6 @@ export class AuthService {
           localStorage.setItem('role', res.ruolo);
           localStorage.setItem('username', username);
 
-          // quando fai login user/admin, resti loggato anche se esiste un guest_token
           this.loggedIn.next(true);
           this.reloadUtenteLoggato();
 
@@ -76,8 +73,7 @@ export class AuthService {
     });
   }
 
-  // invia anche refreshToken al backend
-  // Questo logout è SOLO per user/admin (il bottone è invisible ai guest)
+  // Logout SOLO per user/admin (il bottone lo nascondiamo ai guest)
   logout(): void {
     const username = localStorage.getItem('username');
     const refreshToken = localStorage.getItem('refresh_token');
@@ -89,7 +85,6 @@ export class AuthService {
       });
     }
 
-    // pulizia SOLO user (non toccare guest_token / guestId)
     this.clearUserStorageOnly();
     this.loggedIn.next(false);
     this.currentUserSubject.next(null);
@@ -103,12 +98,10 @@ export class AuthService {
   //  TOKEN HELPERS
   // =========================
 
-  // nessun side-effect, solo calcolo booleano (USER token)
   private hasValidUserToken(): boolean {
     return this.hasValidJwtInStorage('token');
   }
 
-  // valida un JWT in localStorage (controlla solo exp se presente)
   private hasValidJwtInStorage(storageKey: string): boolean {
     const token = localStorage.getItem(storageKey);
     if (!token) return false;
@@ -116,14 +109,13 @@ export class AuthService {
     try {
       const decoded: any = jwtDecode(token);
       const now = Math.floor(Date.now() / 1000);
-      if (decoded?.exp == null) return true; // se non hai exp, considera valido
+      if (decoded?.exp == null) return true;
       return decoded.exp > now;
     } catch {
       return false;
     }
   }
 
-  // Pulizia credenziali SOLO user/admin (NON tocca guest)
   private clearUserStorageOnly() {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
@@ -170,7 +162,7 @@ export class AuthService {
   }
 
   // =========================
-  //  GUEST (compat + nuovo guest_token)
+  //  GUEST
   // =========================
 
   /**
@@ -181,8 +173,6 @@ export class AuthService {
    */
   enterGuest(): Observable<any> {
     return new Observable<any>((observer) => {
-      // L'interceptor attaccherà automaticamente guest_token se già presente.
-      // Se il backend è idempotente, se il token è valido ti rimanda lo stesso.
       this.http.post<any>(this.guestUrl, {}).subscribe({
         next: (res) => {
           const token = res?.guestToken || res?.guest_token || res?.token || null;
@@ -190,7 +180,6 @@ export class AuthService {
             localStorage.setItem('guest_token', token);
           }
 
-          // compat: se backend manda guest_id, lo salva anche come guestId (temporaneo)
           const gid = res?.guest_id || res?.guestId || null;
           if (gid) {
             localStorage.setItem('guestId', String(gid));
@@ -203,14 +192,11 @@ export class AuthService {
     });
   }
 
-  // guest token (nuovo)
   getGuestToken(): string | null {
     return localStorage.getItem('guest_token');
   }
 
-  // guestId legacy (vecchio), tenuto per compat finché aggiorniamo i componenti
   getGuestId(): string | null {
-    // priorità: estraiamo dal guest_token se possibile
     const token = localStorage.getItem('guest_token');
     if (token) {
       try {
@@ -223,7 +209,6 @@ export class AuthService {
 
   /**
    * Guest = NON user + (guest_token valido OR guestId legacy presente)
-   * (Così non rompiamo la tua app mentre migriamo i componenti.)
    */
   isGuest(): boolean {
     const hasGuestTokenValid = this.hasValidJwtInStorage('guest_token');
