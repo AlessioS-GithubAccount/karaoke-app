@@ -46,8 +46,8 @@ const PIN_ADMIN = '0000';  // credenziale di cortesia per testing (register admi
 const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
 
 // Durate token
-const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '12h';   // user/admin
-const GUEST_TOKEN_TTL  = process.env.GUEST_TOKEN_TTL  || '12h';   // guest
+const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '30d';   // user/admin
+const GUEST_TOKEN_TTL  = process.env.GUEST_TOKEN_TTL  || '30d';   // guest
 
 let refreshTokens = [];
 
@@ -566,7 +566,7 @@ app.post('/api/auth/login', async (req, res) => {
     const refreshToken = jwt.sign(
       { id: user.id, username: user.username, ruolo: user.ruolo },
       REFRESH_SECRET,
-      { expiresIn: '7d' }
+      {expiresIn: process.env.REFRESH_TOKEN_TTL || '90d' }
     );
 
     refreshTokens.push(refreshToken);
