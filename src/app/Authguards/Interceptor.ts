@@ -21,15 +21,29 @@ export class TokenInterceptor implements HttpInterceptor {
   constructor(private http: HttpClient) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('token');
-    const authReq = token ? this.addTokenHeader(req, token) : req;
+    const userToken = localStorage.getItem('token');
+    const guestToken = localStorage.getItem('guest_token');
+
+    // Priorità: se esiste token user lo uso; altrimenti uso guest_token; altrimenti nulla
+    const tokenToUse = userToken || guestToken;
+    const authReq = tokenToUse ? this.addTokenHeader(req, tokenToUse) : req;
 
     return next.handle(authReq).pipe(
       catchError((error) => {
-        // gestiamo sia 401 che 403 come "serve refresh"
-        if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
-          return this.handleAuthError(authReq, next);
+        // Refresh SOLO se sei un utente loggato (token + refresh_token)
+        if (
+          error instanceof HttpErrorResponse &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          const hasUserToken = !!localStorage.getItem('token');
+          const hasRefresh = !!localStorage.getItem('refresh_token');
+
+          if (hasUserToken && hasRefresh) {
+            return this.handleAuthError(authReq, next);
+          }
         }
+
+        // Se sei guest (o anonimo), non tentiamo refresh
         return throwError(() => error);
       })
     );
@@ -41,7 +55,7 @@ export class TokenInterceptor implements HttpInterceptor {
     });
   }
 
-  /** Gestione centralizzata del refresh token con coda delle richieste durante il refresh */
+  // Gestione centralizzata del refresh token con coda delle richieste durante il refresh
   private handleAuthError(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (!this.isRefreshing) {
       this.isRefreshing = true;
@@ -49,9 +63,9 @@ export class TokenInterceptor implements HttpInterceptor {
 
       const refreshToken = localStorage.getItem('refresh_token');
 
-      // Se non ho refresh token, effettuo cleanup e erro
+      // Se non ho refresh token, pulisco solo user-auth e termino
       if (!refreshToken) {
-        this.cleanupAuth();
+        this.cleanupUserAuth();
         return throwError(() => new Error('Missing refresh token'));
       }
 
@@ -61,7 +75,7 @@ export class TokenInterceptor implements HttpInterceptor {
 
           const newToken = res?.token;
           if (!newToken) {
-            this.cleanupAuth();
+            this.cleanupUserAuth();
             return throwError(() => new Error('Invalid refresh response'));
           }
 
@@ -74,7 +88,7 @@ export class TokenInterceptor implements HttpInterceptor {
         catchError((err) => {
           this.isRefreshing = false;
 
-          // Provo a notificare il backend del logout, se ho dati
+          // Provo a notificare il backend del logout, se ho dati user
           const username = localStorage.getItem('username');
           const rt = localStorage.getItem('refresh_token');
           if (username || rt) {
@@ -84,7 +98,8 @@ export class TokenInterceptor implements HttpInterceptor {
             });
           }
 
-          this.cleanupAuth();
+          // Pulizia SOLO user (non tocca guest)
+          this.cleanupUserAuth();
           return throwError(() => err);
         })
       );
@@ -98,14 +113,17 @@ export class TokenInterceptor implements HttpInterceptor {
     }
   }
 
-  /** Pulizia locale delle credenziali */
-  private cleanupAuth(): void {
+  // Pulizia locale delle credenziali SOLO user/admin (NON tocca guest_token / guestId)
+  private cleanupUserAuth(): void {
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('role');
       localStorage.removeItem('username');
-      localStorage.removeItem('guestId');
+
+      // NON rimuovere i dati guest: servono per stabilità identità ospite
+      // localStorage.removeItem('guest_token');
+      // localStorage.removeItem('guestId');
     } catch {}
   }
 }
