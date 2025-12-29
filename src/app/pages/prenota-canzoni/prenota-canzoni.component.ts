@@ -61,6 +61,7 @@ export class PrenotaCanzoniComponent implements OnInit {
         this.authService.enterGuest().subscribe({
           next: () => {
             this.guestId = this.authService.getGuestId();
+            this.showAccessPrompt = false;
             this.loadArchivio();
           },
           error: (err) => {
@@ -113,12 +114,21 @@ export class PrenotaCanzoniComponent implements OnInit {
     if (form.valid && !this.microfoniInvalid) {
       const userId = this.authService.getUserId();
 
+      const resolvedGuestId = this.authService.getGuestId() || this.guestId;
+
+      // Hardening: se non sei user e non hai guestId, blocca (eviti payload rotto)
+      if (!userId && !resolvedGuestId) {
+        this.toastr.error('Sessione ospite non valida. Rientra come ospite e riprova.', 'Errore');
+        this.showAccessPrompt = true;
+        return;
+      }
+
       // Per ora manteniamo user_id/guest_id perché il backend attuale li richiede.
       // In seguito li toglieremo e li dedurremo dal token lato backend.
       const canzonePayload = {
         ...this.formData,
         user_id: userId || null,
-        guest_id: userId ? null : (this.authService.getGuestId() || this.guestId)
+        guest_id: userId ? null : resolvedGuestId
       };
 
       this.karaokeService.addCanzone(canzonePayload).subscribe({
