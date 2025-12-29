@@ -3,7 +3,6 @@ import { NgForm } from '@angular/forms';
 import { KaraokeService } from '../../services/karaoke.service';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
-import { v4 as uuidv4 } from 'uuid';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -53,12 +52,27 @@ export class PrenotaCanzoniComponent implements OnInit {
     this.isLoggedIn = isUser;
     this.isAdmin = this.authService.getRole() === 'admin';
 
+    // Se sei guest, prova a recuperare l'identità guest già presente
     if (isGuest) {
       this.guestId = this.authService.getGuestId();
+
+      // Se per qualche motivo risulta guest ma non ho guestId, provo a rigenerarlo via backend
+      if (!this.guestId) {
+        this.authService.enterGuest().subscribe({
+          next: () => {
+            this.guestId = this.authService.getGuestId();
+            this.loadArchivio();
+          },
+          error: (err) => {
+            console.error('Errore enterGuest() in ngOnInit:', err);
+            this.showAccessPrompt = true;
+          }
+        });
+        return;
+      }
     } else {
-      // crea un nuovo guestId se necessario
-      this.guestId = uuidv4();
-      localStorage.setItem('guestId', this.guestId);
+      // Se sei user/admin NON creare guestId
+      this.guestId = null;
     }
 
     this.loadArchivio();
@@ -98,10 +112,13 @@ export class PrenotaCanzoniComponent implements OnInit {
 
     if (form.valid && !this.microfoniInvalid) {
       const userId = this.authService.getUserId();
+
+      // Per ora manteniamo user_id/guest_id perché il backend attuale li richiede.
+      // In seguito li toglieremo e li dedurremo dal token lato backend.
       const canzonePayload = {
         ...this.formData,
         user_id: userId || null,
-        guest_id: userId ? null : this.guestId
+        guest_id: userId ? null : (this.authService.getGuestId() || this.guestId)
       };
 
       this.karaokeService.addCanzone(canzonePayload).subscribe({
@@ -115,10 +132,8 @@ export class PrenotaCanzoniComponent implements OnInit {
           this.artistiFiltrati = [];
           this.canzoniFiltrate = [];
 
-          // ID inserito: prova diversi campi possibili
           const insertedId = response?.canzoneId ?? response?.insertId ?? response?.id ?? null;
 
-          // Fallback sicuro anche se non volessi esporre il query param
           if (insertedId != null) {
             sessionStorage.setItem('scrollToSongId', String(insertedId));
           }
@@ -138,8 +153,11 @@ export class PrenotaCanzoniComponent implements OnInit {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    // Se per qualche motivo qui venisse richiamato da guest, non fare logout (e non distruggere identità guest)
+    if (this.authService.isLoggedIn()) {
+      this.authService.logout();
+      this.router.navigate(['/login']);
+    }
   }
 
   goToLogin(): void {
@@ -147,9 +165,17 @@ export class PrenotaCanzoniComponent implements OnInit {
   }
 
   enterAsGuest(): void {
-    this.guestId = uuidv4();
-    localStorage.setItem('guestId', this.guestId);
-    this.showAccessPrompt = false;
-    this.loadArchivio();
+    // Entra come guest tramite backend: l'identità non la genera più il client
+    this.authService.enterGuest().subscribe({
+      next: () => {
+        this.guestId = this.authService.getGuestId();
+        this.showAccessPrompt = false;
+        this.loadArchivio();
+      },
+      error: (err) => {
+        console.error('Errore durante enterGuest():', err);
+        this.toastr.error('Impossibile entrare come ospite. Riprova.', 'Errore');
+      }
+    });
   }
 }
