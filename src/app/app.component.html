@@ -74,11 +74,13 @@
       </a>
     </li>
 
-    <li>
+    <!-- ✅ Logout visibile SOLO se loggato (user o admin). Invisibile per guest -->
+    <li *ngIf="isLoggedIn">
       <a href="#" (click)="closeMenu(); logout()">
         <i class="fas fa-sign-out-alt"></i> {{ 'navbar.logout' | translate }}
       </a>
     </li>
+
     <li>
       <button
         class="toggle-darkmode"
