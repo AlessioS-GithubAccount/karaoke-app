@@ -38,30 +38,60 @@ app.use(express.json());
 // ====== CONFIG / SECRETS ======
 const PORT = process.env.PORT || 3000;
 
-// 🔐 Spostati su .env (con fallback di sviluppo)
+// Spostati su .env (con fallback di sviluppo)
 const SECRET_KEY = process.env.SECRET_KEY || 'dev_secret_change_me';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'dev_refresh_change_me';
 
-const PIN_ADMIN = '0000';  //credenziale di cortesia lasciata in backend per facilitare il testing live online dell'applicazione (consente register admin mode)
+const PIN_ADMIN = '0000';  // credenziale di cortesia per testing (register admin mode)
 const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
+
+// Durate token
+const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '12h';   // user/admin
+const GUEST_TOKEN_TTL  = process.env.GUEST_TOKEN_TTL  || '12h';   // guest
 
 let refreshTokens = [];
 
+// ===== Helpers token =====
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader) return null;
+  const parts = String(authHeader).split(' ');
+  if (parts.length !== 2) return null;
+  if (parts[0].toLowerCase() !== 'bearer') return null;
+  return parts[1];
+}
+
+function decodeTokenIfPresent(req) {
+  const token = getBearerToken(req);
+  if (!token) return null;
+  try {
+    return jwt.verify(token, SECRET_KEY);
+  } catch {
+    return null;
+  }
+}
 
 function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: 'Token mancante' });
+  const token = getBearerToken(req);
+  if (!token) return res.status(401).json({ message: 'Token mancante' });
 
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
+
+    // Questo middleware è per utenti veri (admin/client), non guest
+    if (decoded?.ruolo === 'guest') {
+      return res.status(403).json({ message: 'Token non valido' });
+    }
+    if (typeof decoded?.id !== 'number') {
+      return res.status(403).json({ message: 'Token non valido' });
+    }
+
     req.user = decoded;
     next();
   } catch (err) {
     return res.status(403).json({ message: 'Token non valido' });
   }
 }
-
 
 /* funzione di formattazione dati. Normalizza stringhe nelle post per:
     rimuovere la parola "the" isolata (case-insensitive)
@@ -84,21 +114,13 @@ function normalizeSongName(name) {
   return result;
 }
 
-
-//middleware per permettere partecipazione solo a user, admin, guest
+// middleware: permette guest o user (se token valido), senza bloccare se token assente
 function optionalVerifyToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  if (!authHeader) {
-    return next();  // guest
-  }
-
-  const token = authHeader.split(' ')[1];
+  const token = getBearerToken(req);
   if (!token) return next();
 
   jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) {
-      return next();
-    }
+    if (err) return next();
     req.user = user;
     next();
   });
@@ -135,27 +157,6 @@ app.post('/api/admin/aggiungi-canzone', verifyToken, authorizeRoles('admin'), as
   }
 });
 
-
-/*app.post('/wishlist', async (req, res) => {
-  const { user_id, artista, canzone, tonalita } = req.body;
-  if (!user_id || !artista || !canzone) {
-    return res.status(400).json({ message: 'Dati mancanti' });
-  }
-
-  try {
-    await db.query(`
-      INSERT INTO wishlist (user_id, artista, canzone, tonalita)
-      VALUES (?, ?, ?, ?)
-    `, [user_id, artista, canzone, tonalita]);
-
-    res.status(201).json({ message: 'Canzone aggiunta alla wishlist ✅' });
-  } catch (err) {
-    console.error('Errore salvataggio wishlist:', err);
-    res.status(500).json({ message: 'Errore interno' });
-  }
-});*/
-
-
 // chiamate per privacy component
 app.get('/api/user/profile', verifyToken, async (req, res) => {
   const userId = req.user.id;
@@ -172,7 +173,7 @@ app.get('/api/user/profile', verifyToken, async (req, res) => {
   }
 });
 
-//cambio password by vecchia password
+// cambio password by vecchia password
 app.post('/api/user/change-password/by-old', verifyToken, async (req, res) => {
   const userId = req.user.id;
   const { vecchiaPassword, nuovaPassword } = req.body;
@@ -198,8 +199,7 @@ app.post('/api/user/change-password/by-old', verifyToken, async (req, res) => {
   }
 });
 
-
-//cambio password by risposta segreta
+// cambio password by risposta segreta
 app.post('/api/user/change-password/by-secret', verifyToken, async (req, res) => {
   const userId = req.user.id;
   const { risposta, nuovaPassword } = req.body;
@@ -225,16 +225,14 @@ app.post('/api/user/change-password/by-secret', verifyToken, async (req, res) =>
   }
 });
 
-
-//inizializzazione leoProfanity
+// inizializzazione leoProfanity
 const leoProfanity = require('leo-profanity');
 leoProfanity.add(leoProfanity.getDictionary('en'));
 leoProfanity.add(leoProfanity.getDictionary('it'));
 const customBadWords = require('./utils/profanityList');
-// Aggiungo le parole personalizzate dalla lista esterna
 leoProfanity.add(customBadWords);
 
-//func per aggiungere partecipante a un esibizione
+// func per aggiungere partecipante a un esibizione
 app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (req, res) => {
   const canzoneId = Number(req.params.id);
   let { nomePartecipante } = req.body;
@@ -246,14 +244,12 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
     return res.status(401).json({ message: 'Devi essere loggato per partecipare.' });
   }
 
-  // Censura
   nomePartecipante = leoProfanity.clean(nomePartecipante);
 
   const userId = req.user.id;
   const now = new Date();
 
   try {
-    // 1) Prendi la canzone (registrante + partecipanti attuali)
     const [rows] = await db.query(
       `SELECT id, user_id, nome AS registrante_nome, artista, canzone, tonalita, partecipante_2, partecipante_3
        FROM canzoni
@@ -266,7 +262,6 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
     let p2 = canzone.partecipante_2;
     let p3 = canzone.partecipante_3;
 
-    // 2) Assegna lo slot libero nella canzone (p2 -> p3)
     if (!p2) {
       p2 = nomePartecipante;
       await db.query('UPDATE canzoni SET partecipante_2 = ? WHERE id = ?', [nomePartecipante, canzoneId]);
@@ -277,9 +272,7 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
       return res.status(400).json({ message: 'Numero massimo di partecipanti raggiunto per questa canzone.' });
     }
 
-    // 3) Aggiorna la riga di STORICO del REGISTRANTE con i partecipanti effettivi
-    //    (solo se la canzone è stata registrata da un utente loggato)
-    const esibizioneId = canzoneId; // coerente con le altre API
+    const esibizioneId = canzoneId;
     if (canzone.user_id) {
       await db.query(
         `UPDATE user_storico_esibizioni
@@ -289,17 +282,13 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
       );
     }
 
-    // 4) Inserisci la riga di STORICO per il PARTECIPANTE
-    //    "hai cantato con" deve mostrare IL REGISTRANTE (sempre),
-    //    e, se presente, anche l'altro partecipante diverso da me.
     const norm = s => (s || '').trim().toLowerCase();
     const me = norm(nomePartecipante);
     const registrante = canzone.registrante_nome || null;
 
-    // calcola eventuale "altro partecipante" (quello diverso da me)
     let altro = null;
     if (p2 && norm(p2) !== me) altro = p2;
-    if (p3 && norm(p3) !== me) altro = altro ? altro : p3; // prendi il primo diverso da me
+    if (p3 && norm(p3) !== me) altro = altro ? altro : p3;
 
     await db.query(
       `INSERT INTO user_storico_esibizioni (
@@ -312,11 +301,11 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
         esibizioneId,
         now,
         canzone.tonalita || null,
-        canzone.registrante_nome,  // "nome" del registrante (coerente con tuo schema)
+        canzone.registrante_nome,
         canzone.artista,
         canzone.canzone,
-        registrante,               // hai cantato con = registrante
-        altro                      // e (se c'è) anche l'altro partecipante ≠ me
+        registrante,
+        altro
       ]
     );
 
@@ -328,7 +317,7 @@ app.post('/api/canzoni/:id/aggiungi-partecipante', optionalVerifyToken, async (r
   }
 });
 
-//func per recuperare lo storico canzoni dello user - usercanzoni
+// storico esibizioni user
 app.get('/api/esibizioni/user/:id', async (req, res) => {
   const userId = req.params.id;
   const page = parseInt(req.query.page) || 1;
@@ -336,7 +325,6 @@ app.get('/api/esibizioni/user/:id', async (req, res) => {
   const offset = (page - 1) * pageSize;
 
   try {
-    // Conta tutte le esibizioni dell'utente
     const [[{ total }]] = await db.query(
       `SELECT COUNT(*) as total FROM user_storico_esibizioni WHERE user_id = ?`,
       [userId]
@@ -353,7 +341,6 @@ app.get('/api/esibizioni/user/:id', async (req, res) => {
 
     const totalPages = Math.ceil(total / pageSize);
 
-    // Recupera solo le esibizioni della pagina richiesta
     const [esibizioni] = await db.query(
       `SELECT 
          id, 
@@ -408,9 +395,7 @@ app.get('/api/esibizioni/user/:id', async (req, res) => {
   }
 });
 
-
-
-// salva in tabella voti_emoji i like
+// voti emoji
 app.post('/api/voti', async (req, res) => {
   const { canzone_id, voter_id, emoji } = req.body;
   const esibizione_id = canzone_id;
@@ -445,9 +430,7 @@ app.post('/api/voti', async (req, res) => {
   }
 });
 
-
-
-//mapping domande di sicurezza e recupero password
+// mapping domande di sicurezza
 const mapDomande = {
   nome_animale_domestico: "Qual è il nome del tuo animale domestico?",
   "città_preferita": "Qual è la tua città preferita?",
@@ -456,7 +439,7 @@ const mapDomande = {
   codicepin: "Crea il tuo codice PIN di recupero"
 };
 
-//func get domanda segreta inserita da user, per recupero password
+// get domanda segreta
 app.get('/api/auth/forgot-password/question/:username', async (req, res) => {
   const { username } = req.params;
   try {
@@ -476,9 +459,7 @@ app.get('/api/auth/forgot-password/question/:username', async (req, res) => {
   }
 });
 
-
-
-// 2) Verifica risposta e consente reset password
+// verifica risposta
 app.post('/api/auth/forgot-password/verify', async (req, res) => {
   const { username, risposta } = req.body;
 
@@ -500,7 +481,7 @@ app.post('/api/auth/forgot-password/verify', async (req, res) => {
   }
 });
 
-// ✅ RESET della password dopo verifica risposta segreta
+// reset password
 app.post('/api/auth/forgot-password/reset', async (req, res) => {
   const { username, nuovaPassword } = req.body;
 
@@ -523,8 +504,44 @@ app.post('/api/auth/forgot-password/reset', async (req, res) => {
   }
 });
 
+// ===== GUEST LOGIN (nuovo) =====
+app.post('/api/auth/guest', (req, res) => {
+  // Se mi mandi già un guest token valido, riuso quello (così non cambia ID)
+  const existing = decodeTokenIfPresent(req);
+  if (existing && existing.ruolo === 'guest' && typeof existing.guest_id === 'string' && existing.guest_id.length > 0) {
+    return res.json({
+      message: 'Guest già attivo',
+      guest_id: existing.guest_id,
+      guestToken: getBearerToken(req),
+      expiresIn: GUEST_TOKEN_TTL
+    });
+  }
 
-// invio dati e verifiche per login
+  // Se sei loggato come user/admin, non ha senso creare un guest
+  if (existing && existing.ruolo && existing.ruolo !== 'guest') {
+    return res.status(400).json({ message: 'Sei già loggato come utente' });
+  }
+
+  // Nuovo guest
+  const guest_id = (typeof randomUUID === 'function')
+    ? randomUUID()
+    : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+  const guestToken = jwt.sign(
+    { guest_id, ruolo: 'guest' },
+    SECRET_KEY,
+    { expiresIn: GUEST_TOKEN_TTL }
+  );
+
+  return res.json({
+    message: 'Guest creato',
+    guest_id,
+    guestToken,
+    expiresIn: GUEST_TOKEN_TTL
+  });
+});
+
+// login user/admin
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
   console.log('Login attempt for:', username);
@@ -540,8 +557,17 @@ app.post('/api/auth/login', async (req, res) => {
 
     await db.query('UPDATE users SET online_status = 1 WHERE id = ?', [user.id]);
 
-    const token = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, SECRET_KEY, { expiresIn: '2h' });
-    const refreshToken = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, REFRESH_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { id: user.id, username: user.username, ruolo: user.ruolo },
+      SECRET_KEY,
+      { expiresIn: ACCESS_TOKEN_TTL }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user.id, username: user.username, ruolo: user.ruolo },
+      REFRESH_SECRET,
+      { expiresIn: '7d' }
+    );
 
     refreshTokens.push(refreshToken);
 
@@ -552,7 +578,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// genera token per log con refresh
+// refresh access token
 app.post('/api/auth/token', (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken || !refreshTokens.includes(refreshToken)) {
@@ -561,28 +587,37 @@ app.post('/api/auth/token', (req, res) => {
 
   try {
     const user = jwt.verify(refreshToken, REFRESH_SECRET);
-    const newAccessToken = jwt.sign({ id: user.id, username: user.username, ruolo: user.ruolo }, SECRET_KEY, { expiresIn: '2h' });
+
+    // NB: qui generiamo SOLO access token user/admin
+    const newAccessToken = jwt.sign(
+      { id: user.id, username: user.username, ruolo: user.ruolo },
+      SECRET_KEY,
+      { expiresIn: ACCESS_TOKEN_TTL }
+    );
+
     res.json({ token: newAccessToken });
   } catch (err) {
     return res.status(403).json({ message: 'Token non valido' });
   }
 });
 
-
-// genera logout
+// logout
 app.post('/api/auth/logout', async (req, res) => {
   const { username, refreshToken } = req.body;
   try {
-    refreshTokens = refreshTokens.filter(token => token !== refreshToken);
-    await db.query('UPDATE users SET online_status = 0 WHERE username = ?', [username]);
+    if (refreshToken) {
+      refreshTokens = refreshTokens.filter(token => token !== refreshToken);
+    }
+    if (username) {
+      await db.query('UPDATE users SET online_status = 0 WHERE username = ?', [username]);
+    }
     res.json({ message: 'Logout effettuato' });
   } catch (err) {
     res.status(500).json({ message: 'Errore durante il logout' });
   }
 });
 
-
-// func register: registra dati user creando un account
+// register
 app.post('/api/auth/register', async (req, res) => {
   const { username, password, domandaRecupero, rispostaRecupero, keypass } = req.body;
   if (!username || !password || !domandaRecupero || !rispostaRecupero) {
@@ -608,7 +643,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// func per recupero dati user
+// get user by username
 app.get('/api/users/by-username/:username', async (req, res) => {
   const { username } = req.params;
   try {
@@ -620,8 +655,7 @@ app.get('/api/users/by-username/:username', async (req, res) => {
   }
 });
 
-
-//func per recupero canzoni prenotate
+// get canzoni
 app.get('/api/canzoni', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM canzoni ORDER BY id ASC');
@@ -631,9 +665,9 @@ app.get('/api/canzoni', async (req, res) => {
   }
 });
 
-//function per admin per modificare ordine canzoni in lista-canzoni component by drag
+// riordina
 app.post('/api/canzoni/riordina', async (req, res) => {
-  const nuovaLista = req.body; // [{ id: 1, posizione: 1 }, { id: 2, posizione: 2 }, ...]
+  const nuovaLista = req.body;
 
   if (!Array.isArray(nuovaLista)) {
     return res.status(400).json({ message: 'Formato dati non valido' });
@@ -658,22 +692,7 @@ app.post('/api/canzoni/riordina', async (req, res) => {
   }
 });
 
-/*
-//genera lista classifica topN
-app.get('/api/classifica/top', async (req, res) => {
-  const n = parseInt(req.query.n) || 30; // default top30
-  try {
-    const [rows] = await db.query(
-      `SELECT id, artista, canzone, num_richieste FROM classifica ORDER BY num_richieste DESC LIMIT ?`,
-      [n]
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nel recupero della classifica' });
-  }
-});
-*/
-// genera lista classifica topN (live)
+// classifica top
 app.get('/api/classifica/top', async (req, res) => {
   const n = parseInt(req.query.n) || 30;
   try {
@@ -695,8 +714,12 @@ app.get('/api/healthz', async (req, res) => {
     const [rows] = await db.query('SELECT 1 AS ok');
     res.json({ ok: rows?.[0]?.ok === 1, snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY) });
   } catch (e) {
-    res.status(500).json({ ok: false, snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY),
-      code: e.code || null, detail: e.sqlMessage || e.message || null });
+    res.status(500).json({
+      ok: false,
+      snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY),
+      code: e.code || null,
+      detail: e.sqlMessage || e.message || null
+    });
   }
 });
 
@@ -710,13 +733,15 @@ app.get('/api/debug/classifica', async (req, res) => {
     );
     res.json({ count: rows.length, sample: rows });
   } catch (e) {
-    res.status(500).json({ message: 'Errore query classifica',
-      code: e.code || null, detail: e.sqlMessage || e.message || null });
+    res.status(500).json({
+      message: 'Errore query classifica',
+      code: e.code || null,
+      detail: e.sqlMessage || e.message || null
+    });
   }
 });
 
-
-// POST: genera/rigenera lo snapshot del giorno (protetto da chiave)
+// snapshot run
 app.post('/api/classifica/snapshot/run', async (req, res) => {
   if (!SNAPSHOT_KEY || req.header('x-snapshot-key') !== SNAPSHOT_KEY) {
     return res.status(403).json({ message: 'Forbidden' });
@@ -724,7 +749,7 @@ app.post('/api/classifica/snapshot/run', async (req, res) => {
 
   const n = Number.parseInt(req.query.n, 10) || 100;
   const isDry = String(req.query.dry) === '1';
-  const snapshotDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const snapshotDate = new Date().toISOString().slice(0, 10);
 
   try {
     const [top] = await db.query(
@@ -789,9 +814,7 @@ app.post('/api/classifica/snapshot/run', async (req, res) => {
   }
 });
 
-
-
-// GET: ultimo snapshot disponibile (top N) con data+ora
+// snapshot top
 app.get('/api/classifica/snapshot/top', async (req, res) => {
   try {
     const n = Number.parseInt(req.query.n, 10) || 30;
@@ -815,9 +838,7 @@ app.get('/api/classifica/snapshot/top', async (req, res) => {
   }
 });
 
-
-
-// DELETE canzone da classifica (solo admin)
+// delete classifica (admin)
 app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
   if (req.user.ruolo !== 'admin') {
     return res.status(403).json({ message: 'Accesso negato: solo admin può eliminare' });
@@ -837,10 +858,48 @@ app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
   }
 });
 
-// func per prenotare canzoni in lista
-app.post('/api/canzoni', async (req, res) => {
+// prenota canzone (MODIFICATO: usa token se presente)
+app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
   let { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
+  // Determino identità effettiva
+  let effectiveUserId = null;
+  let effectiveGuestId = null;
+
+  // Se ho token:
+  if (req.user) {
+    if (req.user.ruolo === 'guest') {
+      if (typeof req.user.guest_id === 'string' && req.user.guest_id.trim()) {
+        effectiveGuestId = req.user.guest_id.trim();
+      } else {
+        return res.status(401).json({ message: 'Guest token non valido' });
+      }
+    } else {
+      // user/admin
+      if (typeof req.user.id === 'number') {
+        effectiveUserId = req.user.id;
+      } else {
+        return res.status(401).json({ message: 'Token non valido' });
+      }
+    }
+  }
+
+  // Hardening: se nel body mi mandi user_id ma NON sei autenticato come user, rifiuto
+  const bodyUserId = (user_id != null && user_id !== '') ? Number(user_id) : null;
+  if (bodyUserId && !effectiveUserId) {
+    return res.status(401).json({ message: 'user_id richiede autenticazione' });
+  }
+
+  // Applico override in base al token (se presente)
+  if (effectiveUserId) {
+    user_id = effectiveUserId;
+    guest_id = null;
+  } else if (effectiveGuestId) {
+    guest_id = effectiveGuestId;
+    user_id = null;
+  }
+
+  // Fallback compatibilità: se non ho token, accetto guest_id dal body (vecchi client)
   if (!user_id && !guest_id) {
     return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
   }
@@ -848,21 +907,18 @@ app.post('/api/canzoni', async (req, res) => {
   // Censuro il campo 'nome'
   nome = leoProfanity.clean(nome);
 
-   if (note) {
+  if (note) {
     note = leoProfanity.clean(note);
   }
-  
-  // Normalizzo i dati (puoi decidere se fare anche su artista e canzone)
+
   artista = normalizeSongName(artista);
   canzone = normalizeSongName(canzone);
 
   try {
-    // Calcolo la posizione massima attuale
     const [maxPosResult] = await db.query('SELECT MAX(posizione) AS maxPos FROM canzoni');
     const maxPos = maxPosResult[0].maxPos || 0;
     const nuovaPosizione = maxPos + 1;
 
-    // Inserisco nella tabella canzoni
     const [result] = await db.query(
       `INSERT INTO canzoni 
        (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti, posizione) 
@@ -872,7 +928,6 @@ app.post('/api/canzoni', async (req, res) => {
 
     const canzoneId = result.insertId;
 
-    // Se utente registrato, aggiorno user_storico_esibizioni
     if (user_id) {
       await db.query(
         `INSERT INTO user_storico_esibizioni 
@@ -882,7 +937,6 @@ app.post('/api/canzoni', async (req, res) => {
       );
     }
 
-    // Aggiorno raccolta_canzoni
     await db.query(
       `INSERT INTO raccolta_canzoni (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -890,7 +944,6 @@ app.post('/api/canzoni', async (req, res) => {
       [artista, canzone]
     );
 
-    // Aggiorno classifica
     await db.query(
       `INSERT INTO classifica (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -898,7 +951,7 @@ app.post('/api/canzoni', async (req, res) => {
       [artista, canzone]
     );
 
-    res.json({ 
+    res.json({
       message: 'Canzone aggiunta e storico + classifica aggiornati con successo',
       canzoneId,
       posizione: nuovaPosizione
@@ -909,9 +962,7 @@ app.post('/api/canzoni', async (req, res) => {
   }
 });
 
-
-
-// func per recuperare i voti di ogni esibizione user
+// voti per esibizione
 app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
   const esibizioneId = req.params.esibizioneId;
 
@@ -924,7 +975,6 @@ app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
       [esibizioneId]
     );
 
-    // Se non ci sono voti, ritorna array vuoto
     res.json(voti || []);
   } catch (err) {
     console.error('Errore recupero voti:', err);
@@ -932,8 +982,7 @@ app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
   }
 });
 
-
-// Ottieni tutta la wishlist (potresti aggiungere filtro per userId se vuoi)
+// wishlist (solo user)
 app.get('/api/wishlist', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -942,7 +991,6 @@ app.get('/api/wishlist', verifyToken, async (req, res) => {
     const pageSize = parseInt(req.query.pageSize, 10) || 8;
     const offset = (page - 1) * pageSize;
 
-    // conteggio totale
     const [[{ total }]] = await db.query(
       'SELECT COUNT(*) AS total FROM wishlist WHERE user_id = ?',
       [userId]
@@ -959,7 +1007,6 @@ app.get('/api/wishlist', verifyToken, async (req, res) => {
 
     const totalPages = Math.ceil(total / pageSize);
 
-    // pagina corrente
     const [rows] = await db.query(
       `SELECT id, user_id, canzone, artista, tonalita
        FROM wishlist
@@ -982,8 +1029,6 @@ app.get('/api/wishlist', verifyToken, async (req, res) => {
   }
 });
 
-
-// Aggiungi una canzone alla wishlist
 app.post('/api/wishlist', verifyToken, async (req, res) => {
   const { canzone, artista, tonalita } = req.body;
   const userId = req.user.id;
@@ -1001,7 +1046,6 @@ app.post('/api/wishlist', verifyToken, async (req, res) => {
   }
 });
 
-// Elimina una canzone dalla wishlist
 app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
@@ -1018,8 +1062,6 @@ app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
   }
 });
 
-
-// func aggiorna status canzone cantata/da cantare
 app.put('/api/canzoni/:id/cantata', async (req, res) => {
   const { id } = req.params;
   const { cantata } = req.body;
@@ -1031,7 +1073,6 @@ app.put('/api/canzoni/:id/cantata', async (req, res) => {
   }
 });
 
-//func aggiunta partecipante , calcola numero partecipanti tot / disponibili
 app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   const { id } = req.params;
   try {
@@ -1043,7 +1084,6 @@ app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   }
 });
 
-// func recupera nome partecipante
 app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   const { id } = req.params;
   try {
@@ -1054,7 +1094,6 @@ app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   }
 });
 
-//func per reset lista canzoni (solo admin)
 app.post('/api/reset-canzoni', async (req, res) => {
   const { password } = req.body;
   if (password !== 'karaokeadmin') {
@@ -1069,7 +1108,6 @@ app.post('/api/reset-canzoni', async (req, res) => {
   }
 });
 
-// func per generare lista top list 20 max num
 app.get('/api/top20', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT canzone, artista, numero_richieste FROM canzoni ORDER BY numero_richieste DESC LIMIT 20');
@@ -1079,37 +1117,21 @@ app.get('/api/top20', async (req, res) => {
   }
 });
 
-/*
-//func genera lista archivio canzoni storico
 app.get('/api/archivio-musicale', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM raccolta_canzoni ORDER BY artista ASC');
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nell\'archivio musicale' });
-  }
-});
-*/
-
-// GET con paginazione
-app.get('/api/archivio-musicale', async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1; // default: 1
-    const limit = parseInt(req.query.limit) || 10; // default: 10
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    // Ottieni dati paginati
     const [rows] = await db.query(
       'SELECT * FROM raccolta_canzoni ORDER BY artista ASC LIMIT ? OFFSET ?',
       [limit, offset]
     );
 
-    // Conta il numero totale di righe
     const [countResult] = await db.query('SELECT COUNT(*) as count FROM raccolta_canzoni');
     const totalItems = countResult[0].count;
     const totalPages = Math.ceil(totalItems / limit);
 
-    // Rispondi con i dati paginati
     res.json({
       data: rows,
       pagination: {
@@ -1125,7 +1147,6 @@ app.get('/api/archivio-musicale', async (req, res) => {
   }
 });
 
-// GET ricerca senza paginazione
 app.get('/api/archivio-musicale/search', async (req, res) => {
   try {
     const search = req.query.q ? `%${req.query.q}%` : '%';
@@ -1135,15 +1156,13 @@ app.get('/api/archivio-musicale/search', async (req, res) => {
       [search, search]
     );
 
-    res.json(rows); // restituisce direttamente un array
+    res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Errore nella ricerca dell\'archivio musicale' });
   }
 });
 
-
-//func per modificare dati canzoni già in lista prenotate
 app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;
@@ -1171,11 +1190,9 @@ app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
   }
 });
 
-//func per cancellare canzone da archivio canzoni storico
 app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
 
-  // Controllo ruolo admin
   if (req.user.ruolo !== 'admin') {
     return res.status(403).json({ message: 'Accesso negato: solo admin può eliminare' });
   }
@@ -1194,7 +1211,6 @@ app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
   }
 });
 
-//func per eliminare singola canzone da lista canzoni
 app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;
@@ -1216,7 +1232,6 @@ app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
   }
 });
 
-//func per eliminare singola canzone da user-canzoni
 app.delete('/api/esibizioni/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -1234,21 +1249,20 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
   }
 });
 
-
 (async () => {
   try {
     const [resultNum] = await db.query("SHOW COLUMNS FROM canzoni LIKE 'numero_richieste'");
     if (resultNum.length === 0) {
       await db.query("ALTER TABLE canzoni ADD COLUMN numero_richieste INT DEFAULT 0");
-      console.log("✅ Colonna 'numero_richieste' creata.");
+      console.log("Colonna 'numero_richieste' creata.");
     }
     const [resultAcc] = await db.query("SHOW COLUMNS FROM canzoni LIKE 'accetta_partecipanti'");
     if (resultAcc.length === 0) {
       await db.query("ALTER TABLE canzoni ADD COLUMN accetta_partecipanti TINYINT(1) DEFAULT 0");
-      console.log("✅ Colonna 'accetta_partecipanti' creata.");
+      console.log("Colonna 'accetta_partecipanti' creata.");
     }
   } catch (e) {
-    console.error("❌ Errore creazione colonne:", e);
+    console.error("Errore creazione colonne:", e);
   }
 })();
 
@@ -1262,18 +1276,18 @@ const io = new Server(server, {
     origin: allowedOrigins,
     methods: ['GET', 'POST'],
     allowedHeaders: ['Authorization', 'Content-Type'],
-    credentials: false // non usiamo cookie
+    credentials: false
   },
   path: '/socket.io',
-  transports: ['websocket', 'polling'] // fallback utile in prod (CDN/Proxy)
+  transports: ['websocket', 'polling']
 });
 
 // --- In-memory structures (no DB) ---
 const socketsByUser = new Map(); // userId -> Set<socketId>
 const usersBySocket = new Map();  // socketId -> { id, username, ruolo }
 const activeUsers   = new Map();  // userId -> { id, username, status }
-const historyGlobal = [];         // ultimi N messaggi globali
-const historyDm     = new Map();  // "a:b" -> array messaggi
+const historyGlobal = [];
+const historyDm     = new Map();
 const MAX_HISTORY   = 50;
 
 function presenceSnapshot() {
@@ -1301,20 +1315,18 @@ io.use((socket, next) => {
   }
 });
 
-// helper per DM: chiave deterministica
 function dmKey(a, b) {
   const A = Number(a), B = Number(b);
   return A < B ? `${A}:${B}` : `${B}:${A}`;
 }
 
 io.on('connection', (socket) => {
-  const u = socket.data.user; // { id, username, ruolo }
+  const u = socket.data.user;
   if (!u?.id) {
     socket.disconnect();
     return;
   }
 
-  // registra mappe presenza
   usersBySocket.set(socket.id, u);
   if (!socketsByUser.has(u.id)) socketsByUser.set(u.id, new Set());
   socketsByUser.get(u.id).add(socket.id);
@@ -1322,28 +1334,23 @@ io.on('connection', (socket) => {
   const wasOnline = activeUsers.has(u.id);
   activeUsers.set(u.id, { id: u.id, username: u.username, status: 'online' });
 
-  // 1) SNAPSHOT SOLO AL NUOVO SOCKET (evita flash/race globali)
   const snap = presenceSnapshot();
   socket.emit('presence:list', snap);
   socket.emit('users:list', snap);
 
-  // 2) Eventi incrementali agli ALTRI
   if (!wasOnline) {
     socket.broadcast.emit('presence:update', { id: u.id, username: u.username, status: 'online' });
     socket.broadcast.emit('users:online',   { id: u.id, username: u.username });
   }
 
-  // stanza globale
   socket.join('global');
 
-  // === SYNC esplicita richiesta dal client quando è "pronto"
   socket.on('presence:get', () => {
     const now = presenceSnapshot();
     socket.emit('presence:list', now);
     socket.emit('users:list', now);
   });
 
-  // Manuale: offline/online
   socket.on('presence:manual', ({ off }) => {
     if (off) {
       const set = socketsByUser.get(u.id);
@@ -1353,12 +1360,9 @@ io.on('connection', (socket) => {
           try { s?.disconnect(true); } catch {}
         }
       }
-    } else {
-      // tornerà online con la normale connect()
     }
   });
 
-  // === HISTORY ===
   socket.on('chat:history', (payload) => {
     if (payload && typeof payload.to === 'number') {
       const key = dmKey(u.id, payload.to);
@@ -1368,7 +1372,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // apertura DM (per inviare history)
   socket.on('chat:dm:open', ({ peerId }) => {
     const pid = Number(peerId);
     if (!pid || pid === u.id) return;
@@ -1377,7 +1380,6 @@ io.on('connection', (socket) => {
     socket.emit('chat:dm:history', { peerId: pid, messages: historyDm.get(key) || [] });
   });
 
-  // === INVIO MESSAGGI DM ===
   socket.on('chat:dm:send', (data) => {
     const pid = Number(data?.to);
     const textRaw = String(data?.text ?? '');
@@ -1390,11 +1392,11 @@ io.on('connection', (socket) => {
 
     const msg = {
       id: (typeof randomUUID === 'function' ? randomUUID() : String(Date.now())),
-      clientId,               // torna ai client per eventuale dedup
+      clientId,
       author: u.username,
       text: safeText,
       time: Date.now(),
-      fromUserId: u.id,       // campi attesi dal client
+      fromUserId: u.id,
       toUserId: pid
     };
 
@@ -1404,7 +1406,6 @@ io.on('connection', (socket) => {
     if (arr.length > MAX_HISTORY) arr.shift();
     historyDm.set(key, arr);
 
-    // consegna al DESTINATARIO (tutte le sue tab)
     const toSockets = socketsByUser.get(pid);
     if (toSockets) {
       for (const sid of Array.from(toSockets)) {
@@ -1412,19 +1413,14 @@ io.on('connection', (socket) => {
       }
     }
 
-    // consegna alle ALTRE tab del MITTENTE (escludi il socket corrente)
     const meSockets = socketsByUser.get(u.id);
     if (meSockets) {
       for (const sid of Array.from(meSockets)) {
         if (sid !== socket.id) io.to(sid).emit('chat:dm:message', msg);
       }
     }
-
-    // ❌ niente broadcast alla stanza DM: evitato per non duplicare
-    // io.to(`dm:${key}`).emit('chat:dm:message', msg);
   });
 
-  // (opzionale) chat globale
   socket.on('chat:send', ({ text }) => {
     const t = String(text ?? '').trim();
     if (!t) return;
@@ -1438,11 +1434,8 @@ io.on('connection', (socket) => {
     historyGlobal.push(msg);
     if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
     io.to('global').emit('chat:message', msg);
-    // Se fai eco locale anche nella globale, valuta:
-    // socket.to('global').emit('chat:message', msg);
   });
 
-  // cleanup su disconnect
   socket.on('disconnect', () => {
     usersBySocket.delete(socket.id);
     const set = socketsByUser.get(u.id);
@@ -1452,7 +1445,6 @@ io.on('connection', (socket) => {
         socketsByUser.delete(u.id);
         activeUsers.delete(u.id);
 
-        // Eventi incrementali agli altri
         socket.broadcast.emit('presence:remove', { id: u.id });
         socket.broadcast.emit('users:offline',   { id: u.id });
       }
@@ -1460,7 +1452,6 @@ io.on('connection', (socket) => {
   });
 });
 
-
 server.listen(PORT, () => {
-  console.log(`🚀 HTTP+WS attivi su http://localhost:${PORT}`);
+  console.log(`HTTP+WS attivi su http://localhost:${PORT}`);
 });
