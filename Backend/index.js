@@ -30,7 +30,14 @@ app.use(
 );
 
 // Risposte immediate alle preflight
-app.options('*', cors());
+// Risposte immediate alle preflight (usa la stessa config CORS)
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
+  maxAge: 600,
+}));
+
 
 // Body parser JSON
 app.use(express.json());
@@ -50,6 +57,27 @@ const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '30d';   // user/admin
 const GUEST_TOKEN_TTL  = process.env.GUEST_TOKEN_TTL  || '30d';   // guest
 
 let refreshTokens = [];
+
+// ===== Realtime QUEUE (public) =====
+let ioQueue = null;
+
+/**
+ * Notifica a TUTTI (anche non loggati) che la lista canzoni è cambiata.
+ * Il client farà refresh via GET /api/canzoni.
+ */
+function emitQueueChanged(type, payload = {}) {
+  try {
+    if (!ioQueue) return;
+    ioQueue.emit('queue:changed', {
+      type,
+      ...payload,
+      ts: Date.now()
+    });
+  } catch (e) {
+    // no crash
+  }
+}
+
 
 // ===== Helpers token =====
 function getBearerToken(req) {
@@ -136,6 +164,7 @@ function authorizeRoles(...allowedRoles) {
   };
 }
 
+//admin può aggiungere manualmente una canzone per i client o se stesso
 app.post('/api/admin/aggiungi-canzone', verifyToken, authorizeRoles('admin'), async (req, res) => {
   const { nome, artista, canzone, tonalita } = req.body;
 
@@ -150,12 +179,16 @@ app.post('/api/admin/aggiungi-canzone', verifyToken, authorizeRoles('admin'), as
       [nome, artista, canzone, tonalita || null]
     );
 
-    res.status(201).json({ message: 'Canzone aggiunta con successo', id: result.insertId });
+    // ✅ realtime
+    emitQueueChanged('added', { canzoneId: result.insertId });
+
+    return res.status(201).json({ message: 'Canzone aggiunta con successo', id: result.insertId });
   } catch (err) {
-    console.error('Errore aggiunta canzone:', err);
-    res.status(500).json({ message: 'Errore interno del server' });
+    console.error('Errore aggiunta canzone:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore interno del server' });
   }
 });
+
 
 // chiamate per privacy component
 app.get('/api/user/profile', verifyToken, async (req, res) => {
@@ -655,22 +688,33 @@ app.get('/api/users/by-username/:username', async (req, res) => {
   }
 });
 
-// get canzoni
+// get canzoni (PUBBLICO) - usa l'ordine reale della coda
 app.get('/api/canzoni', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM canzoni ORDER BY id ASC');
+    const [rows] = await db.query('SELECT * FROM canzoni ORDER BY posizione ASC, id ASC');
     res.json(rows);
   } catch (err) {
+    console.error('Errore GET /api/canzoni:', err?.sqlMessage || err?.message || err);
     res.status(500).json({ message: 'Errore nel recupero delle canzoni' });
   }
 });
 
-// riordina
-app.post('/api/canzoni/riordina', async (req, res) => {
+
+// riordina (SOLO ADMIN) + realtime
+app.post('/api/canzoni/riordina', verifyToken, authorizeRoles('admin'), async (req, res) => {
   const nuovaLista = req.body;
 
   if (!Array.isArray(nuovaLista)) {
     return res.status(400).json({ message: 'Formato dati non valido' });
+  }
+
+  // hardening minimo: mi aspetto [{id, posizione}, ...]
+  for (const item of nuovaLista) {
+    const idOk = Number.isFinite(Number(item?.id));
+    const posOk = Number.isFinite(Number(item?.posizione));
+    if (!idOk || !posOk) {
+      return res.status(400).json({ message: 'Oggetti lista non validi (id/posizione)' });
+    }
   }
 
   const conn = await db.getConnection();
@@ -678,19 +722,30 @@ app.post('/api/canzoni/riordina', async (req, res) => {
     await conn.beginTransaction();
 
     for (const canzone of nuovaLista) {
-      await conn.query('UPDATE canzoni SET posizione = ? WHERE id = ?', [canzone.posizione, canzone.id]);
+      await conn.query(
+        'UPDATE canzoni SET posizione = ? WHERE id = ?',
+        [Number(canzone.posizione), Number(canzone.id)]
+      );
     }
 
     await conn.commit();
-    res.json({ message: 'Riordinamento completato con successo' });
+
+    // 🔥 realtime: avvisa tutti
+    emitQueueChanged('reordered', { count: nuovaLista.length });
+
+    return res.json({ message: 'Riordinamento completato con successo' });
   } catch (err) {
     await conn.rollback();
-    console.error('Errore nel riordinamento:', err.message || err);
-    res.status(500).json({ message: 'Errore durante il riordinamento' });
+    console.error('Errore POST /api/canzoni/riordina:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore durante il riordinamento' });
   } finally {
     conn.release();
   }
 });
+
+
+
+
 
 // classifica top
 app.get('/api/classifica/top', async (req, res) => {
@@ -858,7 +913,7 @@ app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
   }
 });
 
-// prenota canzone (MODIFICATO: usa token se presente)
+// prenota canzone (usa token se presente) + realtime
 app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
   let { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
 
@@ -904,30 +959,43 @@ app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
     return res.status(400).json({ message: 'user_id o guest_id obbligatorio' });
   }
 
-  // Censuro il campo 'nome'
-  nome = leoProfanity.clean(nome);
-
-  if (note) {
-    note = leoProfanity.clean(note);
+  // validazioni minime
+  if (!nome || !artista || !canzone) {
+    return res.status(400).json({ message: 'Campi obbligatori mancanti' });
   }
 
-  artista = normalizeSongName(artista);
-  canzone = normalizeSongName(canzone);
+  // Censura & normalizzazioni
+  nome = leoProfanity.clean(String(nome));
+  if (note) note = leoProfanity.clean(String(note));
+
+  artista = normalizeSongName(String(artista));
+  canzone = normalizeSongName(String(canzone));
 
   try {
     const [maxPosResult] = await db.query('SELECT MAX(posizione) AS maxPos FROM canzoni');
-    const maxPos = maxPosResult[0].maxPos || 0;
-    const nuovaPosizione = maxPos + 1;
+    const maxPos = maxPosResult?.[0]?.maxPos || 0;
+    const nuovaPosizione = Number(maxPos) + 1;
 
     const [result] = await db.query(
       `INSERT INTO canzoni 
        (nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti, posizione) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nome, artista, canzone, tonalita, note, user_id || null, guest_id || null, accetta_partecipanti ? 1 : 0, nuovaPosizione]
+      [
+        nome,
+        artista,
+        canzone,
+        tonalita || null,
+        note || null,
+        user_id || null,
+        guest_id || null,
+        accetta_partecipanti ? 1 : 0,
+        nuovaPosizione
+      ]
     );
 
     const canzoneId = result.insertId;
 
+    // storico solo per user veri
     if (user_id) {
       await db.query(
         `INSERT INTO user_storico_esibizioni 
@@ -937,6 +1005,7 @@ app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
       );
     }
 
+    // raccolta + classifica
     await db.query(
       `INSERT INTO raccolta_canzoni (artista, canzone, num_richieste)
        VALUES (?, ?, 1)
@@ -951,16 +1020,21 @@ app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
       [artista, canzone]
     );
 
-    res.json({
+    // ✅ Realtime: avvisa tutti (anon/guest/user/admin)
+    emitQueueChanged('added', { canzoneId });
+
+    return res.json({
       message: 'Canzone aggiunta e storico + classifica aggiornati con successo',
       canzoneId,
       posizione: nuovaPosizione
     });
   } catch (err) {
-    console.error('Errore in POST /api/canzoni:', err);
-    res.status(500).json({ message: 'Errore durante l\'aggiunta' });
+    console.error('Errore POST /api/canzoni:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: "Errore durante l'aggiunta" });
   }
 });
+
+
 
 // voti per esibizione
 app.get('/api/esibizioni/:esibizioneId/voti', async (req, res) => {
@@ -1065,24 +1139,41 @@ app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
 app.put('/api/canzoni/:id/cantata', async (req, res) => {
   const { id } = req.params;
   const { cantata } = req.body;
+
   try {
-    await db.query('UPDATE canzoni SET cantata = ? WHERE id = ?', [cantata, id]);
-    res.json({ message: 'Stato cantata aggiornato' });
+    await db.query('UPDATE canzoni SET cantata = ? WHERE id = ?', [cantata ? 1 : 0, id]);
+
+    // ✅ realtime
+    emitQueueChanged('cantata', { id: Number(id), cantata: !!cantata });
+
+    return res.json({ message: 'Stato cantata aggiornato' });
   } catch (err) {
-    res.status(500).json({ message: 'Errore aggiornamento' });
+    console.error('Errore PUT /api/canzoni/:id/cantata:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore aggiornamento' });
   }
 });
+
 
 app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   const { id } = req.params;
   try {
-    await db.query('UPDATE canzoni SET partecipanti_add = partecipanti_add + 1, numero_richieste = numero_richieste + 1 WHERE id = ?', [id]);
+    await db.query(
+      'UPDATE canzoni SET partecipanti_add = partecipanti_add + 1, numero_richieste = numero_richieste + 1 WHERE id = ?',
+      [id]
+    );
+
     const [updated] = await db.query('SELECT partecipanti_add FROM canzoni WHERE id = ?', [id]);
-    res.json(updated[0]);
+
+    // ✅ realtime (se quei valori stanno in UI)
+    emitQueueChanged('updated', { id: Number(id) });
+
+    return res.json(updated[0]);
   } catch (err) {
-    res.status(500).json({ message: 'Errore durante la partecipazione' });
+    console.error('Errore PUT /api/canzoni/:id/partecipa:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore durante la partecipazione' });
   }
 });
+
 
 app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   const { id } = req.params;
@@ -1094,19 +1185,28 @@ app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
   }
 });
 
+
+//resetta lista-canzoni
 app.post('/api/reset-canzoni', async (req, res) => {
   const { password } = req.body;
+
   if (password !== 'karaokeadmin') {
     return res.status(401).json({ message: 'Password errata' });
   }
 
   try {
     await db.query('UPDATE canzoni SET cantata = 0, partecipanti_add = 0');
-    res.json({ message: 'Lista resettata' });
+
+    // ✅ realtime
+    emitQueueChanged('reset', {});
+
+    return res.json({ message: 'Lista resettata' });
   } catch (err) {
-    res.status(500).json({ message: 'Errore durante il reset' });
+    console.error('Errore POST /api/reset-canzoni:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore durante il reset' });
   }
 });
+
 
 app.get('/api/top20', async (req, res) => {
   try {
@@ -1163,10 +1263,12 @@ app.get('/api/archivio-musicale/search', async (req, res) => {
   }
 });
 
+
 app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;
-  const { nome, artista, canzone, tonalita, note, accetta_partecipanti } = req.body;
+
+  let { nome, artista, canzone, tonalita, note, accetta_partecipanti } = req.body;
 
   try {
     const [rows] = await db.query('SELECT user_id FROM canzoni WHERE id = ?', [id]);
@@ -1177,18 +1279,37 @@ app.put('/api/canzoni/:id', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Non autorizzato a modificare questa canzone' });
     }
 
+    // normalizza/sanitize come in POST
+    if (nome) nome = leoProfanity.clean(String(nome));
+    if (note) note = leoProfanity.clean(String(note));
+    if (artista) artista = normalizeSongName(String(artista));
+    if (canzone) canzone = normalizeSongName(String(canzone));
+
     await db.query(
       `UPDATE canzoni 
        SET nome = ?, artista = ?, canzone = ?, tonalita = ?, note = ?, accetta_partecipanti = ? 
        WHERE id = ?`,
-      [nome, artista, canzone, tonalita, note, accetta_partecipanti ? 1 : 0, id]
+      [
+        nome || null,
+        artista || null,
+        canzone || null,
+        tonalita || null,
+        note || null,
+        accetta_partecipanti ? 1 : 0,
+        id
+      ]
     );
 
-    res.json({ message: 'Canzone aggiornata con successo' });
+    // ✅ realtime
+    emitQueueChanged('updated', { id: Number(id) });
+
+    return res.json({ message: 'Canzone aggiornata con successo' });
   } catch (err) {
-    res.status(500).json({ message: 'Errore aggiornamento canzone' });
+    console.error('Errore PUT /api/canzoni/:id:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore aggiornamento canzone' });
   }
 });
+
 
 app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
@@ -1211,6 +1332,7 @@ app.delete('/api/archivio-musicale/:id', verifyToken, async (req, res) => {
   }
 });
 
+// cancella canzoni da lista-canzoni component + realtime
 app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
   const user = req.user;
   const { id } = req.params;
@@ -1225,12 +1347,18 @@ app.delete('/api/canzoni/:id', verifyToken, async (req, res) => {
     }
 
     await db.query('DELETE FROM canzoni WHERE id = ?', [id]);
-    res.json({ message: 'Canzone eliminata con successo' });
+
+    // ✅ realtime
+    emitQueueChanged('deleted', { id: Number(id) });
+
+    return res.json({ message: 'Canzone eliminata con successo' });
   } catch (err) {
-    console.error('Errore in DELETE /api/canzoni/:id', err);
-    res.status(500).json({ message: 'Errore interno del server' });
+    console.error('Errore DELETE /api/canzoni/:id:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore interno del server' });
   }
 });
+
+
 
 app.delete('/api/esibizioni/:id', async (req, res) => {
   const { id } = req.params;
@@ -1267,10 +1395,42 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
 })();
 
 // ===========================
-//  SOCKET.IO - CHAT (globale + DM) con presenza IN MEMORIA
+//  SOCKET.IO
+//  - Queue canzoni: PUBBLICA (anon/guest/user/admin)  ✅
+//  - Chat + presenza: SOLO utenti loggati (NO guest, NO anon) ✅
 // ===========================
 const server = http.createServer(app);
 
+// ===========================
+//  SOCKET.IO - QUEUE (PUBBLICO, no auth)
+//  Path separato per non rompere la chat autenticata
+//  NOTA: la queue socket serve SOLO a notificare "è cambiata la lista".
+//        I client poi fanno GET /api/canzoni per ricaricare i dati.
+// ===========================
+ioQueue = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    credentials: false
+  },
+  path: '/socket-queue',
+  transports: ['websocket', 'polling']
+});
+
+ioQueue.on('connection', (socket) => {
+  // handshake OK
+  socket.emit('queue:hello', { ok: true, ts: Date.now() });
+
+  // opzionale: ping di test
+  socket.on('queue:ping', (cb) => {
+    if (typeof cb === 'function') cb({ ok: true, ts: Date.now() });
+  });
+});
+
+// ===========================
+//  SOCKET.IO - CHAT + PRESENZA (AUTH STRICT)
+// ===========================
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -1284,8 +1444,8 @@ const io = new Server(server, {
 
 // --- In-memory structures (no DB) ---
 const socketsByUser = new Map(); // userId -> Set<socketId>
-const usersBySocket = new Map();  // socketId -> { id, username, ruolo }
-const activeUsers   = new Map();  // userId -> { id, username, status }
+const usersBySocket = new Map(); // socketId -> { id, username, ruolo }
+const activeUsers   = new Map(); // userId -> { id, username, status }
 const historyGlobal = [];
 const historyDm     = new Map();
 const MAX_HISTORY   = 50;
@@ -1294,23 +1454,32 @@ function presenceSnapshot() {
   return Array.from(activeUsers.values());
 }
 
-// Auth WS: SOLO UTENTI LOGGATI (no guest)
+// Auth WS: SOLO UTENTI LOGGATI (NO guest, NO anon)
 io.use((socket, next) => {
   try {
     const fromAuth  = socket.handshake?.auth?.token;
     const fromQuery = socket.handshake?.query?.token;
     const token = (fromAuth || fromQuery || '').toString().trim();
+
     if (!token) return next(new Error('Unauthorized'));
 
     const user = jwt.verify(token, SECRET_KEY);
+
+    // Blocca guest nella chat
+    if (user?.ruolo === 'guest') return next(new Error('Unauthorized'));
+
     socket.data.user = {
       id: Number(user.id),
       username: String(user.username || 'User'),
       ruolo: String(user.ruolo || '')
     };
+
+    if (!Number.isFinite(socket.data.user.id)) {
+      return next(new Error('Unauthorized'));
+    }
+
     return next();
   } catch (e) {
-    console.error('[ws] auth error:', e.message);
     return next(new Error('Unauthorized'));
   }
 });
@@ -1322,12 +1491,14 @@ function dmKey(a, b) {
 
 io.on('connection', (socket) => {
   const u = socket.data.user;
+
   if (!u?.id) {
-    socket.disconnect();
+    socket.disconnect(true);
     return;
   }
 
   usersBySocket.set(socket.id, u);
+
   if (!socketsByUser.has(u.id)) socketsByUser.set(u.id, new Set());
   socketsByUser.get(u.id).add(socket.id);
 
@@ -1424,6 +1595,7 @@ io.on('connection', (socket) => {
   socket.on('chat:send', ({ text }) => {
     const t = String(text ?? '').trim();
     if (!t) return;
+
     const msg = {
       id: (typeof randomUUID === 'function' ? randomUUID() : String(Date.now())),
       author: u.username,
@@ -1431,6 +1603,7 @@ io.on('connection', (socket) => {
       time: Date.now(),
       fromUserId: u.id
     };
+
     historyGlobal.push(msg);
     if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
     io.to('global').emit('chat:message', msg);
@@ -1438,6 +1611,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     usersBySocket.delete(socket.id);
+
     const set = socketsByUser.get(u.id);
     if (set) {
       set.delete(socket.id);
