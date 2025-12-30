@@ -15,7 +15,8 @@ import { ToastrService } from 'ngx-toastr';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription, interval } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { QueueSocketService } from '../../services/queue-socket.service'; // ✅ NEW
 
 interface Canzone {
   id: number;
@@ -66,6 +67,14 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private qpSub?: Subscription;
   private changesSub?: Subscription;
+  private queueSub?: Subscription;
+
+  // ✅ fix resize remove
+  private onResize = () => this.checkViewport();
+
+  // ✅ debounce refresh
+  private reloadTimer: any = null;
+  private readonly RELOAD_DEBOUNCE_MS = 150;
 
   constructor(
     private karaokeService: KaraokeService,
@@ -74,7 +83,8 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private toastr: ToastrService,
     private dialog: MatDialog,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private queueSocket: QueueSocketService // ✅ NEW
   ) {}
 
   ngOnInit(): void {
@@ -84,16 +94,22 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     this.puoPartecipare = this.authService.canPartecipate();
 
     this.checkViewport();
-    window.addEventListener('resize', () => this.checkViewport());
+    window.addEventListener('resize', this.onResize);
+
+    // ✅ realtime queue (pubblica)
+    // se l’hai già connessa in AppComponent, connect() deve essere idempotente (ok)
+    this.queueSocket.connect();
+    this.queueSub = this.queueSocket.changed$.subscribe(() => {
+      // coalesco eventi ravvicinati (riordina + update + ecc)
+      this.scheduleReloadSongs();
+    });
 
     // Leggi scrollToId da query o da sessionStorage (fallback)
     this.qpSub = this.route.queryParams.subscribe(params => {
       const fromQuery = params['scrollToId'] ? +params['scrollToId'] : null;
       const fromSession = sessionStorage.getItem('scrollToSongId');
       this.scrollToId = fromQuery ?? (fromSession ? +fromSession : null);
-      if (fromSession) {
-        sessionStorage.removeItem('scrollToSongId');
-      }
+      if (fromSession) sessionStorage.removeItem('scrollToSongId');
     });
 
     this.caricaCanzoni();
@@ -111,6 +127,26 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.qpSub?.unsubscribe();
     this.changesSub?.unsubscribe();
+    this.queueSub?.unsubscribe();
+
+    if (this.reloadTimer) {
+      clearTimeout(this.reloadTimer);
+      this.reloadTimer = null;
+    }
+
+    window.removeEventListener('resize', this.onResize);
+  }
+
+  private scheduleReloadSongs(): void {
+    if (this.reloadTimer) clearTimeout(this.reloadTimer);
+    this.reloadTimer = setTimeout(() => {
+      this.reloadTimer = null;
+
+      // opzionale: evita refresh mentre stai editando (se vuoi)
+      // if (this.editingIndex != null) return;
+
+      this.caricaCanzoni();
+    }, this.RELOAD_DEBOUNCE_MS);
   }
 
   checkViewport() {
@@ -149,7 +185,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     el.classList.add('highlight');
     setTimeout(() => el.classList.remove('highlight'), 3000);
     return true;
-    }
+  }
 
   /** riprova lo scroll per un po' finché l'elemento non esiste */
   private scheduleScrollTo(id: number) {
@@ -157,12 +193,10 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     const maxTries = 80; // ~4s a 50ms
     const iv = setInterval(() => {
       tries++;
-      if (this.tryScrollTo(id) || tries >= maxTries) {
+      const ok = this.tryScrollTo(id);
+      if (ok || tries >= maxTries) {
         clearInterval(iv);
-        // una volta scrollato, pulisci la richiesta
-        if (this.tryScrollTo(id)) {
-          this.scrollToId = null;
-        }
+        if (ok) this.scrollToId = null;
       }
     }, 50);
   }
@@ -189,7 +223,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     this.karaokeService.getCanzoni().subscribe({
       next: (data: Canzone[]) => {
         this.canzoni = data;
-        // lascia che Angular renda la vista, poi prova lo scroll
+
         setTimeout(() => {
           this.isLoading = false;
           if (this.scrollToId != null) {
@@ -232,7 +266,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
           this.karaokeService.resetLista('karaokeadmin').subscribe({
             next: () => {
               this.translate.get('toast.LIST_RESET_SUCCESS').subscribe(msg => this.toastr.success(msg));
-              this.caricaCanzoni(); // Ricarica lista dopo reset
+              this.caricaCanzoni();
             },
             error: (err) => {
               console.error('Errore nel reset:', err);
@@ -299,7 +333,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
           this.karaokeService.deleteCanzone(id).subscribe({
             next: () => {
               this.translate.get('toast.SUCCESS_LIST').subscribe(msg => this.toastr.success(msg));
-              this.caricaCanzoni(); // Ricarica lista dopo eliminazione
+              this.caricaCanzoni();
             },
             error: (err) => {
               console.error('Errore eliminazione canzone:', err);
