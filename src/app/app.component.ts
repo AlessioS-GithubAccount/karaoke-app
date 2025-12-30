@@ -6,6 +6,7 @@ import { SwUpdate, VersionEvent, VersionReadyEvent } from '@angular/service-work
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, filter } from 'rxjs';
 import { ChatRealtimeService } from './chat/chat-realtime.service';
+import { QueueSocketService } from './services/queue-socket.service'; // ✅ NEW
 
 @Component({
   selector: 'app-root',
@@ -32,12 +33,17 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     private eRef: ElementRef,
     private toastr: ToastrService,
-    private chatRealtime: ChatRealtimeService
+    private chatRealtime: ChatRealtimeService,
+    private queueSocket: QueueSocketService // ✅ NEW
   ) {}
 
   ngOnInit(): void {
     // === Rimuovo l'overlay di loading il prima possibile ===
     this.removeAppLoader();
+
+    // ✅ QUEUE REALTIME (PUBBLICA): connetto sempre
+    // (così chiunque vede update lista senza refresh manuale)
+    this.queueSocket.connect();
 
     // === PRESENCE MANAGER: resta online fino a 1h dall'ultima attività ===
     if (this.authService.isLoggedIn()) {
@@ -121,8 +127,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.toastr.info('Sto scaricando un aggiornamento…', 'Aggiornamento', { timeOut: 3000 });
             break;
           case 'VERSION_READY': {
-            const _e = e as VersionReadyEvent; // type narrowing
-            // opzionale: potresti comparare _e.currentVersion / _e.latestVersion
+            const _e = e as VersionReadyEvent;
             this.toastr.info('Nuova versione pronta. Installo e riapro…', 'Aggiornamento', { timeOut: 2500 });
             sessionStorage.setItem('justUpdated', '1');
             this.activateUpdateAndReload();
@@ -142,7 +147,6 @@ export class AppComponent implements OnInit, OnDestroy {
         if (document.visibilityState === 'visible') this.checkForUpdateSafe();
       });
       window.addEventListener('online', () => this.checkForUpdateSafe());
-      // polling blando: chi torna “dopo tanto” prende subito l’update
       setInterval(() => this.checkForUpdateSafe(), 5 * 60 * 1000);
     }
 
@@ -152,6 +156,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
+    // opzionale: NON lo disconnetto, perché AppComponent vive per tutta la sessione
+    // this.queueSocket.disconnect();
   }
 
   private async checkForUpdateSafe() {
@@ -167,9 +173,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private removeAppLoader(): void {
     const el = document.getElementById('app-loading');
     if (el) {
-      // nascondo subito per evitare flicker
       (el as HTMLElement).style.display = 'none';
-      // dopo un frame lo rimuovo dal DOM
       requestAnimationFrame(() => el.remove());
     }
   }
