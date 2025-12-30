@@ -1,87 +1,83 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { BehaviorSubject, Subject, Subscription, timer } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+import { Observable, Subject } from 'rxjs';
+import { environment } from '../../environments/environment';
+
+export type QueueChangedEvent = {
+  type?: string;
+  ts?: number;
+  [key: string]: any;
+};
 
 @Injectable({ providedIn: 'root' })
 export class QueueSocketService {
-  private socket: Socket | null = null;
+  private socket?: Socket;
+  private changed$ = new Subject<QueueChangedEvent>();
 
-  // Notifica quando il server dice "queue cambiata"
-  private changed$ = new Subject<{ type?: string; ts?: number; [k: string]: any }>();
-
-  // Stato connessione
-  private connected$ = new BehaviorSubject<boolean>(false);
-
-  constructor(private http: HttpClient, private zone: NgZone) {}
-
-  /** URL base API (uguale a quello che usi nel resto dell'app) */
-  private apiBase(): string {
-    // Se hai già un environment.ts, usa quello.
-    // Qui metto fallback:
-    return (window as any).__API_BASE__ || 'http://localhost:3000';
-  }
-
-  /** Connette la socket pubblica queue */
+  /** Chiamalo UNA volta (es: AppComponent) */
   connect(): void {
-    if (this.socket) return;
+    if (this.socket?.connected) return;
+    if (this.socket) return; // già istanziata
 
-    const base = this.apiBase();
+    const base = this.getSocketBaseUrl();
 
     this.socket = io(base, {
       path: '/socket-queue',
       transports: ['websocket', 'polling'],
       autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 500,
-      reconnectionDelayMax: 3000,
-      timeout: 8000
+      withCredentials: false,
     });
 
     this.socket.on('connect', () => {
-      this.zone.run(() => this.connected$.next(true));
+      // console.log('[queue-socket] connected', this.socket?.id);
     });
 
-    this.socket.on('disconnect', () => {
-      this.zone.run(() => this.connected$.next(false));
+    this.socket.on('connect_error', (err) => {
+      // console.warn('[queue-socket] connect_error', err?.message || err);
     });
 
-    this.socket.on('connect_error', () => {
-      // niente crash, solo stato false
-      this.zone.run(() => this.connected$.next(false));
+    this.socket.on('queue:hello', (_data) => {
+      // opzionale
     });
 
-    this.socket.on('queue:hello', (data) => {
-      // opzionale: debug
-      // console.log('[queue] hello', data);
-    });
-
-    this.socket.on('queue:changed', (payload) => {
-      this.zone.run(() => this.changed$.next(payload || {}));
+    this.socket.on('queue:changed', (evt: QueueChangedEvent) => {
+      this.changed$.next(evt || {});
     });
   }
 
   disconnect(): void {
-    if (!this.socket) return;
     try {
-      this.socket.removeAllListeners();
-      this.socket.disconnect();
+      this.socket?.disconnect();
+      this.socket?.removeAllListeners();
     } catch {}
-    this.socket = null;
-    this.connected$.next(false);
+    this.socket = undefined;
   }
 
-  onChanged() {
+  onQueueChanged$(): Observable<QueueChangedEvent> {
     return this.changed$.asObservable();
   }
 
-  isConnected() {
-    return this.connected$.asObservable();
-  }
+  private getSocketBaseUrl(): string {
+    // caso 1: hai messo environment.socketBaseUrl (consigliato)
+    const anyEnv = environment as any;
+    if (anyEnv.socketBaseUrl && typeof anyEnv.socketBaseUrl === 'string') {
+      return anyEnv.socketBaseUrl;
+    }
 
-  /** Helper: ricarica la queue via HTTP */
-  fetchQueue() {
-    return this.http.get<any[]>(`${this.apiBase()}/api/canzoni`);
+    // caso 2: deriviamo dall’environment.baseUrl che tu usi per le API
+    // es: https://xxx.onrender.com/api  -> https://xxx.onrender.com
+    const api = (environment as any).baseUrl as string | undefined;
+
+    // se baseUrl è relativo (/api) o mancante, uso origin corrente
+    if (!api || !api.startsWith('http')) {
+      return window.location.origin;
+    }
+
+    try {
+      const u = new URL(api);
+      return u.origin;
+    } catch {
+      return window.location.origin;
+    }
   }
 }
