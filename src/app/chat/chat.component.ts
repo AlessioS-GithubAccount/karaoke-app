@@ -11,7 +11,15 @@ interface UiMessage {
   me: boolean;
 }
 
-type ThreadsMap = Record<string, UiMessage[]>;
+interface StoredUiMessage {
+  id: string;
+  author: string;
+  text: string;
+  time: string; // ISO
+  me: boolean;
+}
+
+type ThreadsMapStored = Record<string, StoredUiMessage[]>;
 
 @Component({
   selector: 'app-chat',
@@ -31,11 +39,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   private messagesByPeer = new Map<number, UiMessage[]>();
 
   unreadByPeer: Record<number, number> = {};
-
   isOnline = true;
 
   private subs: Subscription[] = [];
-  private myUserId = this.getMyUserId();
+  private myUserId: number | null = null;
+  private myUsername = 'Me';
   private isFocused = true;
 
   // anti-doppio invio
@@ -49,32 +57,53 @@ export class ChatComponent implements OnInit, OnDestroy {
   private sentClientIds = new Set<string>();
   private rememberSent(clientId: string) {
     this.sentClientIds.add(clientId);
-    // limita la dimensione per non crescere all'infinito
     if (this.sentClientIds.size > 300) {
-      const first = this.sentClientIds.values().next().value;
+      const first = this.sentClientIds.values().next().value as string | undefined;
       if (first) this.sentClientIds.delete(first);
     }
-    // rimuovi dopo 20s (sufficiente per eventuali rimbalzi server)
     setTimeout(() => this.sentClientIds.delete(clientId), 20000);
   }
 
-  private storageKeyThreads = this.myUserId ? `chat:${this.myUserId}:threads` : 'chat:0:threads';
-  private storageKeyUnread  = this.myUserId ? `chat:${this.myUserId}:unread`  : 'chat:0:unread';
-  private storageKeyActive  = this.myUserId ? `chat:${this.myUserId}:active`  : 'chat:0:active';
+  // storage keys (calcolate in ngOnInit dopo myUserId)
+  private storageKeyThreads = 'chat:0:threads';
+  private storageKeyUnread = 'chat:0:unread';
+  private storageKeyActive = 'chat:0:active';
 
   constructor(private realtime: ChatRealtimeService, private router: Router) {}
 
   ngOnInit(): void {
-    this.mustLogin = !Boolean(localStorage.getItem('token'));
+    // 1) Verifica token user/admin (NO guest)
+    const auth = this.readValidUserAuthFromStorage();
+    this.mustLogin = !Boolean(auth);
 
-    // niente connect(): il service si auto-connette
-    this.realtime.touchActivity?.();
+    if (this.mustLogin) {
+      // Non avviare la chat/presence manager
+      this.isOnline = false;
+      this.loadAllFromStorage(); // opzionale
+      window.addEventListener('focus', this.onFocus);
+      window.addEventListener('blur', this.onBlur);
+      return;
+    }
+
+    // 2) Set identità e chiavi storage
+    this.myUserId = auth!.id;
+    this.myUsername = auth!.username || 'Me';
+
+    this.storageKeyThreads = `chat:${this.myUserId}:threads`;
+    this.storageKeyUnread = `chat:${this.myUserId}:unread`;
+    this.storageKeyActive = `chat:${this.myUserId}:active`;
+
+    // 3) Avvia realtime SOLO qui (niente autoboot nel service)
+    this.realtime.start();
+    this.realtime.touchActivity();
 
     this.isOnline = !this.realtime.manualOffline;
-    this.subs.push(this.realtime.manualOffline$.subscribe(off => this.isOnline = !off));
+    this.subs.push(this.realtime.manualOffline$.subscribe(off => (this.isOnline = !off)));
 
+    // 4) Load storage
     this.loadAllFromStorage();
 
+    // 5) Sottoscrizioni realtime
     this.subs.push(
       this.realtime.onlineUsers$.subscribe(list => {
         const myId = this.myUserId;
@@ -85,7 +114,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.realtime.unreadByPeer$.subscribe(map => {
         const obj: Record<number, number> = {};
-        map.forEach((v, k) => obj[k] = v);
+        map.forEach((v, k) => (obj[k] = v));
         this.unreadByPeer = obj;
         this.persistUnread();
       })
@@ -94,7 +123,8 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.realtime.activePeer$.subscribe(peer => {
         this.activePeer = peer;
-        const thread = peer ? (this.messagesByPeer.get(peer.id) || []) : [];
+
+        const thread = peer ? this.messagesByPeer.get(peer.id) || [] : [];
         this.messages = thread.slice();
 
         if (peer) {
@@ -104,23 +134,25 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.persistActivePeer(null);
         }
 
-        setTimeout(() => {
-          const el = document.getElementById('chat-scroll');
-          if (el) el.scrollTop = el.scrollHeight;
-        }, 0);
+        setTimeout(() => this.scrollToBottomNow(), 0);
       })
     );
 
-    // ➜ DEDUP in arrivo con clientId
+    // DEDUP in arrivo con clientId
     this.subs.push(
       this.realtime.dmMessage$.subscribe((m: ChatMessage) => {
+        if (!this.myUserId) return;
+
         // Se il server ci rimanda il nostro invio con lo stesso clientId, ignoralo in QUESTA tab
         if (m.clientId && this.sentClientIds.has(m.clientId)) return;
 
         const peerId =
-          (m.userId && m.userId !== this.myUserId) ? m.userId :
-          (m.toUserId && m.toUserId !== this.myUserId) ? m.toUserId :
-          null;
+          m.userId && m.userId !== this.myUserId
+            ? m.userId
+            : m.toUserId && m.toUserId !== this.myUserId
+              ? m.toUserId
+              : null;
+
         if (!peerId) return;
 
         const ui: UiMessage = {
@@ -133,27 +165,27 @@ export class ChatComponent implements OnInit, OnDestroy {
 
         const arr = this.messagesByPeer.get(peerId) || [];
         arr.push(ui);
+
         if (arr.length > ChatComponent.THREAD_MAX) {
           arr.splice(0, arr.length - ChatComponent.THREAD_MAX);
         }
+
         this.messagesByPeer.set(peerId, arr);
         this.persistThread(peerId, arr);
 
         if (this.activePeer?.id === peerId) {
           this.messages = arr.slice();
           if (this.isFocused) this.realtime.markRead(peerId);
-
-          setTimeout(() => {
-            const el = document.getElementById('chat-scroll');
-            if (el) el.scrollTop = el.scrollHeight;
-          }, 0);
+          setTimeout(() => this.scrollToBottomNow(), 0);
         }
       })
     );
 
+    // Focus/blur
     window.addEventListener('focus', this.onFocus);
     window.addEventListener('blur', this.onBlur);
 
+    // Ripristina peer attivo
     const savedActive = this.readActivePeer();
     if (savedActive && !this.activePeer) {
       const fake: OnlineUser = { id: savedActive, username: '' };
@@ -162,18 +194,24 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   toggleOnline(): void {
+    if (this.mustLogin) return;
+
     const nextOnline = !this.isOnline;
     if (nextOnline) this.realtime.touchActivity();
     this.realtime.setManualOffline(!nextOnline);
   }
 
   selectPeer(u: OnlineUser): void {
+    if (this.mustLogin) return;
+    this.realtime.touchActivity();
     this.realtime.selectPeer(u);
   }
 
-  // form-safe + anti-doppio
   send(event?: Event): void {
     if (event) event.preventDefault();
+    if (this.mustLogin) return;
+    if (!this.myUserId) return;
+    if (!this.isOnline) return;
 
     const text = this.inputText.trim();
     if (!text || !this.activePeer) return;
@@ -192,70 +230,82 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     // echo locale
     const ui: UiMessage = {
-      id: clientId, // usiamo lo stesso id dell'eco
-      author: this.getMyUsername(),
+      id: clientId,
+      author: this.myUsername || 'Me',
       text,
       time: new Date(now),
       me: true,
     };
+
     const arr = this.messagesByPeer.get(pid) || [];
     arr.push(ui);
+
     if (arr.length > ChatComponent.THREAD_MAX) {
       arr.splice(0, arr.length - ChatComponent.THREAD_MAX);
     }
+
     this.messagesByPeer.set(pid, arr);
     this.messages = arr.slice();
     this.inputText = '';
 
-    this.rememberSent(clientId); // <-- così ignoriamo l'eventuale rimbalzo server
+    this.rememberSent(clientId);
     this.realtime.markRead(pid);
     this.persistThread(pid, arr);
 
-    setTimeout(() => {
-      const el = document.getElementById('chat-scroll');
-      if (el) el.scrollTop = el.scrollHeight;
-    }, 0);
+    setTimeout(() => this.scrollToBottomNow(), 0);
   }
 
   goLogin(): void {
     this.router.navigate(['/login']);
   }
 
-  trackByMsg = (_: number, m: UiMessage) => m.id ?? _; // usato nel template
-  trackByIndex(i: number): number { return i; }        // legacy
+  // ✅ trackBy corretto per lista utenti (evita glitch quando cambia l’array)
+  trackByUserId = (_: number, u: OnlineUser) => u?.id ?? _;
+
+  trackByMsg = (_: number, m: UiMessage) => m.id ?? _;
+  trackByIndex(i: number): number { return i; }
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
     window.removeEventListener('focus', this.onFocus);
     window.removeEventListener('blur', this.onBlur);
-  }
 
-  private getMyUserId(): number | null {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return null;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return typeof payload?.id === 'number' ? payload.id : null;
-    } catch { return null; }
-  }
-
-  private getMyUsername(): string {
-    return localStorage.getItem('username') || 'Me';
+    // ✅ stop: la chat resta attiva solo in questa pagina
+    if (!this.mustLogin) {
+      this.realtime.stop();
+    }
   }
 
   private onFocus = () => {
     this.isFocused = true;
-    if (this.activePeer) this.realtime.markRead(this.activePeer.id);
+    if (!this.mustLogin) {
+      this.realtime.touchActivity();
+      if (this.activePeer) this.realtime.markRead(this.activePeer.id);
+    }
   };
 
-  private onBlur = () => { this.isFocused = false; };
+  private onBlur = () => {
+    this.isFocused = false;
+  };
+
+  private scrollToBottomNow(): void {
+    const el = document.getElementById('chat-scroll');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  // ===========================
+  // STORAGE
+  // ===========================
 
   private persistThread(peerId: number, arr: UiMessage[]): void {
     try {
-      const all: ThreadsMap = this.readAllThreads();
+      const all: ThreadsMapStored = this.readAllThreadsStored();
       all[String(peerId)] = arr.map(m => ({
-        ...m,
-        time: new Date(m.time).toISOString() as unknown as any
+        id: m.id,
+        author: m.author,
+        text: m.text,
+        me: m.me,
+        time: m.time.toISOString(),
       }));
       localStorage.setItem(this.storageKeyThreads, JSON.stringify(all));
     } catch {
@@ -277,12 +327,15 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private loadAllFromStorage(): void {
-    const all = this.readAllThreads();
+    const all = this.readAllThreadsStored();
     for (const key of Object.keys(all)) {
       const pid = Number(key);
-      const arr = all[key].map(m => ({
-        ...m,
-        time: new Date(m.time)
+      const arr = (all[key] || []).map(m => ({
+        id: m.id,
+        author: m.author,
+        text: m.text,
+        me: m.me,
+        time: new Date(m.time),
       }));
       this.messagesByPeer.set(pid, arr);
     }
@@ -299,12 +352,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  private readAllThreads(): ThreadsMap {
+  private readAllThreadsStored(): ThreadsMapStored {
     try {
       const raw = localStorage.getItem(this.storageKeyThreads);
       if (!raw) return {};
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === 'object') return parsed as ThreadsMap;
+      if (parsed && typeof parsed === 'object') return parsed as ThreadsMapStored;
     } catch {}
     return {};
   }
@@ -315,18 +368,20 @@ export class ChatComponent implements OnInit, OnDestroy {
       if (!raw) return null;
       const n = Number(raw);
       return Number.isFinite(n) ? n : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 
   private compactThreadsAndRetry(peerId: number, arr: UiMessage[]): void {
     try {
-      const all = this.readAllThreads();
+      const all = this.readAllThreadsStored();
       const entries = Object.entries(all);
       if (entries.length === 0) return;
 
       entries.sort((a, b) => {
-        const lastA = (a[1].at(-1)?.time) ? new Date(a[1].at(-1)!.time as any).getTime() : 0;
-        const lastB = (b[1].at(-1)?.time) ? new Date(b[1].at(-1)!.time as any).getTime() : 0;
+        const lastA = a[1]?.at(-1)?.time ? new Date(a[1].at(-1)!.time).getTime() : 0;
+        const lastB = b[1]?.at(-1)?.time ? new Date(b[1].at(-1)!.time).getTime() : 0;
         return lastA - lastB;
       });
 
@@ -338,10 +393,54 @@ export class ChatComponent implements OnInit, OnDestroy {
     } catch {
       const truncated = arr.slice(-Math.ceil(arr.length / 2));
       try {
-        const all = this.readAllThreads();
-        all[String(peerId)] = truncated.map(m => ({ ...m, time: new Date(m.time).toISOString() as any }));
+        const all = this.readAllThreadsStored();
+        all[String(peerId)] = truncated.map(m => ({
+          id: m.id,
+          author: m.author,
+          text: m.text,
+          me: m.me,
+          time: m.time.toISOString(),
+        }));
         localStorage.setItem(this.storageKeyThreads, JSON.stringify(all));
       } catch {}
+    }
+  }
+
+  // ===========================
+  // AUTH HELPERS
+  // ===========================
+
+  private readValidUserAuthFromStorage(): { id: number; username: string; ruolo: string } | null {
+    const raw = (localStorage.getItem('token') || '').trim();
+    const token = raw.replace(/^Bearer\s+/i, '').trim();
+    if (!token || token.split('.').length !== 3) return null;
+
+    const payload = this.decodeJwtPayload(token);
+    if (!payload) return null;
+
+    const ruolo = String(payload?.ruolo ?? '');
+    if (ruolo === 'guest') return null;
+
+    const id = payload?.id;
+    if (typeof id !== 'number' || !Number.isFinite(id)) return null;
+
+    const username = String(payload?.username ?? localStorage.getItem('username') ?? 'Me');
+    return { id, username, ruolo };
+  }
+
+  private decodeJwtPayload(token: string): any | null {
+    try {
+      const part = token.split('.')[1] || '';
+      const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(b64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(json);
+    } catch {
+      return null;
     }
   }
 }

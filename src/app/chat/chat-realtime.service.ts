@@ -7,13 +7,15 @@ export interface OnlineUser { id: number; username: string; }
 
 export interface ChatMessage {
   id: string;
-  clientId?: string;   // <- NEW: id generato dal client per dedup locale
+  clientId?: string;
   author: string;
   text: string;
   time: number;        // epoch ms
   userId: number;      // mittente
   toUserId?: number;   // destinatario (solo per DM)
 }
+
+type JwtPayload = { id?: number; ruolo?: string; username?: string; [k: string]: any };
 
 @Injectable({ providedIn: 'root' })
 export class ChatRealtimeService {
@@ -55,15 +57,18 @@ export class ChatRealtimeService {
   private presenceTimer: number | null = null;
   private presenceInited = false;
 
+  // Lifecycle service
+  private started = false;
+
   // Unload hooks
   private unloadHooksInstalled = false;
-  private onBeforeUnload = () => {
+  private readonly onBeforeUnload = () => {
     try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
   };
-  private onPageHide = () => {
+  private readonly onPageHide = () => {
     try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
   };
-  private onVisibilityChange = () => {
+  private readonly onVisibilityChange = () => {
     if (document.visibilityState === 'hidden') {
       try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
     } else {
@@ -71,27 +76,51 @@ export class ChatRealtimeService {
     }
   };
 
-  // ===== AUTO-BOOT DEL PRESENCE MANAGER =====
-  constructor() {
-    // Avvio “safe”: se non c’è token non si connette comunque
-    queueMicrotask(() => {
-      this.installUnloadHooks();
-      this.initPresenceManager();
-      this.touchActivity();     // porta “in vita” la presenza appena entro in app
-      this.connect();           // connessione esplicita (no-op se manualOffline o senza token)
-    });
+  // ✅ niente più autoboot in constructor
+  constructor() {}
+
+  // ===========================
+  // PUBLIC START/STOP
+  // ===========================
+
+  /**
+   * Avvia chat+presence. Chiamalo SOLO per user/admin (mai per guest/anon),
+   * es: quando entri nella pagina Chat oppure subito dopo login user/admin.
+   */
+  start(): void {
+    if (this.started) return;
+    this.started = true;
+
+    this.installUnloadHooks();
+    this.initPresenceManager();
+    this.touchActivity(); // segna attività e prova connessione (se possibile)
+    this.ensureConnected();
   }
 
-  // ====== API Presenza pubbliche ======
+  /** Ferma tutto (utile in logout o quando lasci l’area chat se vuoi). */
+  stop(): void {
+    this.started = false;
+
+    this.teardownPresenceManager();
+    this.disconnect();
+
+    // opzionale: puoi anche rimuovere gli hooks (non obbligatorio)
+    this.uninstallUnloadHooks();
+  }
+
+  // ===========================
+  // PRESENZA / ATTIVITÀ
+  // ===========================
 
   /** Segna attività e, se non in manual offline, garantisce la connessione. */
   touchActivity(): void {
-    localStorage.setItem('presence.lastActivity', String(Date.now()));
+    try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
+    if (!this.started) return;
     if (!this.manualOffline) this.ensureConnected();
   }
 
   /** Hook di unload/visibilità per mantenere aggiornato lastActivity. */
-  installUnloadHooks(): void {
+  private installUnloadHooks(): void {
     if (this.unloadHooksInstalled) return;
     this.unloadHooksInstalled = true;
 
@@ -100,8 +129,17 @@ export class ChatRealtimeService {
     document.addEventListener('visibilitychange', this.onVisibilityChange, { passive: true as any });
   }
 
+  private uninstallUnloadHooks(): void {
+    if (!this.unloadHooksInstalled) return;
+    this.unloadHooksInstalled = false;
+
+    window.removeEventListener('beforeunload', this.onBeforeUnload);
+    window.removeEventListener('pagehide', this.onPageHide);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange as any);
+  }
+
   /** Avvia il gestore presenza globale (idempotente). */
-  initPresenceManager(): void {
+  private initPresenceManager(): void {
     if (this.presenceInited) return;
     this.presenceInited = true;
 
@@ -110,14 +148,27 @@ export class ChatRealtimeService {
     this.presenceTimer = window.setInterval(() => this.evaluatePresence(), this.CHECK_INTERVAL_MS);
   }
 
+  private teardownPresenceManager(): void {
+    if (!this.presenceInited) return;
+    this.presenceInited = false;
+
+    window.removeEventListener('storage', this.onStorageActivity);
+    if (this.presenceTimer != null) {
+      window.clearInterval(this.presenceTimer);
+      this.presenceTimer = null;
+    }
+  }
+
   /**
    * Imposta manualmente offline/online.
-   * - true  => offline forzato (disconnessione immediata, scompari dalla lista)
-   * - false => torni gestito dal presence manager (se c’è attività < 1h, resti connesso)
+   * - true  => offline forzato (disconnessione immediata)
+   * - false => ritorni gestito dal presence manager
    */
   setManualOffline(off: boolean): void {
-    localStorage.setItem('presence.manualOffline', off ? '1' : '0');
+    try { localStorage.setItem('presence.manualOffline', off ? '1' : '0'); } catch {}
     this._manualOffline.next(off);
+
+    if (!this.started) return;
 
     if (off) {
       try { this.socket?.emit('presence:manual', { off: true }); } catch {}
@@ -125,48 +176,50 @@ export class ChatRealtimeService {
     } else {
       try { this.socket?.emit('presence:manual', { off: false }); } catch {}
       this.touchActivity();
-      this.connect();
+      this.ensureConnected();
     }
   }
 
-  // ====== Socket & Chat ======
+  // ===========================
+  // SOCKET & CHAT
+  // ===========================
 
-  connect(): void {
+  /** Connette (o riconnette) SOLO se token user/admin valido. */
+  private connect(): void {
+    if (!this.started) return;
     if (this.manualOffline) return;
 
-    const raw = localStorage.getItem('token') || '';
-    const token = raw.replace(/^Bearer\s+/i, '');
-    if (!token) return;
-
-    // 🔒 evita socket paralleli: chiudi eventuale istanza precedente
-    if (this.socket) {
-      try {
-        this.socket.removeAllListeners();
-        this.socket.disconnect();
-      } catch {}
-      this.socket = undefined;
+    const info = this.getValidUserTokenInfo();
+    if (!info) {
+      // niente token valido → niente chat
+      this.disconnect();
+      return;
     }
 
-    try {
-      const payload = JSON.parse(atob((token.split('.')[1] || '')));
-      this.myUserId = typeof payload?.id === 'number' ? payload.id : null;
-    } catch {
-      this.myUserId = null;
+    // 1) Istanzia una sola volta
+    if (!this.socket) {
+      const base = (environment as any).socketBaseUrl || (environment as any).wsUrl;
+
+      this.socket = io(base, {
+        path: '/socket.io',
+        transports: ['polling', 'websocket'], // fallback robusto
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 600,
+        autoConnect: false, // ✅ fondamentale: controlliamo noi
+        auth: { token: info.token }
+      });
+
+      this.registerListeners(this.socket);
+    } else {
+      // 2) aggiorna auth token se cambiato
+      (this.socket as any).auth = { token: info.token };
     }
 
-  const s = io((environment as any).socketBaseUrl || (environment as any).wsUrl, {
-      path: '/socket.io',
-      transports: ['websocket', 'polling'], // fallback robusto
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 600,
-      auth: { token },
-      autoConnect: true
-    });
-
-    this.socket = s;
-    // Listener PRIMA dello snapshot
-    this.registerListeners(s);
+    // 3) Connetti solo se non già connessa
+    if (!this.socket.connected) {
+      try { this.socket.connect(); } catch {}
+    }
   }
 
   private registerListeners(s: Socket): void {
@@ -182,9 +235,11 @@ export class ChatRealtimeService {
       const cur = this._onlineUsers.value;
       if (!cur.find(x => x.id === u.id)) this._onlineUsers.next([...cur, u]);
     });
+
     s.on('users:offline', (u: OnlineUser) => {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
     });
+
     s.on('presence:update', (u: OnlineUser & { status?: string }) => {
       const cur = this._onlineUsers.value.slice();
       const idx = cur.findIndex(x => x.id === u.id);
@@ -192,6 +247,7 @@ export class ChatRealtimeService {
       else cur.push({ id: u.id, username: u.username });
       this._onlineUsers.next(cur);
     });
+
     s.on('presence:remove', (u: { id: number }) => {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
     });
@@ -215,6 +271,7 @@ export class ChatRealtimeService {
       this._dmMessage$.next(mapped);
       if (this.isIncomingDmToMe(mapped)) this.incUnread(mapped.userId);
     };
+
     s.on('chat:message', handleIncoming);
     s.on('chat:dm:message', handleIncoming);
 
@@ -222,11 +279,19 @@ export class ChatRealtimeService {
     s.on('connect', () => {
       try { s.emit('presence:get'); } catch {}
     });
+
     s.on('connect_error', (err: any) => {
-      console.error('[ws] connect_error', err?.message || err);
+      console.error('[chat-ws] connect_error', err?.message || err);
     });
+
     s.on('error', (err: any) => {
-      console.error('[ws] error', err?.message || err);
+      console.error('[chat-ws] error', err?.message || err);
+    });
+
+    s.on('disconnect', (reason) => {
+      // se sei ancora started e non in manualOffline, il reconnect di socket.io farà il suo lavoro.
+      // qui teniamo solo log se vuoi:
+      // console.warn('[chat-ws] disconnected', reason);
     });
   }
 
@@ -237,28 +302,35 @@ export class ChatRealtimeService {
     this.socket.emit('chat:dm:open', { peerId: u.id });
   }
 
-  // <- NEW: accetta clientId/time per dedup locale lato component
   sendToActive(text: string, opts?: { clientId?: string; time?: number }): void {
     const peer = this._activePeer.value;
     if (!peer || !this.socket?.connected) return;
+
     const payload: any = { to: peer.id, text };
     if (opts?.clientId) payload.clientId = opts.clientId;
     if (opts?.time) payload.time = opts.time;
+
     this.socket.emit('chat:dm:send', payload);
   }
 
-  disconnect(): void {
+  private disconnect(): void {
     try {
       this.socket?.removeAllListeners();
       this.socket?.disconnect();
+    } catch {
+      // ignore
     } finally {
       this.socket = undefined;
       this.seenIds.clear();
       this._onlineUsers.next([]);
+      this.myUserId = null;
     }
   }
 
-  // ===== UNREAD API =====
+  // ===========================
+  // UNREAD API
+  // ===========================
+
   markRead(peerId: number): void {
     const map = new Map(this._unreadByPeer.value);
     if (map.has(peerId)) {
@@ -282,7 +354,10 @@ export class ChatRealtimeService {
     return this._unreadByPeer.value.get(peerId) ?? 0;
   }
 
-  // ===== helpers =====
+  // ===========================
+  // HELPERS
+  // ===========================
+
   private mapIncoming(m: any): ChatMessage | null {
     if (!m) return null;
 
@@ -294,7 +369,7 @@ export class ChatRealtimeService {
 
     return {
       id: String(m?.id ?? (globalThis.crypto?.randomUUID?.() ?? Date.now())),
-      clientId: m?.clientId ? String(m.clientId) : undefined, // <- NEW
+      clientId: m?.clientId ? String(m.clientId) : undefined,
       author: String(m?.author ?? ''),
       text: String(m?.text ?? ''),
       time: Number(m?.time ?? Date.now()),
@@ -322,20 +397,37 @@ export class ChatRealtimeService {
     this._totalUnread.next(tot);
   }
 
-  // ===== Presence manager internals =====
+  // ===========================
+  // PRESENCE MANAGER INTERNALS
+  // ===========================
+
   private evaluatePresence(): void {
+    if (!this.started) return;
+
     if (this.manualOffline) {
       this.disconnect();
       return;
     }
+
+    // se non ho un token user/admin valido → stacco
+    if (!this.getValidUserTokenInfo()) {
+      this.disconnect();
+      return;
+    }
+
     const last = this.readLastActivity();
     const age = Date.now() - last;
+
     if (age <= this.PRESENCE_TTL_MS) this.ensureConnected();
     else this.disconnect();
   }
 
   private ensureConnected(): void {
-    if (!this.socket?.connected) this.connect();
+    if (!this.started) return;
+    if (this.manualOffline) return;
+    if (this.socket?.connected) return;
+
+    this.connect();
   }
 
   private readLastActivity(): number {
@@ -347,10 +439,55 @@ export class ChatRealtimeService {
     return localStorage.getItem('presence.manualOffline') === '1';
   }
 
-  private onStorageActivity = (e: StorageEvent) => {
+  private readonly onStorageActivity = (e: StorageEvent) => {
+    if (!this.started) return;
+
     if (e.key === 'presence.lastActivity' || e.key === 'presence.manualOffline') {
       if (e.key === 'presence.manualOffline') this._manualOffline.next(this.readManualOffline());
       this.evaluatePresence();
     }
   };
+
+  // ===========================
+  // TOKEN VALIDATION
+  // ===========================
+
+  private getValidUserTokenInfo(): { token: string; payload: JwtPayload } | null {
+    const raw = (localStorage.getItem('token') || '').trim();
+    const token = raw.replace(/^Bearer\s+/i, '').trim();
+
+    // deve essere JWT (3 parti)
+    if (!token || token.split('.').length !== 3) return null;
+
+    const payload = this.decodeJwtPayload(token);
+    if (!payload) return null;
+
+    // blocca guest
+    if (payload.ruolo === 'guest') return null;
+
+    // deve avere id numerico
+    if (typeof payload.id !== 'number' || !Number.isFinite(payload.id)) return null;
+
+    // salva myUserId
+    this.myUserId = payload.id;
+
+    return { token, payload };
+  }
+
+  private decodeJwtPayload(token: string): JwtPayload | null {
+    try {
+      const part = token.split('.')[1] || '';
+      // base64url -> base64
+      const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(b64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
 }

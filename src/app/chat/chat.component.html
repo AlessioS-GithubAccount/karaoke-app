@@ -4,7 +4,7 @@
     <h2 class="title">{{ 'chat.loginRequiredTitle' | translate }}</h2>
     <p class="subtitle">{{ 'chat.loginRequiredSubtitle' | translate }}</p>
     <div class="actions">
-      <button class="btn1" (click)="goLogin()">
+      <button class="btn1" (click)="goLogin()" type="button">
         <i class="fas fa-sign-in-alt"></i> {{ 'chat.goToLogin' | translate }}
       </button>
     </div>
@@ -22,7 +22,12 @@
           {{ isOnline ? 'Status: Online' : 'Status: Offline' }}
         </span>
 
-        <button class="presence-btn" (click)="toggleOnline()" [class.is-offline]="!isOnline" type="button">
+        <button
+          class="presence-btn"
+          (click)="toggleOnline()"
+          [class.is-offline]="!isOnline"
+          type="button"
+        >
           <i [class]="'fas ' + (isOnline ? 'fa-toggle-on' : 'fa-toggle-off')"></i>
           <span>{{ isOnline ? 'Switch offline' : 'Switch online' }}</span>
         </button>
@@ -40,7 +45,7 @@
         <div class="users" *ngIf="online.length; else noOnline">
           <button
             class="user-item"
-            *ngFor="let u of online; trackBy: trackByIndex"
+            *ngFor="let u of online; trackBy: trackByUserId"
             [class.active]="activePeer?.id === u.id"
             (click)="selectPeer(u)"
             type="button"
@@ -99,8 +104,13 @@
           </div>
         </div>
 
-        <!-- ✅ Unico punto d’invio: form + ngSubmit -->
-        <form class="composer" *ngIf="activePeer" (ngSubmit)="send($event)" autocomplete="off">
+        <!-- ✅ Unico punto d’invio -->
+        <form
+          class="composer"
+          *ngIf="activePeer"
+          (ngSubmit)="send()"
+          autocomplete="off"
+        >
           <input
             type="text"
             [(ngModel)]="inputText"
@@ -110,8 +120,10 @@
             autocapitalize="sentences"
             autocorrect="on"
             inputmode="text"
+            [disabled]="!isOnline"
           />
-          <button class="btn" type="submit">
+
+          <button class="btn" type="submit" [disabled]="!isOnline || !inputText.trim()">
             <i class="fas fa-paper-plane"></i> {{ 'chat.send' | translate }}
           </button>
         </form>
