@@ -1,12 +1,21 @@
-import { Component, OnInit, Renderer2, HostListener, ElementRef, inject, OnDestroy, isDevMode } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Renderer2,
+  HostListener,
+  ElementRef,
+  inject,
+  OnDestroy,
+  isDevMode
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { Router, NavigationEnd } from '@angular/router';
-import { SwUpdate, VersionEvent, VersionReadyEvent } from '@angular/service-worker';
+import { SwUpdate, VersionEvent } from '@angular/service-worker';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription, filter } from 'rxjs';
 import { ChatRealtimeService } from './chat/chat-realtime.service';
-import { QueueSocketService } from './services/queue-socket.service'; // ✅ NEW
+import { QueueSocketService } from './services/queue-socket.service';
 
 @Component({
   selector: 'app-root',
@@ -23,6 +32,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private subs: Subscription[] = [];
 
+  // listeners attività (rimossi su destroy)
+  private activityHandler?: () => void;
+
   // Service Worker opzionale (in dev potrebbe non esserci)
   private swUpdate = inject(SwUpdate, { optional: true });
 
@@ -34,57 +46,45 @@ export class AppComponent implements OnInit, OnDestroy {
     private eRef: ElementRef,
     private toastr: ToastrService,
     private chatRealtime: ChatRealtimeService,
-    private queueSocket: QueueSocketService // ✅ NEW
+    private queueSocket: QueueSocketService
   ) {}
 
   ngOnInit(): void {
     // === Rimuovo l'overlay di loading il prima possibile ===
     this.removeAppLoader();
 
-    // ✅ QUEUE REALTIME (PUBBLICA): connetto sempre
-    // (così chiunque vede update lista senza refresh manuale)
+    // ✅ QUEUE REALTIME (PUBBLICA): connetto sempre (guest/anon inclusi)
     this.queueSocket.connect();
 
-    // === PRESENCE MANAGER: resta online fino a 1h dall'ultima attività ===
-    if (this.authService.isLoggedIn()) {
-      this.chatRealtime.touchActivity();
-      this.chatRealtime.initPresenceManager();
+    // === PRESENCE / CHAT BADGE (solo user/admin loggati) ===
+    // NB: qui NON facciamo partire il socket chat globale.
+    // Il realtime chat parte nella pagina ChatComponent via chatRealtime.start().
+    const ruolo = this.readJwtRole(); // 'user' | 'admin' | 'guest' | null
+    const canUseChatPresence = this.authService.isLoggedIn() && ruolo !== 'guest' && ruolo !== null;
 
-      // ⬅️ hook di uscita (pagehide/beforeunload/visibilitychange)
-      this.chatRealtime.installUnloadHooks();
+    if (canUseChatPresence) {
+      // NON start() qui (lo fa ChatComponent quando entri nella pagina chat).
+      // this.chatRealtime.start();
 
-      // Navigazioni = attività
+      this.safeTouchActivity();
+
+      // Navigazioni = attività (solo per aggiornare lastActivity / eventuale badge)
       this.subs.push(
         this.router.events
           .pipe(filter(e => e instanceof NavigationEnd))
           .subscribe(() => {
-            this.chatRealtime.touchActivity();
-            // ulteriore occasione per togliere il loader se rimasto
+            this.safeTouchActivity();
             this.removeAppLoader();
           })
       );
 
-      // Attività globali (click/scroll/keypress/touch/...)
-      const touch = () => this.chatRealtime.touchActivity();
-      window.addEventListener('click', touch);
-      window.addEventListener('keydown', touch);
-      window.addEventListener('mousemove', touch, { passive: true });
-      window.addEventListener('scroll', touch, { passive: true });
-      window.addEventListener('touchstart', touch, { passive: true });
+      // Attività globali
+      this.installActivityListeners();
 
-      this.subs.push({
-        unsubscribe: () => {
-          window.removeEventListener('click', touch);
-          window.removeEventListener('keydown', touch);
-          window.removeEventListener('mousemove', touch);
-          window.removeEventListener('scroll', touch);
-          window.removeEventListener('touchstart', touch);
-        }
-      } as Subscription);
-
-      // 🔔 Totale non letti per badge
+      // 🔔 Totale non letti per badge (si aggiorna SOLO se il service è avviato)
+      // Se vuoi badge anche fuori dalla chat, va letto da storage (te lo faccio dopo se vuoi).
       this.subs.push(
-        this.chatRealtime.totalUnread$.subscribe(n => this.unreadTotal = n || 0)
+        this.chatRealtime.totalUnread$.subscribe(n => (this.unreadTotal = n || 0))
       );
     }
 
@@ -116,7 +116,7 @@ export class AppComponent implements OnInit, OnDestroy {
     // Effetto navbar
     setTimeout(() => {
       this.triggerNavbarAnimation();
-      this.removeAppLoader(); // doppia sicurezza post-bootstrap
+      this.removeAppLoader();
     }, 100);
 
     // ====== AGGIORNAMENTI PWA ======
@@ -126,17 +126,14 @@ export class AppComponent implements OnInit, OnDestroy {
           case 'VERSION_DETECTED':
             this.toastr.info('Sto scaricando un aggiornamento…', 'Aggiornamento', { timeOut: 3000 });
             break;
-          case 'VERSION_READY': {
-            const _e = e as VersionReadyEvent;
+          case 'VERSION_READY':
             this.toastr.info('Nuova versione pronta. Installo e riapro…', 'Aggiornamento', { timeOut: 2500 });
             sessionStorage.setItem('justUpdated', '1');
             this.activateUpdateAndReload();
             break;
-          }
           case 'VERSION_INSTALLATION_FAILED':
             this.toastr.error('Installazione aggiornamento non riuscita.', 'Aggiornamento', { timeOut: 5000 });
             break;
-          case 'NO_NEW_VERSION_DETECTED':
           default:
             break;
         }
@@ -150,14 +147,78 @@ export class AppComponent implements OnInit, OnDestroy {
       setInterval(() => this.checkForUpdateSafe(), 5 * 60 * 1000);
     }
 
-    // Failsafe finale: se per qualche motivo l'app non ha rimosso il loader
+    // Failsafe finale
     setTimeout(() => this.removeAppLoader(), 6000);
   }
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
-    // opzionale: NON lo disconnetto, perché AppComponent vive per tutta la sessione
-    // this.queueSocket.disconnect();
+    this.removeActivityListeners();
+
+    // Se un giorno decidi di fare start() globale qui, allora fai stop() qui.
+    // this.chatRealtime.stop();
+  }
+
+  // ===========================
+  // Presence "soft" (non avvia socket)
+  // ===========================
+
+  private safeTouchActivity(): void {
+    try {
+      // touchActivity nel service aggiorna lastActivity; se il service non è started non connette.
+      this.chatRealtime.touchActivity();
+    } catch {}
+  }
+
+  private installActivityListeners(): void {
+    if (this.activityHandler) return;
+
+    const touch = () => this.safeTouchActivity();
+    this.activityHandler = touch;
+
+    window.addEventListener('click', touch);
+    window.addEventListener('keydown', touch);
+    window.addEventListener('mousemove', touch, { passive: true });
+    window.addEventListener('scroll', touch, { passive: true });
+    window.addEventListener('touchstart', touch, { passive: true });
+  }
+
+  private removeActivityListeners(): void {
+    const touch = this.activityHandler;
+    if (!touch) return;
+
+    window.removeEventListener('click', touch);
+    window.removeEventListener('keydown', touch);
+    window.removeEventListener('mousemove', touch as any);
+    window.removeEventListener('scroll', touch as any);
+    window.removeEventListener('touchstart', touch as any);
+
+    this.activityHandler = undefined;
+  }
+
+  // ===========================
+  // JWT ROLE (per evitare dipendenze da AuthService)
+  // ===========================
+
+  private readJwtRole(): string | null {
+    const raw = (localStorage.getItem('token') || '').trim();
+    const token = raw.replace(/^Bearer\s+/i, '').trim();
+    if (!token || token.split('.').length !== 3) return null;
+
+    try {
+      const part = token.split('.')[1] || '';
+      const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(
+        atob(b64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(json);
+      return typeof payload?.ruolo === 'string' ? payload.ruolo : null;
+    } catch {
+      return null;
+    }
   }
 
   private async checkForUpdateSafe() {
@@ -229,6 +290,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   logout(): void {
     this.authService.logout();
+
+    // se la chat era stata avviata da qualche parte, qui è ok fermarla:
+    try { this.chatRealtime.stop(); } catch {}
+
     this.router.navigate(['/login']);
     this.closeMenu();
   }

@@ -57,8 +57,9 @@ export class ChatRealtimeService {
   private presenceTimer: number | null = null;
   private presenceInited = false;
 
-  // Lifecycle service
-  private started = false;
+  // ✅ ref-count start/stop (così AppComponent + ChatComponent non si pestano)
+  private startCount = 0;
+  private get started(): boolean { return this.startCount > 0; }
 
   // Unload hooks
   private unloadHooksInstalled = false;
@@ -76,7 +77,6 @@ export class ChatRealtimeService {
     }
   };
 
-  // ✅ niente più autoboot in constructor
   constructor() {}
 
   // ===========================
@@ -84,27 +84,28 @@ export class ChatRealtimeService {
   // ===========================
 
   /**
-   * Avvia chat+presence. Chiamalo SOLO per user/admin (mai per guest/anon),
-   * es: quando entri nella pagina Chat oppure subito dopo login user/admin.
+   * Avvia chat+presence. Chiamalo SOLO per user/admin (mai per guest/anon).
+   * Safe se chiamato più volte: usa ref-count.
    */
   start(): void {
-    if (this.started) return;
-    this.started = true;
+    this.startCount++;
+
+    // già avviato da qualcun altro
+    if (this.startCount > 1) return;
 
     this.installUnloadHooks();
     this.initPresenceManager();
-    this.touchActivity(); // segna attività e prova connessione (se possibile)
+    this.touchActivity();
     this.ensureConnected();
   }
 
-  /** Ferma tutto (utile in logout o quando lasci l’area chat se vuoi). */
+  /** Ferma tutto (ref-count). Chiude davvero solo quando startCount torna a 0. */
   stop(): void {
-    this.started = false;
+    this.startCount = Math.max(0, this.startCount - 1);
+    if (this.startCount > 0) return;
 
     this.teardownPresenceManager();
     this.disconnect();
-
-    // opzionale: puoi anche rimuovere gli hooks (non obbligatorio)
     this.uninstallUnloadHooks();
   }
 
@@ -112,14 +113,12 @@ export class ChatRealtimeService {
   // PRESENZA / ATTIVITÀ
   // ===========================
 
-  /** Segna attività e, se non in manual offline, garantisce la connessione. */
   touchActivity(): void {
     try { localStorage.setItem('presence.lastActivity', String(Date.now())); } catch {}
     if (!this.started) return;
     if (!this.manualOffline) this.ensureConnected();
   }
 
-  /** Hook di unload/visibilità per mantenere aggiornato lastActivity. */
   private installUnloadHooks(): void {
     if (this.unloadHooksInstalled) return;
     this.unloadHooksInstalled = true;
@@ -138,12 +137,11 @@ export class ChatRealtimeService {
     document.removeEventListener('visibilitychange', this.onVisibilityChange as any);
   }
 
-  /** Avvia il gestore presenza globale (idempotente). */
   private initPresenceManager(): void {
     if (this.presenceInited) return;
     this.presenceInited = true;
 
-    this.evaluatePresence(); // primo check immediato
+    this.evaluatePresence();
     window.addEventListener('storage', this.onStorageActivity);
     this.presenceTimer = window.setInterval(() => this.evaluatePresence(), this.CHECK_INTERVAL_MS);
   }
@@ -159,11 +157,6 @@ export class ChatRealtimeService {
     }
   }
 
-  /**
-   * Imposta manualmente offline/online.
-   * - true  => offline forzato (disconnessione immediata)
-   * - false => ritorni gestito dal presence manager
-   */
   setManualOffline(off: boolean): void {
     try { localStorage.setItem('presence.manualOffline', off ? '1' : '0'); } catch {}
     this._manualOffline.next(off);
@@ -184,39 +177,40 @@ export class ChatRealtimeService {
   // SOCKET & CHAT
   // ===========================
 
-  /** Connette (o riconnette) SOLO se token user/admin valido. */
   private connect(): void {
     if (!this.started) return;
     if (this.manualOffline) return;
 
     const info = this.getValidUserTokenInfo();
     if (!info) {
-      // niente token valido → niente chat
       this.disconnect();
       return;
     }
 
-    // 1) Istanzia una sola volta
     if (!this.socket) {
       const base = (environment as any).socketBaseUrl || (environment as any).wsUrl;
 
       this.socket = io(base, {
+        // path default di socket.io, puoi anche ometterlo
         path: '/socket.io',
-        transports: ['polling', 'websocket'], // fallback robusto
+        transports: ['polling', 'websocket'],
+        upgrade: true,
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 600,
-        autoConnect: false, // ✅ fondamentale: controlliamo noi
+        reconnectionDelayMax: 5000,
+        timeout: 20000,
+        autoConnect: false,
+        withCredentials: false,
+        forceNew: true,   // ✅ evita qualunque “riuso” manager
         auth: { token: info.token }
       });
 
       this.registerListeners(this.socket);
     } else {
-      // 2) aggiorna auth token se cambiato
       (this.socket as any).auth = { token: info.token };
     }
 
-    // 3) Connetti solo se non già connessa
     if (!this.socket.connected) {
       try { this.socket.connect(); } catch {}
     }
@@ -227,7 +221,6 @@ export class ChatRealtimeService {
       this._onlineUsers.next(Array.isArray(list) ? list : []);
     };
 
-    // Presence snapshot + incrementali
     s.on('users:list', (list: OnlineUser[]) => setList(list));
     s.on('presence:list', (list: OnlineUser[]) => setList(list));
 
@@ -252,7 +245,6 @@ export class ChatRealtimeService {
       this._onlineUsers.next(this._onlineUsers.value.filter(x => x.id !== u.id));
     });
 
-    // History DM (non incrementa unread)
     s.on('chat:dm:history', (payload: { peerId: number; messages: any[] }) => {
       const arr = Array.isArray(payload?.messages) ? payload.messages : [];
       for (const m of arr) {
@@ -261,7 +253,6 @@ export class ChatRealtimeService {
       }
     });
 
-    // Nuovi messaggi (dedup by id)
     const handleIncoming = (m: any) => {
       const mapped = this.mapIncoming(m);
       if (!mapped) return;
@@ -275,7 +266,6 @@ export class ChatRealtimeService {
     s.on('chat:message', handleIncoming);
     s.on('chat:dm:message', handleIncoming);
 
-    // Connessione / errori
     s.on('connect', () => {
       try { s.emit('presence:get'); } catch {}
     });
@@ -286,12 +276,6 @@ export class ChatRealtimeService {
 
     s.on('error', (err: any) => {
       console.error('[chat-ws] error', err?.message || err);
-    });
-
-    s.on('disconnect', (reason) => {
-      // se sei ancora started e non in manualOffline, il reconnect di socket.io farà il suo lavoro.
-      // qui teniamo solo log se vuoi:
-      // console.warn('[chat-ws] disconnected', reason);
     });
   }
 
@@ -340,18 +324,8 @@ export class ChatRealtimeService {
     }
   }
 
-  resetAllUnread(): void {
-    const map = new Map<number, number>();
-    this._unreadByPeer.next(map);
-    this._totalUnread.next(0);
-  }
-
   get totalUnread(): number {
     return this._totalUnread.value;
-  }
-
-  getUnreadForPeer(peerId: number): number {
-    return this._unreadByPeer.value.get(peerId) ?? 0;
   }
 
   // ===========================
@@ -409,7 +383,6 @@ export class ChatRealtimeService {
       return;
     }
 
-    // se non ho un token user/admin valido → stacco
     if (!this.getValidUserTokenInfo()) {
       this.disconnect();
       return;
@@ -426,7 +399,6 @@ export class ChatRealtimeService {
     if (!this.started) return;
     if (this.manualOffline) return;
     if (this.socket?.connected) return;
-
     this.connect();
   }
 
@@ -456,28 +428,22 @@ export class ChatRealtimeService {
     const raw = (localStorage.getItem('token') || '').trim();
     const token = raw.replace(/^Bearer\s+/i, '').trim();
 
-    // deve essere JWT (3 parti)
     if (!token || token.split('.').length !== 3) return null;
 
     const payload = this.decodeJwtPayload(token);
     if (!payload) return null;
 
-    // blocca guest
     if (payload.ruolo === 'guest') return null;
 
-    // deve avere id numerico
     if (typeof payload.id !== 'number' || !Number.isFinite(payload.id)) return null;
 
-    // salva myUserId
     this.myUserId = payload.id;
-
     return { token, payload };
   }
 
   private decodeJwtPayload(token: string): JwtPayload | null {
     try {
       const part = token.split('.')[1] || '';
-      // base64url -> base64
       const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
       const json = decodeURIComponent(
         atob(b64)
