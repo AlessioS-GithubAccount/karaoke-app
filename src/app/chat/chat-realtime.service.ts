@@ -154,7 +154,7 @@ export class ChatRealtimeService {
       this.myUserId = null;
     }
 
-    const s = io(environment.wsUrl, {
+  const s = io((environment as any).socketBaseUrl || (environment as any).wsUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'], // fallback robusto
       reconnection: true,
