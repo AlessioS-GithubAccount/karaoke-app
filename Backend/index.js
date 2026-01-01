@@ -13,30 +13,45 @@ const { randomUUID } = require('crypto');
 const app = express();
 
 // ====== CORS ======
-// Legge da env var (CSV). Se non c'è, fallback a Netlify + localhost.
-const allowedOrigins =
-  (process.env.CORS_ORIGINS &&
-    process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean)) ||
-  ['https://karaoke-webapp0.netlify.app', 'http://localhost:4200'];
+// Origini “esatte” (da env + fallback)
+const allowedOriginsFromEnv =
+  (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
 
-// CORS PRIMA delle rotte
-app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
-    maxAge: 600, // cache preflight 10 min
-  })
-);
+const allowedOriginsExact = new Set([
+  ...allowedOriginsFromEnv,
+  'https://karaoke-webapp0.netlify.app',
+  'http://localhost:4200'
+]);
 
-// Risposte immediate alle preflight
-// Risposte immediate alle preflight (usa la stessa config CORS)
-app.options('*', cors({
-  origin: allowedOrigins,
+// ✅ Netlify branch deploy / deploy preview:
+// es: https://my-branch--karaoke-webapp0.netlify.app
+// es: https://deploy-preview-123--karaoke-webapp0.netlify.app
+const allowedOriginRegex = [
+  /^https:\/\/.*--karaoke-webapp0\.netlify\.app$/,
+];
+
+function isAllowedOrigin(origin) {
+  // origin può essere undefined/null in alcune chiamate server-to-server
+  if (!origin) return true;
+  if (allowedOriginsExact.has(origin)) return true;
+  return allowedOriginRegex.some(re => re.test(origin));
+}
+
+const corsOptions = {
+  origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
   maxAge: 600,
-}));
+};
+
+// CORS PRIMA delle rotte
+app.use(cors(corsOptions));
+
+// Preflight
+app.options('*', cors(corsOptions));
 
 
 // Body parser JSON
@@ -1409,14 +1424,15 @@ const server = http.createServer(app);
 // ===========================
 ioQueue = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
+    origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: false
   },
   path: '/socket-queue',
   transports: ['websocket', 'polling']
 });
+
 
 ioQueue.on('connection', (socket) => {
   // handshake OK
@@ -1433,14 +1449,16 @@ ioQueue.on('connection', (socket) => {
 // ===========================
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
+    origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: false
   },
   path: '/socket.io',
   transports: ['websocket', 'polling']
 });
+
+
 
 // --- In-memory structures (no DB) ---
 const socketsByUser = new Map(); // userId -> Set<socketId>
