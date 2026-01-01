@@ -14,22 +14,25 @@ export class QueueSocketService {
   private socket?: Socket;
   private changed$ = new Subject<QueueChangedEvent>();
 
+  // ✅ DEBUG toggle
+  private readonly DEBUG = true;
+
   constructor(private zone: NgZone) {}
 
   connect(): void {
     const base = this.getSocketBaseUrl();
 
-    // ✅ TEST LOG (PUNTO 1): vogliamo vedere ESATTAMENTE quale base stai usando
-    console.log('[queue-socket] base computed =', base);
+    if (this.DEBUG) {
+      console.log('[queue-socket] connect() called');
+      console.log('[queue-socket] base computed =', base);
+    }
 
-    // ✅ se esiste già, prova a riconnettere se non è connessa
+    // se esiste già, prova a riconnettere se non è connessa
     if (this.socket) {
-      if (!this.socket.connected) {
-        console.log('[queue-socket] socket exists but disconnected -> reconnect()');
-        this.socket.connect();
-      } else {
-        console.log('[queue-socket] socket already connected', this.socket.id);
+      if (this.DEBUG) {
+        console.log('[queue-socket] socket already exists. connected=', this.socket.connected);
       }
+      if (!this.socket.connected) this.socket.connect();
       return;
     }
 
@@ -40,30 +43,52 @@ export class QueueSocketService {
       reconnection: true,
       reconnectionAttempts: 50,
       reconnectionDelay: 500,
+      timeout: 10000,
       withCredentials: false,
     });
 
-    this.socket.on('connect', () => {
-      console.log('[queue-socket] CONNECT OK', this.socket?.id, 'base=', base);
+    // utile per test manuali da console: window.__queueSocket
+    (window as any).__queueSocket = this.socket;
+
+    // engine-level debug
+    this.socket.io.on('reconnect_attempt', (n) => {
+      if (this.DEBUG) console.log('[queue-socket] reconnect_attempt', n);
+    });
+    this.socket.io.on('reconnect_error', (e) => {
+      if (this.DEBUG) console.warn('[queue-socket] reconnect_error', e);
+    });
+    this.socket.io.on('error', (e) => {
+      if (this.DEBUG) console.warn('[queue-socket] io.error', e);
     });
 
-    this.socket.on('connect_error', (err) => {
-      console.warn('[queue-socket] CONNECT ERROR', err?.message || err, 'base=', base);
+    this.socket.on('connect', () => {
+      console.log('[queue-socket] CONNECT OK id=', this.socket?.id);
+
+      // ✅ ping test con ack
+      this.socket?.emit('queue:ping', (res: any) => {
+        console.log('[queue-socket] PING ACK =>', res);
+      });
+    });
+
+    this.socket.on('connect_error', (err: any) => {
+      console.warn('[queue-socket] CONNECT ERROR =>', err?.message || err);
+      // socket.io a volte mette dettagli in err.data / err.description
+      if (this.DEBUG) console.warn('[queue-socket] connect_error details =>', err);
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.warn('[queue-socket] DISCONNECT', reason);
+      console.warn('[queue-socket] DISCONNECTED =>', reason);
     });
 
     this.socket.on('queue:hello', (data) => {
-      console.log('[queue-socket] HELLO', data);
+      console.log('[queue-socket] HELLO =>', data);
+    });
+
+    this.socket.onAny((event, ...args) => {
+      if (this.DEBUG) console.log('[queue-socket] onAny =>', event, args);
     });
 
     this.socket.on('queue:changed', (evt: QueueChangedEvent) => {
-      // ✅ TEST LOG (PUNTO 1): conferma che l’evento arriva
-      console.log('[queue-socket] CHANGED EVT', evt);
-
-      // ✅ IMPORTANTISSIMO: rientra nella zone Angular
       this.zone.run(() => this.changed$.next(evt || {}));
     });
   }
@@ -84,7 +109,7 @@ export class QueueSocketService {
     const anyEnv = environment as any;
 
     if (anyEnv.socketBaseUrl && typeof anyEnv.socketBaseUrl === 'string') {
-      return anyEnv.socketBaseUrl;
+      return anyEnv.socketBaseUrl.replace(/\/+$/, ''); // no trailing slash
     }
 
     const api = (environment as any).baseUrl as string | undefined;
