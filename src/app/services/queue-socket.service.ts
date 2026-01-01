@@ -19,9 +19,17 @@ export class QueueSocketService {
   connect(): void {
     const base = this.getSocketBaseUrl();
 
+    // ✅ TEST LOG (PUNTO 1): vogliamo vedere ESATTAMENTE quale base stai usando
+    console.log('[queue-socket] base computed =', base);
+
     // ✅ se esiste già, prova a riconnettere se non è connessa
     if (this.socket) {
-      if (!this.socket.connected) this.socket.connect();
+      if (!this.socket.connected) {
+        console.log('[queue-socket] socket exists but disconnected -> reconnect()');
+        this.socket.connect();
+      } else {
+        console.log('[queue-socket] socket already connected', this.socket.id);
+      }
       return;
     }
 
@@ -36,22 +44,25 @@ export class QueueSocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('[queue-socket] connected', this.socket?.id, 'base=', base);
+      console.log('[queue-socket] CONNECT OK', this.socket?.id, 'base=', base);
     });
 
     this.socket.on('connect_error', (err) => {
-      console.warn('[queue-socket] connect_error', err?.message || err);
+      console.warn('[queue-socket] CONNECT ERROR', err?.message || err, 'base=', base);
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.warn('[queue-socket] disconnected', reason);
+      console.warn('[queue-socket] DISCONNECT', reason);
     });
 
     this.socket.on('queue:hello', (data) => {
-      console.log('[queue-socket] hello', data);
+      console.log('[queue-socket] HELLO', data);
     });
 
     this.socket.on('queue:changed', (evt: QueueChangedEvent) => {
+      // ✅ TEST LOG (PUNTO 1): conferma che l’evento arriva
+      console.log('[queue-socket] CHANGED EVT', evt);
+
       // ✅ IMPORTANTISSIMO: rientra nella zone Angular
       this.zone.run(() => this.changed$.next(evt || {}));
     });
