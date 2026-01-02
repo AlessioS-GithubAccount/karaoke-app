@@ -14,33 +14,37 @@ export class QueueSocketService {
   private socket?: Socket;
   private changed$ = new Subject<QueueChangedEvent>();
 
+  // ✅ DEBUG toggle
   private readonly DEBUG = true;
 
   constructor(private zone: NgZone) {}
 
   connect(): void {
     const base = this.getSocketBaseUrl();
+    const url = `${base}/queue`; // ✅ namespace /queue
 
     if (this.DEBUG) {
       console.log('[queue-socket] connect() called');
       console.log('[queue-socket] base computed =', base);
+      console.log('[queue-socket] url (namespace) =', url);
     }
 
-    // ✅ se esiste già, esponila comunque per debug
+    // se esiste già, prova a riconnettere se non è connessa
     if (this.socket) {
-      (window as any).__queueSocket = this.socket;
-
       if (this.DEBUG) {
         console.log('[queue-socket] socket already exists. connected=', this.socket.connected);
-        console.log('[queue-socket] socket path =', (this.socket.io as any)?.opts?.path);
       }
-
-      if (!this.socket.connected) this.socket.connect();
+      if (!this.socket.connected) {
+        try {
+          this.socket.connect();
+        } catch {}
+      }
       return;
     }
 
-    this.socket = io(base, {
-      path: '/socket-queue',
+    // ✅ Con namespace /queue, path torna quello standard /socket.io
+    this.socket = io(url, {
+      path: '/socket.io',
       transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true,
@@ -48,25 +52,28 @@ export class QueueSocketService {
       reconnectionDelay: 500,
       timeout: 10000,
       withCredentials: false,
-      forceNew: true,
     });
 
-    // ✅ ora esiste SEMPRE
+    // utile per test manuali da console: window.__queueSocket
     (window as any).__queueSocket = this.socket;
 
-    this.socket.io.on('reconnect_attempt', (n) => {
-      if (this.DEBUG) console.log('[queue-socket] reconnect_attempt', n);
+    // engine-level debug
+    this.socket.io.on('reconnect_attempt', (attempt: number) => {
+      if (this.DEBUG) console.log('[queue-socket] reconnect_attempt', attempt);
     });
-    this.socket.io.on('reconnect_error', (e) => {
+
+    this.socket.io.on('reconnect_error', (e: unknown) => {
       if (this.DEBUG) console.warn('[queue-socket] reconnect_error', e);
     });
-    this.socket.io.on('error', (e) => {
+
+    this.socket.io.on('error', (e: unknown) => {
       if (this.DEBUG) console.warn('[queue-socket] io.error', e);
     });
 
     this.socket.on('connect', () => {
       console.log('[queue-socket] CONNECT OK id=', this.socket?.id);
 
+      // ✅ ping test con ack
       this.socket?.emit('queue:ping', (res: any) => {
         console.log('[queue-socket] PING ACK =>', res);
       });
@@ -77,15 +84,16 @@ export class QueueSocketService {
       if (this.DEBUG) console.warn('[queue-socket] connect_error details =>', err);
     });
 
-    this.socket.on('disconnect', (reason) => {
+    this.socket.on('disconnect', (reason: Socket.DisconnectReason) => {
       console.warn('[queue-socket] DISCONNECTED =>', reason);
     });
 
-    this.socket.on('queue:hello', (data) => {
+    this.socket.on('queue:hello', (data: any) => {
       console.log('[queue-socket] HELLO =>', data);
     });
 
-    this.socket.onAny((event, ...args) => {
+    // ✅ FIX noImplicitAny (event tipizzato)
+    this.socket.onAny((event: string, ...args: any[]) => {
       if (this.DEBUG) console.log('[queue-socket] onAny =>', event, args);
     });
 
@@ -109,33 +117,18 @@ export class QueueSocketService {
   private getSocketBaseUrl(): string {
     const anyEnv = environment as any;
 
-    const raw =
-      (typeof anyEnv.socketBaseUrl === 'string' && anyEnv.socketBaseUrl.trim())
-        ? anyEnv.socketBaseUrl.trim()
-        : (typeof anyEnv.wsUrl === 'string' && anyEnv.wsUrl.trim())
-          ? anyEnv.wsUrl.trim()
-          : '';
-
-    if (raw) {
-      const normalized = raw.replace(
-        /^ws(s)?:\/\//i,
-        (_m: string, s?: string) => (s ? 'https://' : 'http://')
-      );
-
-      try {
-        const u = new URL(normalized);
-        return u.origin;
-      } catch {}
+    if (anyEnv.socketBaseUrl && typeof anyEnv.socketBaseUrl === 'string') {
+      return anyEnv.socketBaseUrl.replace(/\/+$/, ''); // no trailing slash
     }
 
     const api = (environment as any).baseUrl as string | undefined;
-    if (api && api.startsWith('http')) {
-      try {
-        const u = new URL(api);
-        return u.origin;
-      } catch {}
-    }
+    if (!api || !api.startsWith('http')) return window.location.origin;
 
-    return window.location.origin;
+    try {
+      const u = new URL(api);
+      return u.origin;
+    } catch {
+      return window.location.origin;
+    }
   }
 }

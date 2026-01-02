@@ -1408,45 +1408,14 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
     console.error("Errore creazione colonne:", e);
   }
 })();
-
 // ===========================
 //  SOCKET.IO
-//  - Queue canzoni: PUBBLICA (anon/guest/user/admin)  ✅
-//  - Chat + presenza: SOLO utenti loggati (NO guest, NO anon) ✅
+//  - Queue canzoni: PUBBLICA (namespace /queue) ✅
+//  - Chat + presenza: SOLO utenti loggati (default namespace /) ✅
 // ===========================
 const server = http.createServer(app);
 
-// ===========================
-//  SOCKET.IO - QUEUE (PUBBLICO, no auth)
-//  Path separato per non rompere la chat autenticata
-//  NOTA: la queue socket serve SOLO a notificare "è cambiata la lista".
-//        I client poi fanno GET /api/canzoni per ricaricare i dati.
-// ===========================
-ioQueue = new Server(server, {
-  cors: {
-    origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
-    credentials: false
-  },
-  path: '/socket-queue',
-  transports: ['websocket', 'polling']
-});
-
-
-ioQueue.on('connection', (socket) => {
-  // handshake OK
-  socket.emit('queue:hello', { ok: true, ts: Date.now() });
-
-  // opzionale: ping di test
-  socket.on('queue:ping', (cb) => {
-    if (typeof cb === 'function') cb({ ok: true, ts: Date.now() });
-  });
-});
-
-// ===========================
-//  SOCKET.IO - CHAT + PRESENZA (AUTH STRICT)
-// ===========================
+// ✅ UN SOLO Server Socket.IO (un solo Engine.IO attaccato)
 const io = new Server(server, {
   cors: {
     origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
@@ -1458,7 +1427,23 @@ const io = new Server(server, {
   transports: ['websocket', 'polling']
 });
 
+// ===========================
+//  QUEUE namespace PUBBLICO
+// ===========================
+ioQueue = io.of('/queue');
 
+ioQueue.on('connection', (socket) => {
+  socket.emit('queue:hello', { ok: true, ts: Date.now() });
+
+  socket.on('queue:ping', (cb) => {
+    if (typeof cb === 'function') cb({ ok: true, ts: Date.now() });
+  });
+});
+
+// ===========================
+//  CHAT + PRESENZA (default namespace "/") AUTH STRICT
+// ===========================
+const ioChat = io.of('/');
 
 // --- In-memory structures (no DB) ---
 const socketsByUser = new Map(); // userId -> Set<socketId>
@@ -1473,7 +1458,7 @@ function presenceSnapshot() {
 }
 
 // Auth WS: SOLO UTENTI LOGGATI (NO guest, NO anon)
-io.use((socket, next) => {
+ioChat.use((socket, next) => {
   try {
     const fromAuth  = socket.handshake?.auth?.token;
     const fromQuery = socket.handshake?.query?.token;
@@ -1483,7 +1468,6 @@ io.use((socket, next) => {
 
     const user = jwt.verify(token, SECRET_KEY);
 
-    // Blocca guest nella chat
     if (user?.ruolo === 'guest') return next(new Error('Unauthorized'));
 
     socket.data.user = {
@@ -1507,7 +1491,7 @@ function dmKey(a, b) {
   return A < B ? `${A}:${B}` : `${B}:${A}`;
 }
 
-io.on('connection', (socket) => {
+ioChat.on('connection', (socket) => {
   const u = socket.data.user;
 
   if (!u?.id) {
@@ -1545,7 +1529,7 @@ io.on('connection', (socket) => {
       const set = socketsByUser.get(u.id);
       if (set) {
         for (const sid of Array.from(set)) {
-          const s = io.sockets.sockets.get(sid);
+          const s = ioChat.sockets.get(sid);
           try { s?.disconnect(true); } catch {}
         }
       }
@@ -1598,14 +1582,14 @@ io.on('connection', (socket) => {
     const toSockets = socketsByUser.get(pid);
     if (toSockets) {
       for (const sid of Array.from(toSockets)) {
-        io.to(sid).emit('chat:dm:message', msg);
+        ioChat.to(sid).emit('chat:dm:message', msg);
       }
     }
 
     const meSockets = socketsByUser.get(u.id);
     if (meSockets) {
       for (const sid of Array.from(meSockets)) {
-        if (sid !== socket.id) io.to(sid).emit('chat:dm:message', msg);
+        if (sid !== socket.id) ioChat.to(sid).emit('chat:dm:message', msg);
       }
     }
   });
@@ -1624,7 +1608,7 @@ io.on('connection', (socket) => {
 
     historyGlobal.push(msg);
     if (historyGlobal.length > MAX_HISTORY) historyGlobal.shift();
-    io.to('global').emit('chat:message', msg);
+    ioChat.to('global').emit('chat:message', msg);
   });
 
   socket.on('disconnect', () => {
