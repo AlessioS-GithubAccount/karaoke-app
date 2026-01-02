@@ -149,6 +149,7 @@ export class KaraokeService {
   setNomeUtente(nome: string): void {
     this.nomeUtente = nome;
   }
+
   getNomeUtente(): string {
     return this.nomeUtente;
   }

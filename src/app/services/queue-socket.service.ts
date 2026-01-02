@@ -14,7 +14,6 @@ export class QueueSocketService {
   private socket?: Socket;
   private changed$ = new Subject<QueueChangedEvent>();
 
-  // ✅ DEBUG toggle
   private readonly DEBUG = true;
 
   constructor(private zone: NgZone) {}
@@ -27,12 +26,15 @@ export class QueueSocketService {
       console.log('[queue-socket] base computed =', base);
     }
 
-    // se esiste già, prova a riconnettere se non è connessa
+    // ✅ se esiste già, esponila comunque per debug
     if (this.socket) {
+      (window as any).__queueSocket = this.socket;
+
       if (this.DEBUG) {
         console.log('[queue-socket] socket already exists. connected=', this.socket.connected);
         console.log('[queue-socket] socket path =', (this.socket.io as any)?.opts?.path);
       }
+
       if (!this.socket.connected) this.socket.connect();
       return;
     }
@@ -46,15 +48,12 @@ export class QueueSocketService {
       reconnectionDelay: 500,
       timeout: 10000,
       withCredentials: false,
-
-      // ✅ IMPORTANT: evita riuso/side-effect di manager socket.io
       forceNew: true,
     });
 
-    // utile per test manuali da console: window.__queueSocket
+    // ✅ ora esiste SEMPRE
     (window as any).__queueSocket = this.socket;
 
-    // engine-level debug
     this.socket.io.on('reconnect_attempt', (n) => {
       if (this.DEBUG) console.log('[queue-socket] reconnect_attempt', n);
     });
@@ -68,7 +67,6 @@ export class QueueSocketService {
     this.socket.on('connect', () => {
       console.log('[queue-socket] CONNECT OK id=', this.socket?.id);
 
-      // ✅ ping test con ack
       this.socket?.emit('queue:ping', (res: any) => {
         console.log('[queue-socket] PING ACK =>', res);
       });
@@ -111,7 +109,6 @@ export class QueueSocketService {
   private getSocketBaseUrl(): string {
     const anyEnv = environment as any;
 
-    // 1) socketBaseUrl esplicito
     const raw =
       (typeof anyEnv.socketBaseUrl === 'string' && anyEnv.socketBaseUrl.trim())
         ? anyEnv.socketBaseUrl.trim()
@@ -120,7 +117,6 @@ export class QueueSocketService {
           : '';
 
     if (raw) {
-      // se qualcuno ti ha messo ws:// o wss://, converti a http(s) per socket.io
       const normalized = raw.replace(
         /^ws(s)?:\/\//i,
         (_m: string, s?: string) => (s ? 'https://' : 'http://')
@@ -128,13 +124,10 @@ export class QueueSocketService {
 
       try {
         const u = new URL(normalized);
-        return u.origin; // ✅ SOLO origin (niente path)
-      } catch {
-        // fallback sotto
-      }
+        return u.origin;
+      } catch {}
     }
 
-    // 2) deriva da baseUrl API
     const api = (environment as any).baseUrl as string | undefined;
     if (api && api.startsWith('http')) {
       try {
@@ -143,7 +136,6 @@ export class QueueSocketService {
       } catch {}
     }
 
-    // 3) fallback finale
     return window.location.origin;
   }
 }
