@@ -26,9 +26,12 @@ export class KaraokeService {
   // =========================
   // Helpers token/headers
   // =========================
-  private getUserToken(): string | null {
-    return localStorage.getItem('token'); // user/admin token
-  }
+private getUserToken(): string | null {
+  const raw = (localStorage.getItem('token') || '').trim();
+  const t = raw.replace(/^Bearer\s+/i, '').trim();
+  return t || null;
+}
+
 
   private getGuestToken(): string | null {
     // ✅ FIX: chiave corretta usata in tutto il resto del progetto

@@ -16,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { QueueSocketService } from '../../services/queue-socket.service';
+import { QueueSocketService, QueueChangedEvent } from '../../services/queue-socket.service';
 
 interface Canzone {
   id: number;
@@ -53,8 +53,8 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   mostraInputPartecipazione: { [id: number]: boolean } = {};
 
   isLoading = true;
-  isMobileView: boolean = false;
-  isTabletView: boolean = false;
+  isMobileView = false;
+  isTabletView = false;
 
   emojisVoto = [
     { icon: 'fa-thumbs-up', label: '👍' },
@@ -71,18 +71,15 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   private changesSub?: Subscription;
   private queueSub?: Subscription;
 
-  // debounce reload
   private reloadTimer: any = null;
   private readonly RELOAD_DEBOUNCE_MS = 150;
 
-  // evitare chiamate parallele
   private fetchInFlight = false;
   private pendingReload = false;
 
-  // resize handler (stessa reference per removeEventListener)
-  private readonly onResize = () => this.checkViewport();
+  private scrollIntervalId: any = null;
 
-  // debug
+  private readonly onResize = () => this.checkViewport();
   private readonly DEBUG = true;
 
   constructor(
@@ -105,15 +102,13 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     this.checkViewport();
     window.addEventListener('resize', this.onResize);
 
-    // ✅ realtime queue (pubblico)
-    // IMPORTANT: questo funziona SOLO se il QueueSocketService punta a path '/socket-queue'
+    // realtime queue: connetti (idempotente) + ascolta changed
     this.queueSocket.connect();
-    this.queueSub = this.queueSocket.onQueueChanged$().subscribe((evt) => {
+    this.queueSub = this.queueSocket.onQueueChanged$().subscribe((evt: QueueChangedEvent) => {
       if (this.DEBUG) console.log('[lista-canzoni] queue:changed =>', evt);
       this.scheduleReloadSongs();
     });
 
-    // Leggi scrollToId da query o da sessionStorage (fallback)
     this.qpSub = this.route.queryParams.subscribe(params => {
       const fromQuery = params['scrollToId'] ? +params['scrollToId'] : null;
       const fromSession = sessionStorage.getItem('scrollToSongId');
@@ -126,9 +121,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.changesSub = this.righeCanzoni.changes.subscribe(() => {
-      if (this.scrollToId != null) {
-        this.scheduleScrollTo(this.scrollToId);
-      }
+      if (this.scrollToId != null) this.scheduleScrollTo(this.scrollToId);
     });
   }
 
@@ -144,8 +137,10 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       this.reloadTimer = null;
     }
 
-    // ⚠️ NON chiamare disconnect() qui se lo socket è usato anche altrove
-    // this.queueSocket.disconnect();
+    if (this.scrollIntervalId) {
+      clearInterval(this.scrollIntervalId);
+      this.scrollIntervalId = null;
+    }
   }
 
   private scheduleReloadSongs(): void {
@@ -159,14 +154,11 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      // opzionale: se non vuoi ricaricare mentre stai editando:
-      // if (this.editingIndex != null) return;
-
       this.caricaCanzoni();
     }, this.RELOAD_DEBOUNCE_MS);
   }
 
-  checkViewport() {
+  checkViewport(): void {
     const w = window.innerWidth;
     this.isMobileView = w <= 480;
     this.isTabletView = w > 480 && w <= 768;
@@ -178,7 +170,6 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
     this.salvaOrdine();
 
-    // fix “drag glitch” visuale (opzionale)
     setTimeout(() => {
       this.righeCanzoni.forEach((riga: ElementRef) => {
         const el = riga.nativeElement as HTMLElement;
@@ -206,30 +197,27 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     return true;
   }
 
-  /** riprova lo scroll per un po' finché l'elemento non esiste */
-  private scheduleScrollTo(id: number) {
+  private scheduleScrollTo(id: number): void {
+    if (this.scrollIntervalId) clearInterval(this.scrollIntervalId);
+
     let tries = 0;
-    const maxTries = 80; // ~4s a 50ms
-    const iv = setInterval(() => {
+    const maxTries = 80;
+
+    this.scrollIntervalId = setInterval(() => {
       tries++;
       const ok = this.tryScrollTo(id);
       if (ok || tries >= maxTries) {
-        clearInterval(iv);
+        clearInterval(this.scrollIntervalId);
+        this.scrollIntervalId = null;
         if (ok) this.scrollToId = null;
       }
     }, 50);
   }
 
   salvaOrdine(): void {
-    const nuovaLista = this.canzoni.map((c, index) => ({
-      id: c.id,
-      posizione: index + 1
-    }));
-
+    const nuovaLista = this.canzoni.map((c, index) => ({ id: c.id, posizione: index + 1 }));
     this.karaokeService.riordinaCanzoni(nuovaLista).subscribe({
-      next: () => {
-        this.translate.get('toast.ORDER_SAVED').subscribe(msg => this.toastr.success(msg));
-      },
+      next: () => this.translate.get('toast.ORDER_SAVED').subscribe(msg => this.toastr.success(msg)),
       error: (err) => {
         console.error('Errore salvataggio ordine:', err);
         this.translate.get('toast.ORDER_SAVE_ERROR').subscribe(msg => this.toastr.error(msg));
@@ -245,15 +233,11 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (data: Canzone[]) => {
         this.canzoni = data;
 
-        // fine fetch
         this.isLoading = false;
         this.fetchInFlight = false;
 
-        if (this.scrollToId != null) {
-          this.scheduleScrollTo(this.scrollToId);
-        }
+        if (this.scrollToId != null) this.scheduleScrollTo(this.scrollToId);
 
-        // se è arrivato un evento realtime mentre caricavamo, ricarichiamo UNA volta
         if (this.pendingReload) {
           this.pendingReload = false;
           this.scheduleReloadSongs();
@@ -319,8 +303,6 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Nota: nel backend che mi hai mandato, /aggiungi-partecipante richiede req.user.id
-    // quindi un guest NON passerà comunque (server lo blocca).
     if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
       this.translate.get('toast.GUEST_FORBIDDEN').subscribe(msg => this.toastr.warning(msg));
       return;
@@ -332,7 +314,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const nome = this.nomePartecipanteMap[canzone.id]?.trim();
-    if (!nome || nome.length === 0) {
+    if (!nome) {
       this.translate.get('toast.INVALID_NAME').subscribe(msg => this.toastr.warning(msg));
       return;
     }
@@ -365,9 +347,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.canEditOrDelete(this.canzoni[index])) return;
 
     this.translate.get('toast.DELETE_CONFIRM').subscribe(translatedMessage => {
-      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-        data: { message: translatedMessage }
-      });
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, { data: { message: translatedMessage } });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
@@ -431,16 +411,13 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const canzone = this.canzoni[index];
-
     this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
       next: () => {
         canzone.votoEmoji = emoji;
-        this.translate.get('toast.VOTE_SUCCESS', { emoji: emoji, song: canzone.nome }).subscribe(msg =>
-          this.toastr.success(msg)
-        );
+        this.translate.get('toast.VOTE_SUCCESS', { emoji, song: canzone.nome }).subscribe(msg => this.toastr.success(msg));
       },
       error: (err) => {
-        console.error('Errore nel salvataggio del voto emoji:', err);
+        console.error('Errore voto emoji:', err);
         this.translate.get('toast.VOTE_ERROR').subscribe(msg => this.toastr.error(msg));
       }
     });
@@ -452,7 +429,6 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // toggle UI ottimistico
     canzone.inWishlist = !canzone.inWishlist;
 
     this.karaokeService.aggiungiAWishlist({
@@ -467,7 +443,6 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         console.error('Errore wishlist:', err);
         this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
-        // rollback toggle
         canzone.inWishlist = !canzone.inWishlist;
       }
     });

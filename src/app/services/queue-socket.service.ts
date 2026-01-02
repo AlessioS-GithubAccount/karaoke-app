@@ -13,40 +13,46 @@ export type QueueChangedEvent = {
 export class QueueSocketService {
   private socket?: Socket;
   private changed$ = new Subject<QueueChangedEvent>();
-
   private readonly DEBUG = true;
 
+  constructor(private zone: NgZone) {}
+
   connect(): void {
-    // ✅ se esiste già, non ricrearla
+    // non ricreare
     if (this.socket) {
-      if (this.DEBUG) {
-        console.log('[queue-socket] connect() called but socket exists. connected=', this.socket.connected);
-      }
-      // se è stata disconnessa manualmente, prova a riconnettere
+      if (this.DEBUG) console.log('[queue-socket] connect() but socket exists. connected=', this.socket.connected);
       if (!this.socket.connected) {
         try { this.socket.connect(); } catch {}
       }
       return;
     }
 
-    const base = this.getSocketBaseUrl(); // es: https://karaoke-app-6byu.onrender.com
-    if (this.DEBUG) console.log('[queue-socket] base=', base);
+    const base = this.getSocketBaseUrl();
+    const path = (environment as any).queueSocketPath || '/socket-queue';
 
-    // ✅ IMPORTANTISSIMO: path deve combaciare con il backend: path: '/socket-queue'
+    if (this.DEBUG) {
+      console.log('[queue-socket] base=', base);
+      console.log('[queue-socket] path=', path);
+    }
+
     this.socket = io(base, {
-      path: '/socket-queue',
-      transports: ['websocket', 'polling'],
+      path,
+      transports: ['polling', 'websocket'],
+      upgrade: true,
+
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 50,
-      reconnectionDelay: 700,
-      timeout: 10000,
-      withCredentials: false
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 800,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+
+      withCredentials: false,
+      forceNew: true,
     });
 
     (window as any).__queueSocket = this.socket;
 
-    // engine-level debug
     this.socket.io.on('reconnect_attempt', (attempt: number) => {
       if (this.DEBUG) console.log('[queue-socket] reconnect_attempt', attempt);
     });
@@ -61,8 +67,6 @@ export class QueueSocketService {
 
     this.socket.on('connect', () => {
       console.log('[queue-socket] CONNECT OK id=', this.socket?.id);
-
-      // ping test con ack
       this.socket?.emit('queue:ping', (res: any) => {
         if (this.DEBUG) console.log('[queue-socket] PING ACK =>', res);
       });
@@ -81,18 +85,14 @@ export class QueueSocketService {
       if (this.DEBUG) console.log('[queue-socket] HELLO =>', data);
     });
 
-    // noImplicitAny OK
     this.socket.onAny((event: string, ...args: any[]) => {
       if (this.DEBUG) console.log('[queue-socket] onAny =>', event, args);
     });
 
-    // ✅ evento che emetti dal backend: ioQueue.emit('queue:changed', ...)
     this.socket.on('queue:changed', (evt: QueueChangedEvent) => {
       this.zone.run(() => this.changed$.next(evt || {}));
     });
   }
-
-  constructor(private zone: NgZone) {}
 
   disconnect(): void {
     try {
@@ -109,22 +109,25 @@ export class QueueSocketService {
   private getSocketBaseUrl(): string {
     const anyEnv = environment as any;
 
-    // preferisci socketBaseUrl se lo hai
-    if (anyEnv.socketBaseUrl && typeof anyEnv.socketBaseUrl === 'string') {
-      return anyEnv.socketBaseUrl.replace(/\/+$/, '');
-    }
-    if (anyEnv.wsUrl && typeof anyEnv.wsUrl === 'string') {
-      return anyEnv.wsUrl.replace(/\/+$/, '');
+    let base =
+      (typeof anyEnv.socketBaseUrl === 'string' && anyEnv.socketBaseUrl.trim()) ? anyEnv.socketBaseUrl.trim()
+      : (typeof anyEnv.wsUrl === 'string' && anyEnv.wsUrl.trim()) ? anyEnv.wsUrl.trim()
+      : '';
+
+    if (!base) {
+      const api = (anyEnv.baseUrl as string | undefined) || '';
+      if (api && api.startsWith('http')) {
+        try { base = new URL(api).origin; } catch {}
+      }
     }
 
-    // fallback: deriva dall'API baseUrl
-    const api = (environment as any).baseUrl as string | undefined;
-    if (!api || !api.startsWith('http')) return window.location.origin;
+    if (!base) base = window.location.origin;
+    base = base.replace(/\/+$/, '');
 
-    try {
-      return new URL(api).origin;
-    } catch {
-      return window.location.origin;
-    }
+    // ✅ fondamentale: socket.io fa handshake HTTP, quindi ws/wss va normalizzato
+    if (base.startsWith('wss://')) base = 'https://' + base.slice(6);
+    if (base.startsWith('ws://'))  base = 'http://' + base.slice(5);
+
+    return base;
   }
 }
