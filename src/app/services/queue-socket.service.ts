@@ -31,6 +31,7 @@ export class QueueSocketService {
     if (this.socket) {
       if (this.DEBUG) {
         console.log('[queue-socket] socket already exists. connected=', this.socket.connected);
+        console.log('[queue-socket] socket path =', (this.socket.io as any)?.opts?.path);
       }
       if (!this.socket.connected) this.socket.connect();
       return;
@@ -45,6 +46,9 @@ export class QueueSocketService {
       reconnectionDelay: 500,
       timeout: 10000,
       withCredentials: false,
+
+      // ✅ IMPORTANT: evita riuso/side-effect di manager socket.io
+      forceNew: true,
     });
 
     // utile per test manuali da console: window.__queueSocket
@@ -72,7 +76,6 @@ export class QueueSocketService {
 
     this.socket.on('connect_error', (err: any) => {
       console.warn('[queue-socket] CONNECT ERROR =>', err?.message || err);
-      // socket.io a volte mette dettagli in err.data / err.description
       if (this.DEBUG) console.warn('[queue-socket] connect_error details =>', err);
     });
 
@@ -108,18 +111,39 @@ export class QueueSocketService {
   private getSocketBaseUrl(): string {
     const anyEnv = environment as any;
 
-    if (anyEnv.socketBaseUrl && typeof anyEnv.socketBaseUrl === 'string') {
-      return anyEnv.socketBaseUrl.replace(/\/+$/, ''); // no trailing slash
+    // 1) socketBaseUrl esplicito
+    const raw =
+      (typeof anyEnv.socketBaseUrl === 'string' && anyEnv.socketBaseUrl.trim())
+        ? anyEnv.socketBaseUrl.trim()
+        : (typeof anyEnv.wsUrl === 'string' && anyEnv.wsUrl.trim())
+          ? anyEnv.wsUrl.trim()
+          : '';
+
+    if (raw) {
+      // se qualcuno ti ha messo ws:// o wss://, converti a http(s) per socket.io
+      const normalized = raw.replace(
+        /^ws(s)?:\/\//i,
+        (_m: string, s?: string) => (s ? 'https://' : 'http://')
+      );
+
+      try {
+        const u = new URL(normalized);
+        return u.origin; // ✅ SOLO origin (niente path)
+      } catch {
+        // fallback sotto
+      }
     }
 
+    // 2) deriva da baseUrl API
     const api = (environment as any).baseUrl as string | undefined;
-    if (!api || !api.startsWith('http')) return window.location.origin;
-
-    try {
-      const u = new URL(api);
-      return u.origin;
-    } catch {
-      return window.location.origin;
+    if (api && api.startsWith('http')) {
+      try {
+        const u = new URL(api);
+        return u.origin;
+      } catch {}
     }
+
+    // 3) fallback finale
+    return window.location.origin;
   }
 }

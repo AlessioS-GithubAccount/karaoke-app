@@ -31,8 +31,8 @@ export class KaraokeService {
   }
 
   private getGuestToken(): string | null {
-    // ✅ FIX: chiave corretta usata da AuthService/Interceptor
-    return localStorage.getItem('guest_token'); // guest token
+    // ✅ FIX: chiave corretta usata in tutto il resto del progetto
+    return localStorage.getItem('guest_token');
   }
 
   private authHeaders(token: string | null): HttpHeaders {
@@ -41,7 +41,7 @@ export class KaraokeService {
     return headers;
   }
 
-  /** Usa token user se presente, altrimenti guestToken */
+  /** Usa token user se presente, altrimenti guest_token */
   private bestEffortAuthHeaders(): HttpHeaders {
     const userToken = this.getUserToken();
     if (userToken) return this.authHeaders(userToken);
@@ -61,13 +61,15 @@ export class KaraokeService {
   // API
   // =========================
   getCanzoni(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+    // ✅ FIX: cache-bust per garantire lista aggiornata dopo queue:changed
+    const ts = Date.now();
+    return this.http.get<any[]>(`${this.apiUrl}?_=${ts}`);
   }
 
   /**
    * POST /canzoni
    * - se sei loggato: manda token user
-   * - se sei guest: manda guestToken
+   * - se sei guest: manda guest_token
    * - se non hai token: funziona SOLO se passi guest_id/user_id nel body (compat vecchia)
    */
   addCanzone(canzone: any): Observable<any> {
