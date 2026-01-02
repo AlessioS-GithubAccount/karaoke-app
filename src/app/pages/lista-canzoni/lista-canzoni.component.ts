@@ -48,8 +48,10 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   userId: number | null = null;
   guestId: string | null = null;
   puoPartecipare = false;
+
   nomePartecipanteMap: { [id: number]: string } = {};
   mostraInputPartecipazione: { [id: number]: boolean } = {};
+
   isLoading = true;
   isMobileView: boolean = false;
   isTabletView: boolean = false;
@@ -77,8 +79,11 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   private fetchInFlight = false;
   private pendingReload = false;
 
-  // resize handler (removibile)
+  // resize handler (stessa reference per removeEventListener)
   private readonly onResize = () => this.checkViewport();
+
+  // debug
+  private readonly DEBUG = true;
 
   constructor(
     private karaokeService: KaraokeService,
@@ -101,8 +106,10 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.onResize);
 
     // ✅ realtime queue (pubblico)
+    // IMPORTANT: questo funziona SOLO se il QueueSocketService punta a path '/socket-queue'
     this.queueSocket.connect();
-    this.queueSub = this.queueSocket.onQueueChanged$().subscribe(() => {
+    this.queueSub = this.queueSocket.onQueueChanged$().subscribe((evt) => {
+      if (this.DEBUG) console.log('[lista-canzoni] queue:changed =>', evt);
       this.scheduleReloadSongs();
     });
 
@@ -111,9 +118,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       const fromQuery = params['scrollToId'] ? +params['scrollToId'] : null;
       const fromSession = sessionStorage.getItem('scrollToSongId');
       this.scrollToId = fromQuery ?? (fromSession ? +fromSession : null);
-      if (fromSession) {
-        sessionStorage.removeItem('scrollToSongId');
-      }
+      if (fromSession) sessionStorage.removeItem('scrollToSongId');
     });
 
     this.caricaCanzoni();
@@ -138,6 +143,9 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       clearTimeout(this.reloadTimer);
       this.reloadTimer = null;
     }
+
+    // ⚠️ NON chiamare disconnect() qui se lo socket è usato anche altrove
+    // this.queueSocket.disconnect();
   }
 
   private scheduleReloadSongs(): void {
@@ -146,7 +154,6 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     this.reloadTimer = setTimeout(() => {
       this.reloadTimer = null;
 
-      // se sto già caricando, segno che devo ricaricare dopo
       if (this.fetchInFlight) {
         this.pendingReload = true;
         return;
@@ -167,9 +174,11 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onDrop(event: CdkDragDrop<Canzone[]>): void {
     if (!this.isAdmin) return;
+
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
     this.salvaOrdine();
 
+    // fix “drag glitch” visuale (opzionale)
     setTimeout(() => {
       this.righeCanzoni.forEach((riga: ElementRef) => {
         const el = riga.nativeElement as HTMLElement;
@@ -236,20 +245,19 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (data: Canzone[]) => {
         this.canzoni = data;
 
-        setTimeout(() => {
-          this.isLoading = false;
-          this.fetchInFlight = false;
+        // fine fetch
+        this.isLoading = false;
+        this.fetchInFlight = false;
 
-          if (this.scrollToId != null) {
-            this.scheduleScrollTo(this.scrollToId);
-          }
+        if (this.scrollToId != null) {
+          this.scheduleScrollTo(this.scrollToId);
+        }
 
-          // se è arrivato un evento realtime mentre caricavamo, ricarichiamo una volta
-          if (this.pendingReload) {
-            this.pendingReload = false;
-            this.scheduleReloadSongs();
-          }
-        }, 0);
+        // se è arrivato un evento realtime mentre caricavamo, ricarichiamo UNA volta
+        if (this.pendingReload) {
+          this.pendingReload = false;
+          this.scheduleReloadSongs();
+        }
       },
       error: (err) => {
         console.error('Errore nel recupero delle canzoni:', err);
@@ -262,10 +270,12 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
 
   toggleCantata(index: number): void {
     if (!this.isAdmin) return;
+
     const canzone = this.canzoni[index];
     const nuovoStato = !canzone.cantata;
+
     this.karaokeService.aggiornaCantata(canzone.id, nuovoStato).subscribe({
-      next: () => canzone.cantata = nuovoStato,
+      next: () => (canzone.cantata = nuovoStato),
       error: (err) => {
         console.error('Errore aggiornamento cantata:', err);
         this.translate.get('toast.CANTATA_UPDATE_ERROR').subscribe(msg => this.toastr.error(msg));
@@ -309,8 +319,8 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Nota schietta: nel backend che mi hai mandato, /aggiungi-partecipante richiede req.user.id
-    // quindi un guest NON passerà comunque. Questo blocco guest qui lo lasciamo, ma server lo blocca.
+    // Nota: nel backend che mi hai mandato, /aggiungi-partecipante richiede req.user.id
+    // quindi un guest NON passerà comunque (server lo blocca).
     if (this.authService.isGuest() && canzone.user_id === null && canzone.guest_id !== this.guestId) {
       this.translate.get('toast.GUEST_FORBIDDEN').subscribe(msg => this.toastr.warning(msg));
       return;
@@ -419,11 +429,15 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       this.translate.get('toast.VOTE_LOGIN_REQUIRED').subscribe(msg => this.toastr.info(msg));
       return;
     }
+
     const canzone = this.canzoni[index];
+
     this.karaokeService.votaEmoji(canzone.id, this.userId!, emoji).subscribe({
       next: () => {
         canzone.votoEmoji = emoji;
-        this.translate.get('toast.VOTE_SUCCESS', { emoji: emoji, song: canzone.nome }).subscribe(msg => this.toastr.success(msg));
+        this.translate.get('toast.VOTE_SUCCESS', { emoji: emoji, song: canzone.nome }).subscribe(msg =>
+          this.toastr.success(msg)
+        );
       },
       error: (err) => {
         console.error('Errore nel salvataggio del voto emoji:', err);
@@ -438,6 +452,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // toggle UI ottimistico
     canzone.inWishlist = !canzone.inWishlist;
 
     this.karaokeService.aggiungiAWishlist({
@@ -452,6 +467,7 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         console.error('Errore wishlist:', err);
         this.translate.get('toast.WISHLIST_ERROR').subscribe(msg => this.toastr.error(msg));
+        // rollback toggle
         canzone.inWishlist = !canzone.inWishlist;
       }
     });
