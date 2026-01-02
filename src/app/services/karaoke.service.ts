@@ -31,7 +31,8 @@ export class KaraokeService {
   }
 
   private getGuestToken(): string | null {
-    return localStorage.getItem('guestToken'); // guest token
+    // ✅ FIX: chiave corretta usata da AuthService/Interceptor
+    return localStorage.getItem('guest_token'); // guest token
   }
 
   private authHeaders(token: string | null): HttpHeaders {

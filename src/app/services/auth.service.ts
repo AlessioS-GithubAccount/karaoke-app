@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from '../../environments/environment';
 
@@ -167,11 +167,22 @@ export class AuthService {
 
   /**
    * Entra come guest:
-   * - chiama /auth/guest
-   * - salva guest_token
+   * - se ho già un guest_token valido, lo RIUSO (non chiamo backend)
+   * - altrimenti chiama /auth/guest e salva guest_token
    * - NON altera loggedIn (resta false)
    */
   enterGuest(): Observable<any> {
+    // Se ho già un guest token valido, non rischio di rigenerare l'identità
+    if (this.hasValidJwtInStorage('guest_token')) {
+      const token = localStorage.getItem('guest_token');
+      const gid = this.getGuestId();
+      return of({
+        message: 'Guest già presente (riuso token locale)',
+        guestToken: token,
+        guest_id: gid
+      });
+    }
+
     return new Observable<any>((observer) => {
       this.http.post<any>(this.guestUrl, {}).subscribe({
         next: (res) => {

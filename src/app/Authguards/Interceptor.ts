@@ -28,8 +28,19 @@ export class TokenInterceptor implements HttpInterceptor {
     const tokenToUse = userToken || guestToken;
     const authReq = tokenToUse ? this.addTokenHeader(req, tokenToUse) : req;
 
+    const isAuthEndpoint =
+      authReq.url.includes('/auth/login') ||
+      authReq.url.includes('/auth/token') ||
+      authReq.url.includes('/auth/logout') ||
+      authReq.url.includes('/auth/guest');
+
     return next.handle(authReq).pipe(
       catchError((error) => {
+        // Non tentare refresh sugli endpoint auth (evita loop / comportamenti strani)
+        if (isAuthEndpoint) {
+          return throwError(() => error);
+        }
+
         // Refresh SOLO se sei un utente loggato (token + refresh_token)
         if (
           error instanceof HttpErrorResponse &&

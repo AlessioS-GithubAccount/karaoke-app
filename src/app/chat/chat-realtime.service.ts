@@ -15,7 +15,7 @@ export interface ChatMessage {
   toUserId?: number;   // destinatario (solo per DM)
 }
 
-type JwtPayload = { id?: number; ruolo?: string; username?: string; [k: string]: any };
+type JwtPayload = { id?: number | string; ruolo?: string; username?: string; [k: string]: any };
 
 @Injectable({ providedIn: 'root' })
 export class ChatRealtimeService {
@@ -89,8 +89,6 @@ export class ChatRealtimeService {
    */
   start(): void {
     this.startCount++;
-
-    // già avviato da qualcun altro
     if (this.startCount > 1) return;
 
     this.installUnloadHooks();
@@ -125,7 +123,7 @@ export class ChatRealtimeService {
 
     window.addEventListener('beforeunload', this.onBeforeUnload);
     window.addEventListener('pagehide', this.onPageHide);
-    document.addEventListener('visibilitychange', this.onVisibilityChange, { passive: true as any });
+    document.addEventListener('visibilitychange', this.onVisibilityChange as any, { passive: true as any });
   }
 
   private uninstallUnloadHooks(): void {
@@ -187,12 +185,12 @@ export class ChatRealtimeService {
       return;
     }
 
-    if (!this.socket) {
-      const base = (environment as any).socketBaseUrl || (environment as any).wsUrl;
+    const base = this.getSocketBaseUrl();
+    const path = (environment as any).chatSocketPath || '/socket.io';
 
+    if (!this.socket) {
       this.socket = io(base, {
-        // path default di socket.io, puoi anche ometterlo
-        path: '/socket.io',
+        path,
         transports: ['polling', 'websocket'],
         upgrade: true,
         reconnection: true,
@@ -202,7 +200,7 @@ export class ChatRealtimeService {
         timeout: 20000,
         autoConnect: false,
         withCredentials: false,
-        forceNew: true,   // ✅ evita qualunque “riuso” manager
+        forceNew: true,   // evita “riuso” manager tra servizi
         auth: { token: info.token }
       });
 
@@ -256,6 +254,10 @@ export class ChatRealtimeService {
     const handleIncoming = (m: any) => {
       const mapped = this.mapIncoming(m);
       if (!mapped) return;
+
+      // dedup: non far crescere infinito
+      if (this.seenIds.size > 5000) this.seenIds.clear();
+
       if (this.seenIds.has(mapped.id)) return;
       this.seenIds.add(mapped.id);
 
@@ -339,10 +341,20 @@ export class ChatRealtimeService {
     const toUserId =
       m?.toUserId != null
         ? Number(m.toUserId)
-        : (typeof m?.to === 'number' ? Number(m.to) : undefined);
+        : (m?.to != null ? Number(m.to) : undefined);
+
+    if (!fromUserId || !Number.isFinite(fromUserId)) return null;
+
+    // id: preferisci id server, poi clientId, poi fallback
+    const id = String(
+      m?.id ??
+      m?.messageId ??
+      m?.clientId ??
+      (globalThis.crypto?.randomUUID?.() ?? Date.now())
+    );
 
     return {
-      id: String(m?.id ?? (globalThis.crypto?.randomUUID?.() ?? Date.now())),
+      id,
       clientId: m?.clientId ? String(m.clientId) : undefined,
       author: String(m?.author ?? ''),
       text: String(m?.text ?? ''),
@@ -435,9 +447,10 @@ export class ChatRealtimeService {
 
     if (payload.ruolo === 'guest') return null;
 
-    if (typeof payload.id !== 'number' || !Number.isFinite(payload.id)) return null;
+    const idNum = typeof payload.id === 'string' ? Number(payload.id) : payload.id;
+    if (typeof idNum !== 'number' || !Number.isFinite(idNum)) return null;
 
-    this.myUserId = payload.id;
+    this.myUserId = idNum;
     return { token, payload };
   }
 
@@ -455,5 +468,38 @@ export class ChatRealtimeService {
     } catch {
       return null;
     }
+  }
+
+  // ===========================
+  // URL NORMALIZATION
+  // ===========================
+
+  private getSocketBaseUrl(): string {
+    const anyEnv = environment as any;
+
+    // 1) prefer socketBaseUrl (http/https)
+    let base = (anyEnv.socketBaseUrl as string | undefined) || '';
+
+    // 2) fallback wsUrl (spesso la gente lo mette wss://... -> lo normalizzo in https://...)
+    if (!base) base = (anyEnv.wsUrl as string | undefined) || '';
+
+    // 3) fallback baseUrl origin
+    if (!base) {
+      const api = (anyEnv.baseUrl as string | undefined) || '';
+      if (api && api.startsWith('http')) {
+        try { base = new URL(api).origin; } catch {}
+      }
+    }
+
+    // 4) ultimo fallback
+    if (!base) base = window.location.origin;
+
+    base = String(base).trim().replace(/\/+$/, '');
+
+    // Normalizza ws/wss -> http/https (socket.io vuole handshake HTTP)
+    if (base.startsWith('wss://')) base = 'https://' + base.slice(6);
+    if (base.startsWith('ws://')) base = 'http://' + base.slice(5);
+
+    return base;
   }
 }
