@@ -5,4 +5,5 @@ export const environment = {
   // WebSocket base (NO /api)
   wsUrl: 'http://localhost:3000',
   socketBaseUrl: 'http://localhost:3000',
+  queueSocketPath: '/socket.io',
 };

@@ -24,18 +24,21 @@ export class QueueSocketService {
       if (!this.socket.connected) {
         try { this.socket.connect(); } catch {}
       }
+
       return;
     }
 
     const base = this.getSocketBaseUrl();
-    const path = (environment as any).queueSocketPath || '/socket-queue';
+    const path = (environment as any).queueSocketPath || '/socket.io';
+    const url = `${base}/queue`;
 
     if (this.DEBUG) {
       console.log('[queue-socket] base=', base);
       console.log('[queue-socket] path=', path);
+      console.log('[queue-socket] url=', url);
     }
 
-    this.socket = io(base, {
+    this.socket = io(url, {
       path,
       transports: ['polling', 'websocket'],
       upgrade: true,
@@ -72,13 +75,12 @@ export class QueueSocketService {
       });
     });
 
-    this.socket.on('connect_error', (err: any) => {
-      console.warn('[queue-socket] CONNECT ERROR =>', err?.message || err);
-      if (this.DEBUG) console.warn('[queue-socket] connect_error details =>', err);
+    this.socket.on('disconnect', (reason: string) => {
+      console.warn('[queue-socket] disconnected reason=', reason);
     });
 
-    this.socket.on('disconnect', (reason: Socket.DisconnectReason) => {
-      if (this.DEBUG) console.warn('[queue-socket] DISCONNECTED =>', reason);
+    this.socket.on('connect_error', (err: any) => {
+      console.warn('[queue-socket] connect_error', err?.message || err, err);
     });
 
     this.socket.on('queue:hello', (data: any) => {

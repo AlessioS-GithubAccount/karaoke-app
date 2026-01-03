@@ -5,4 +5,5 @@ export const environment = {
   // WebSocket base (NO /api)
   wsUrl: 'https://karaoke-app-6byu.onrender.com',
   socketBaseUrl: 'https://karaoke-app-6byu.onrender.com',
+  queueSocketPath: '/socket.io',
 };
