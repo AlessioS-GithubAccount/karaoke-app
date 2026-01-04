@@ -33,6 +33,9 @@ export class AppComponent implements OnInit, OnDestroy {
   // ✅ chat visibile/attiva solo per user/admin loggati (no guest)
   canUseChat = false;
 
+  // ✅ nome utente per saluto navbar
+  navUsername = '';
+
   private subs: Subscription[] = [];
 
   // listeners attività (rimossi su destroy)
@@ -59,7 +62,18 @@ export class AppComponent implements OnInit, OnDestroy {
     // ✅ QUEUE REALTIME (PUBBLICA): connetto sempre (guest/anon inclusi)
     this.queueSocket.connect();
 
-    // ✅ NavigationEnd: rimuovi loader; se chat attiva, registra activity (evita duplicazioni)
+    // ✅ inizializza subito username da storage (per non vedere vuoto al primo render)
+    this.navUsername = (localStorage.getItem('username') || '').trim();
+
+    // ✅ aggiorna navUsername quando cambia currentUser (se arriva dal backend)
+    this.subs.push(
+      this.authService.currentUser$.subscribe((u) => {
+        const name = this.resolveNavUsername(u);
+        if (name) this.navUsername = name;
+      })
+    );
+
+    // ✅ NavigationEnd: rimuovi loader; se chat attiva, registra activity
     this.subs.push(
       this.router.events
         .pipe(filter(e => e instanceof NavigationEnd))
@@ -77,6 +91,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.canUseChat = canUse;
 
+        if (isLogged) {
+          // se loggato, prova a tenere username aggiornato (fallback storage)
+          this.navUsername = (localStorage.getItem('username') || this.navUsername || '').trim();
+        } else {
+          this.navUsername = '';
+        }
+
         if (canUse) {
           // ✅ avvio globale: così il badge si aggiorna anche fuori dalla pagina chat
           this.chatRealtime.start();
@@ -93,7 +114,7 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     );
 
-    // 🔔 Totale non letti per badge (ora funziona perché chatRealtime è avviato quando loggato)
+    // 🔔 Totale non letti per badge
     this.subs.push(
       this.chatRealtime.totalUnread$.subscribe(n => {
         this.unreadTotal = this.canUseChat ? (n || 0) : 0;
@@ -171,12 +192,23 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   // ===========================
-  // Presence "soft" (non avvia socket)
+  // Username helper
   // ===========================
+  private resolveNavUsername(u: any | null): string {
+    const fromUser =
+      (u?.username ?? u?.name ?? u?.nome ?? u?.displayName ?? '').toString().trim();
 
+    const fromStorage = (localStorage.getItem('username') || '').trim();
+
+    // priorità: backend user → storage
+    return (fromUser || fromStorage || '').trim();
+  }
+
+  // ===========================
+  // Presence "soft"
+  // ===========================
   private safeTouchActivity(): void {
     try {
-      // touchActivity nel service aggiorna lastActivity; se il service non è started non connette.
       this.chatRealtime.touchActivity();
     } catch {}
   }
@@ -208,9 +240,8 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   // ===========================
-  // JWT ROLE (per evitare dipendenze da AuthService)
+  // JWT ROLE
   // ===========================
-
   private readJwtRole(): string | null {
     const raw = (localStorage.getItem('token') || '').trim();
     const token = raw.replace(/^Bearer\s+/i, '').trim();
@@ -302,11 +333,11 @@ export class AppComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout();
 
-    // se la chat era stata avviata da qualche parte, qui è ok fermarla:
     try { this.chatRealtime.stop(); } catch {}
     try { this.chatRealtime.resetUnread(); } catch {}
     this.unreadTotal = 0;
     this.canUseChat = false;
+    this.navUsername = '';
 
     this.router.navigate(['/login']);
     this.closeMenu();
@@ -323,6 +354,11 @@ export class AppComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.router.navigate([this.authService.isLoggedIn() ? '/user-profile' : '/login']);
     this.closeMenu();
+  }
+
+  // ✅ testo saluto in base lingua
+  get helloText(): string {
+    return this.currentLang === 'it' ? 'Ciao' : 'Hi';
   }
 
   get isLightMode(): boolean { return !this.darkMode; }
