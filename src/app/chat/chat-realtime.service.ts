@@ -326,6 +326,12 @@ export class ChatRealtimeService {
     }
   }
 
+  // ✅ reset totale + per-peer (utile su logout)
+  resetUnread(): void {
+    this._unreadByPeer.next(new Map());
+    this._totalUnread.next(0);
+  }
+
   get totalUnread(): number {
     return this._totalUnread.value;
   }

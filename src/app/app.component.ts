@@ -30,6 +30,9 @@ export class AppComponent implements OnInit, OnDestroy {
   // 🔔 totale non letti per badge in navbar
   unreadTotal = 0;
 
+  // ✅ chat visibile/attiva solo per user/admin loggati (no guest)
+  canUseChat = false;
+
   private subs: Subscription[] = [];
 
   // listeners attività (rimossi su destroy)
@@ -56,37 +59,46 @@ export class AppComponent implements OnInit, OnDestroy {
     // ✅ QUEUE REALTIME (PUBBLICA): connetto sempre (guest/anon inclusi)
     this.queueSocket.connect();
 
-    // === PRESENCE / CHAT BADGE (solo user/admin loggati) ===
-    // NB: qui NON facciamo partire il socket chat globale.
-    // Il realtime chat parte nella pagina ChatComponent via chatRealtime.start().
-    const ruolo = this.readJwtRole(); // 'user' | 'admin' | 'guest' | null
-    const canUseChatPresence = this.authService.isLoggedIn() && ruolo !== 'guest' && ruolo !== null;
+    // ✅ NavigationEnd: rimuovi loader; se chat attiva, registra activity (evita duplicazioni)
+    this.subs.push(
+      this.router.events
+        .pipe(filter(e => e instanceof NavigationEnd))
+        .subscribe(() => {
+          if (this.canUseChat) this.safeTouchActivity();
+          this.removeAppLoader();
+        })
+    );
 
-    if (canUseChatPresence) {
-      // NON start() qui (lo fa ChatComponent quando entri nella pagina chat).
-      // this.chatRealtime.start();
+    // === CHAT REALTIME + BADGE (solo user/admin loggati) ===
+    this.subs.push(
+      this.authService.isLoggedIn$.subscribe((isLogged) => {
+        const ruolo = this.readJwtRole(); // 'user' | 'admin' | 'guest' | null
+        const canUse = isLogged && ruolo !== 'guest' && ruolo !== null;
 
-      this.safeTouchActivity();
+        this.canUseChat = canUse;
 
-      // Navigazioni = attività (solo per aggiornare lastActivity / eventuale badge)
-      this.subs.push(
-        this.router.events
-          .pipe(filter(e => e instanceof NavigationEnd))
-          .subscribe(() => {
-            this.safeTouchActivity();
-            this.removeAppLoader();
-          })
-      );
+        if (canUse) {
+          // ✅ avvio globale: così il badge si aggiorna anche fuori dalla pagina chat
+          this.chatRealtime.start();
 
-      // Attività globali
-      this.installActivityListeners();
+          this.safeTouchActivity();
+          this.installActivityListeners();
+        } else {
+          // guest/anon/logout
+          try { this.chatRealtime.stop(); } catch {}
+          try { this.chatRealtime.resetUnread(); } catch {}
+          this.unreadTotal = 0;
+          this.removeActivityListeners();
+        }
+      })
+    );
 
-      // 🔔 Totale non letti per badge (si aggiorna SOLO se il service è avviato)
-      // Se vuoi badge anche fuori dalla chat, va letto da storage (te lo faccio dopo se vuoi).
-      this.subs.push(
-        this.chatRealtime.totalUnread$.subscribe(n => (this.unreadTotal = n || 0))
-      );
-    }
+    // 🔔 Totale non letti per badge (ora funziona perché chatRealtime è avviato quando loggato)
+    this.subs.push(
+      this.chatRealtime.totalUnread$.subscribe(n => {
+        this.unreadTotal = this.canUseChat ? (n || 0) : 0;
+      })
+    );
 
     // === Toast post-update PWA ===
     const justUpdated = sessionStorage.getItem('justUpdated');
@@ -155,8 +167,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
     this.removeActivityListeners();
 
-    // Se un giorno decidi di fare start() globale qui, allora fai stop() qui.
-    // this.chatRealtime.stop();
+    try { this.chatRealtime.stop(); } catch {}
   }
 
   // ===========================
@@ -293,6 +304,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
     // se la chat era stata avviata da qualche parte, qui è ok fermarla:
     try { this.chatRealtime.stop(); } catch {}
+    try { this.chatRealtime.resetUnread(); } catch {}
+    this.unreadTotal = 0;
+    this.canUseChat = false;
 
     this.router.navigate(['/login']);
     this.closeMenu();

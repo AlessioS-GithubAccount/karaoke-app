@@ -65,8 +65,8 @@
       </a>
     </li>
 
-    <!-- 🔊 CHAT: visibile sempre + badge non letti -->
-    <li>
+    <!-- 🔊 CHAT: visibile SOLO per user/admin loggati + badge non letti -->
+    <li *ngIf="canUseChat">
       <a routerLink="/chat" (click)="closeMenu()">
         <i class="fas fa-comments"></i>
         {{ 'navbar.chat' | translate }}
