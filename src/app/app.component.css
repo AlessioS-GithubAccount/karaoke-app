@@ -73,7 +73,24 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+
+  /* ✅ distanza tra burger e saluto (desktop) */
+  gap: 12px;
 }
+
+/* ✅ Saluto nella navbar (desktop/tablet) */
+.nav-greeting {
+  font-size: 13px;       /* <-- grandezza font desktop: modifica qui */
+  font-weight: 500;      /* <-- peso base */
+  white-space: nowrap;
+  line-height: 1;
+  opacity: 0.95;
+}
+
+/* Se vuoi ancora più “staccato” dal burger, usa questo invece del gap:
+.nav-greeting { margin-left: 12px; }
+e togli il gap da .right-controls
+*/
 
 /* SFUMATURA SOLO SUL CONTENUTO PRINCIPALE */
 .main-content.content-blur {
@@ -154,6 +171,56 @@ body, html {
 .nav-links.open li {
   animation: fadeSlideIn 0.4s ease forwards;
   pointer-events: auto;
+}
+
+/* ✅ Header saluto dentro il menu (estetico, centrato) */
+.nav-links li.nav-greeting-item {
+  margin-left: 0;          /* niente indent */
+  margin-top: 0;
+  margin-bottom: 1rem;
+  padding: 0 0 1rem 0;
+  pointer-events: none;    /* non cliccabile */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-greeting-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.nav-greeting-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: var(--accent-color);
+  background: rgba(37, 211, 102, 0.12);
+  box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.18);
+}
+
+.nav-greeting-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.05;
+}
+
+.nav-greeting-hello {
+  font-size: 12px;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.nav-greeting-name {
+  font-size: 15px;
+  font-weight: 900;   /* bello “deciso” in mobile menu */
+  opacity: 0.98;
 }
 
 /* Link stile flessibile per icona + testo + badge */
@@ -337,6 +404,9 @@ body, html {
   .navbar-title-link { font-size: 1rem; }
   .toggle-darkmode { font-size: 0.9rem; padding: 0.5rem 1rem; }
   .language-switch button { font-size: 0.9rem; padding: 0.4rem 1rem; }
+
+  /* ✅ su mobile nascondo saluto in top bar (antiestetico), resta nel menu */
+  .nav-greeting { display: none; }
 
   .nav-links {
     width: 100vw;

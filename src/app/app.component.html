@@ -12,7 +12,7 @@
       </a>
     </div>
 
-    <!-- Burger menu + saluto -->
+    <!-- Burger menu + saluto (desktop/tablet) -->
     <div class="navbar-right right-controls">
       <button
         class="burger"
@@ -25,18 +25,32 @@
         <div class="burger-line bottom"></div>
       </button>
 
-      <!-- ✅ Saluto: a destra del burger -->
+      <!-- ✅ Saluto: visibile SOLO su desktop/tablet (su mobile lo nascondiamo via CSS) -->
       <span
         *ngIf="isLoggedIn && navUsername"
-        style="margin-left:10px; font-size:13px; white-space:nowrap;"
+        class="nav-greeting"
       >
-        {{ helloText }}, {{ navUsername }}
+        {{ helloText }}, <strong>{{ navUsername }}</strong>
       </span>
     </div>
   </div>
 
   <!-- Menù mobile -->
   <ul class="nav-links" [class.open]="menuOpen">
+
+    <!-- ✅ Header saluto: dentro menu (soprattutto per mobile) -->
+    <li *ngIf="isLoggedIn && navUsername" class="nav-greeting-item">
+      <div class="nav-greeting-box">
+        <div class="nav-greeting-avatar">
+          {{ (navUsername || '?').slice(0,1) | uppercase }}
+        </div>
+        <div class="nav-greeting-text">
+          <div class="nav-greeting-hello">{{ helloText }}</div>
+          <div class="nav-greeting-name">{{ navUsername }}</div>
+        </div>
+      </div>
+    </li>
+
     <li>
       <a href="#" (click)="closeMenu(); goToLogin($event)">
         <i class="fas fa-sign-in-alt"></i> {{ 'navbar.login' | translate }}
@@ -105,6 +119,7 @@
         </span>
       </button>
     </li>
+
     <li class="language-switch">
       <button (click)="switchLanguage('en')" [disabled]="currentLang === 'en'">
         EN
