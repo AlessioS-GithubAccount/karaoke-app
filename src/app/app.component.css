@@ -393,14 +393,14 @@ e togli il gap da .right-controls
 /* Desktop: riduco il "vuoto" ai lati aumentando la larghezza del container */
 @media screen and (min-width: 1025px) {
   .navbar-container {
-    max-width: 1600px; /* prova 1400 / 1500 / 1600 */
+    max-width: 1500px; /* prova 1400 / 1500 / 1600 */
   }
 }
 
 /* ✅ DESKTOP: allargo la tendina burger verso sinistra */
 @media screen and (min-width: 1025px) {
   .nav-links {
-    width: 360px; /* prova 320 / 340 / 360 / 400 finché combacia */
+    width: 320px; /* prova 320 / 340 / 360 / 400 finché combacia */
   }
 }
 
