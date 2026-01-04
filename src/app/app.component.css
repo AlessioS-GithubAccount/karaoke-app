@@ -393,7 +393,7 @@ e togli il gap da .right-controls
 /* Desktop: riduco il "vuoto" ai lati aumentando la larghezza del container */
 @media screen and (min-width: 1025px) {
   .navbar-container {
-    max-width: 1500px; /* prova 1400 / 1500 / 1600 */
+    max-width: 1400px; /* prova 1400 / 1500 / 1600 */
   }
 }
 
