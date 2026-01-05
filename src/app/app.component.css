@@ -93,6 +93,18 @@ body, html {
 e togli il gap da .right-controls
 */
 
+.nav-greeting-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.nav-greeting-link:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+
 /* SFUMATURA SOLO SUL CONTENUTO PRINCIPALE */
 .main-content.content-blur {
   filter: blur(5px);

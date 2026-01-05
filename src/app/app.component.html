@@ -7,7 +7,7 @@
 
     <!-- Titolo come link alla home -->
     <div class="navbar-title">
-      <a routerLink="/" class="navbar-title-link">
+      <a routerLink="/" class="navbar-title-link" (click)="closeMenu()">
         {{ 'navbar.title' | translate }}
       </a>
     </div>
@@ -25,22 +25,30 @@
         <div class="burger-line bottom"></div>
       </button>
 
-      <!-- ✅ Saluto: visibile SOLO su desktop/tablet (su mobile lo nascondiamo via CSS) -->
-      <span
+      <!-- ✅ Saluto: ORA link a User Profile (desktop/tablet). Su mobile lo nascondi via CSS -->
+      <a
         *ngIf="isLoggedIn && navUsername"
-        class="nav-greeting"
+        class="nav-greeting nav-greeting-link"
+        routerLink="/user-profile"
+        (click)="closeMenu()"
+        title="Vai al profilo"
       >
-      {{ helloText }}&nbsp;<strong>{{ navUsername }}</strong>
-      </span>
+        {{ helloText }}&nbsp;<strong>{{ navUsername }}</strong>
+      </a>
     </div>
   </div>
 
   <!-- Menù mobile -->
   <ul class="nav-links" [class.open]="menuOpen">
 
-    <!-- ✅ Header saluto: dentro menu (soprattutto per mobile) -->
+    <!-- ✅ Header saluto: ORA link a User Profile (mobile menu) -->
     <li *ngIf="isLoggedIn && navUsername" class="nav-greeting-item">
-      <div class="nav-greeting-box">
+      <a
+        routerLink="/user-profile"
+        (click)="closeMenu()"
+        class="nav-greeting-box nav-greeting-box-link"
+        title="Vai al profilo"
+      >
         <div class="nav-greeting-avatar">
           {{ (navUsername || '?').slice(0,1) | uppercase }}
         </div>
@@ -48,7 +56,7 @@
           <div class="nav-greeting-hello">{{ helloText }}</div>
           <div class="nav-greeting-name">{{ navUsername }}</div>
         </div>
-      </div>
+      </a>
     </li>
 
     <li>
@@ -56,31 +64,37 @@
         <i class="fas fa-sign-in-alt"></i> {{ 'navbar.login' | translate }}
       </a>
     </li>
+
     <li>
       <a routerLink="/" (click)="closeMenu()">
         <i class="fas fa-home"></i> {{ 'navbar.home' | translate }}
       </a>
     </li>
+
     <li>
       <a routerLink="/user-profile" (click)="closeMenu()">
         <i class="fas fa-user-circle"></i> {{ 'navbar.profile' | translate }}
       </a>
     </li>
+
     <li>
       <a routerLink="/prenota-canzoni" (click)="closeMenu()">
         <i class="fas fa-microphone-alt"></i> {{ 'navbar.book_song' | translate }}
       </a>
     </li>
+
     <li>
       <a routerLink="/lista-canzoni" (click)="closeMenu()">
         <i class="fas fa-music"></i> {{ 'navbar.queue' | translate }}
       </a>
     </li>
+
     <li>
       <a routerLink="/archivio-musicale" (click)="closeMenu()">
         <i class="fas fa-archive"></i> {{ 'navbar.archive' | translate }}
       </a>
     </li>
+
     <li>
       <a routerLink="/classifica-top20" (click)="closeMenu()">
         <i class="fas fa-trophy"></i> {{ 'navbar.top_20' | translate }}
