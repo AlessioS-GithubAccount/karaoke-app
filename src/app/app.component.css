@@ -102,6 +102,7 @@ e togli il gap da .right-controls
 .nav-greeting-link:hover {
   opacity: 0.9;
   text-decoration: none;
+  color: var(--accent-color);
 }
 
 
