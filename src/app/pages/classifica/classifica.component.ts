@@ -5,6 +5,15 @@ import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dial
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ToastrService } from 'ngx-toastr';
+import { Subscription, debounceTime, filter } from 'rxjs';
+import { QueueSocketService } from '../../services/queue-socket.service';
+
+type ClassificaRow = {
+  id: number;
+  artista: string;
+  canzone: string;
+  num_richieste: number;
+};
 
 @Component({
   selector: 'app-classifica',
@@ -13,61 +22,62 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class ClassificaComponent implements OnInit, OnDestroy {
   isLoading = false;
-  topCanzoni: any[] = [];
+  topCanzoni: ClassificaRow[] = [];
   topNum = 30;
 
-  // ruoli
   isAdmin = false;
   isUser = false;
   isGuest = false;
-  canUseActions = false;
 
-  // snapshot è read-only
-  showDelete = false;
-
-  // responsive
   isMobileView = false;
 
-  // metadati snapshot
-  lastUpdated: string | null = null;   // created_at
-  snapshotDate: string | null = null;  // snapshot_date
-
-  // auto refresh (solo admin)
-  autoRefreshSec = 60;
-  private refreshTimer: any = null;
+  private subs = new Subscription();
 
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
     private translate: TranslateService,
     private dialog: MatDialog,
-    private toast: ToastrService
+    private toast: ToastrService,
+    private queueSocket: QueueSocketService
   ) {}
 
   ngOnInit(): void {
+     this.queueSocket.connect();
     const ruolo = this.authService.getRole();
     this.isAdmin = ruolo === 'admin';
     this.isUser = ruolo === 'user' || ruolo === 'client';
     this.isGuest = ruolo === 'guest';
-    this.canUseActions = this.isAdmin || this.isUser;
-
-    // Snapshot = read-only
-    this.showDelete = false;
 
     this.checkViewport();
     this.caricaClassifica();
 
-    // auto-refresh SOLO per admin
-    if (this.isAdmin) {
-      this.startAutoRefresh();
-    }
+    // ✅ REALTIME: ricarica classifica quando arriva queue:changed
+    // Nel backend attuale emetti:
+    // - added (nuova prenotazione => aggiorna num_richieste in classifica)
+    // - classifica:deleted (admin elimina una riga)
+    // + altri eventi che comunque possono richiedere refresh UI (non fa male)
+    this.subs.add(
+      this.queueSocket.onQueueChanged$().pipe(
+        filter(evt => {
+          const t = String(evt?.type || '');
+          return (
+            t === 'added' ||
+            t === 'classifica:deleted' ||
+            t === 'updated' ||
+            t === 'deleted' ||
+            t === 'reordered' ||
+            t === 'cantata' ||
+            t === 'reset'
+          );
+        }),
+        debounceTime(150)
+      ).subscribe(() => this.caricaClassifica())
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer);
-      this.refreshTimer = null;
-    }
+    this.subs.unsubscribe();
   }
 
   @HostListener('window:resize', [])
@@ -90,41 +100,28 @@ export class ClassificaComponent implements OnInit, OnDestroy {
     this.caricaClassifica();
   }
 
-  private startAutoRefresh() {
-    if (this.refreshTimer) clearInterval(this.refreshTimer);
-    this.refreshTimer = setInterval(() => this.caricaClassifica(), this.autoRefreshSec * 1000);
-  }
-
-  // Carica lo snapshot del giorno
   caricaClassifica(): void {
     this.isLoading = true;
-    this.karaokeService.getSnapshotTop(this.topNum).subscribe({
+
+    this.karaokeService.getTopN(this.topNum).subscribe({
       next: (data: any[]) => {
-        // già ordinati dal backend (position ASC)
-        this.topCanzoni = (data || []).map((item: any) => ({
-          ...item,
-          artista: this.capitalizeWords(item.artista),
-          canzone: this.capitalizeWords(item.canzone)
+        const rows: ClassificaRow[] = (data || []).map((item: any) => ({
+          id: Number(item.id),
+          artista: this.capitalizeWords(String(item.artista || '')),
+          canzone: this.capitalizeWords(String(item.canzone || '')),
+          num_richieste: Number(item.num_richieste || 0),
         }));
 
-        if (this.topCanzoni.length) {
-          this.snapshotDate = this.topCanzoni[0].snapshot_date ?? null;
-          this.lastUpdated = this.topCanzoni[0].created_at ?? null;
-        } else {
-          this.snapshotDate = null;
-          this.lastUpdated = null;
-        }
-
+        this.topCanzoni = rows;
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Errore nel caricamento dello snapshot:', err);
+        console.error('Errore nel caricamento classifica live:', err);
         this.isLoading = false;
       }
     });
   }
 
-  // Rimane per la vista "live" (qui non usata)
   eliminaCanzone(id: number): void {
     if (!this.isAdmin) return;
 
@@ -135,26 +132,28 @@ export class ClassificaComponent implements OnInit, OnDestroy {
       });
 
       dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          this.karaokeService.deleteFromClassifica(id).subscribe({
-            next: () => {
-              this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
-              this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toast.success(msg));
-            },
-            error: (err) => {
-              console.error('Errore durante eliminazione dalla classifica:', err);
-              this.translate.get('toast.ERROR_LIST').subscribe(msg => this.toast.error(msg));
-            }
-          });
-        }
+        if (!result) return;
+
+        this.karaokeService.deleteFromClassifica(id).subscribe({
+          next: () => {
+            // ottimismo UI (poi arriva anche realtime)
+            this.topCanzoni = this.topCanzoni.filter(c => c.id !== id);
+            this.translate.get('toast.CONFIRM_DELETE').subscribe(msg => this.toast.success(msg));
+          },
+          error: (err) => {
+            console.error('Errore durante eliminazione dalla classifica:', err);
+            this.translate.get('toast.ERROR_LIST').subscribe(msg => this.toast.error(msg));
+          }
+        });
       });
     });
   }
 
   private capitalizeWords(str: string): string {
-    if (!str) return '';
-    return str.replace(/\w\S*/g, (txt) =>
-      txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    const s = (str || '').trim();
+    if (!s) return '';
+    return s.replace(/\w\S*/g, (txt) =>
+      txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
     );
   }
 }

@@ -1,15 +1,13 @@
 <div class="container mt-5 animated-fade-slide-in">
   <h2>{{ 'chart.title' | translate }}</h2>
 
-  <!-- META snapshot + refresh (SOLO ADMIN) -->
-  <div class="meta-bar" *ngIf="!isLoading && isAdmin">
-    <div class="meta-line" *ngIf="snapshotDate">
-      Snapshot del: <strong>{{ snapshotDate | date:'mediumDate' }}</strong>
-    </div>
-    <div class="meta-line" *ngIf="lastUpdated">
-      Ultimo aggiornamento: <strong>{{ lastUpdated | date:'short' }}</strong>
-    </div>
-    <button class="btn btn-sm btn-outline-light ms-auto" (click)="onManualRefresh()">
+  <!-- Barra refresh (tutti) -->
+  <div class="meta-bar" *ngIf="!isLoading">
+    <button
+      class="btn btn-sm btn-outline-light ms-auto"
+      (click)="onManualRefresh()"
+      aria-label="Aggiorna classifica"
+    >
       Aggiorna
     </button>
   </div>
@@ -21,23 +19,30 @@
   </div>
 
   <!-- Tabella desktop -->
-  <table class="table my-zebra-table d-none d-md-table" *ngIf="!isLoading && topCanzoni.length > 0; else noData">
+  <table
+    class="table my-zebra-table d-none d-md-table"
+    *ngIf="!isLoading && topCanzoni.length > 0; else noData"
+  >
     <thead>
       <tr>
         <th class="border-radius-left">{{ 'chart.position' | translate }}</th>
         <th>{{ 'chart.song' | translate }}</th>
         <th>{{ 'chart.artist' | translate }}</th>
         <th>{{ 'chart.requests' | translate }}</th>
-        <th class="border-radius-right" *ngIf="isAdmin && showDelete">{{ 'chart.wishlist' | translate }}</th>
+
+        <!-- colonna azioni SOLO admin -->
+        <th class="border-radius-right" *ngIf="isAdmin">{{ 'chart.delete' | translate }}</th>
       </tr>
     </thead>
+
     <tbody>
       <tr *ngFor="let c of topCanzoni; let i = index">
-        <td>{{ c.position || (i + 1) }}</td>
+        <td>{{ i + 1 }}</td>
         <td>{{ c.canzone }}</td>
         <td>{{ c.artista }}</td>
-        <td>{{ c.num_richieste }}</td>
-        <td *ngIf="isAdmin && showDelete" class="text-center align-middle">
+        <td>{{ c.num_richieste ?? 0 }}</td>
+
+        <td *ngIf="isAdmin" class="text-center align-middle">
           <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(c.id)">
             {{ 'chart.delete' | translate }}
           </button>
@@ -51,15 +56,18 @@
     <div class="card mb-3" *ngFor="let c of topCanzoni; let i = index">
       <div class="card-body text-center">
         <h5 class="card-title">
-          {{ c.position || (i + 1) }}. {{ c.canzone }}
+          {{ i + 1 }}. {{ c.canzone }}
         </h5>
+
         <p class="card-text mb-1">
           <strong>{{ 'chart.artist' | translate }}:</strong> {{ c.artista }}
         </p>
+
         <p class="card-text mb-1">
-          <strong>{{ 'chart.requests' | translate }}:</strong> {{ c.num_richieste }}
+          <strong>{{ 'chart.requests' | translate }}:</strong> {{ c.num_richieste ?? 0 }}
         </p>
-        <div *ngIf="isAdmin && showDelete" class="text-end mt-2 text-center">
+
+        <div *ngIf="isAdmin" class="mt-2 text-center">
           <button class="btn btn-danger btn-sm" (click)="eliminaCanzone(c.id)">
             {{ 'chart.delete' | translate }}
           </button>

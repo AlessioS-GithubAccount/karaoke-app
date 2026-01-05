@@ -43,7 +43,7 @@ function isAllowedOrigin(origin) {
 const corsOptions = {
   origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-snapshot-key'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   maxAge: 600,
 };
 
@@ -65,7 +65,6 @@ const SECRET_KEY = process.env.SECRET_KEY || 'dev_secret_change_me';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'dev_refresh_change_me';
 
 const PIN_ADMIN = '0000';  // credenziale di cortesia per testing (register admin mode)
-const SNAPSHOT_KEY = process.env.SNAPSHOT_KEY;
 
 // Durate token
 const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '30d';   // user/admin
@@ -760,174 +759,6 @@ app.post('/api/canzoni/riordina', verifyToken, authorizeRoles('admin'), async (r
 
 
 
-
-
-// classifica top
-app.get('/api/classifica/top', async (req, res) => {
-  const n = parseInt(req.query.n) || 30;
-  try {
-    const [rows] = await db.query(
-      `SELECT id, artista, canzone, num_richieste 
-       FROM classifica 
-       ORDER BY num_richieste DESC 
-       LIMIT ?`,
-      [n]
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: 'Errore nel recupero della classifica' });
-  }
-});
-
-app.get('/api/healthz', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT 1 AS ok');
-    res.json({ ok: rows?.[0]?.ok === 1, snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY) });
-  } catch (e) {
-    res.status(500).json({
-      ok: false,
-      snapshotConfigured: Boolean(process.env.SNAPSHOT_KEY),
-      code: e.code || null,
-      detail: e.sqlMessage || e.message || null
-    });
-  }
-});
-
-app.get('/api/debug/classifica', async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      `SELECT artista, canzone, num_richieste
-       FROM classifica
-       ORDER BY num_richieste DESC
-       LIMIT 5`
-    );
-    res.json({ count: rows.length, sample: rows });
-  } catch (e) {
-    res.status(500).json({
-      message: 'Errore query classifica',
-      code: e.code || null,
-      detail: e.sqlMessage || e.message || null
-    });
-  }
-});
-
-// snapshot run
-app.post('/api/classifica/snapshot/run', async (req, res) => {
-  if (!SNAPSHOT_KEY || req.header('x-snapshot-key') !== SNAPSHOT_KEY) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-
-  const n = Number.parseInt(req.query.n, 10) || 100;
-  const isDry = String(req.query.dry) === '1';
-  const snapshotDate = new Date().toISOString().slice(0, 10);
-
-  try {
-    const [top] = await db.query(
-      `SELECT artista, canzone, num_richieste
-       FROM classifica
-       ORDER BY num_richieste DESC
-       LIMIT ?`,
-      [n]
-    );
-
-    if (isDry) {
-      return res.json({ date: snapshotDate, items: top.length, sample: top.slice(0, 5) });
-    }
-
-    let conn;
-    try {
-      conn = await db.getConnection();
-      await conn.beginTransaction();
-
-      await conn.query('DELETE FROM classifica_snapshot WHERE snapshot_date = ?', [snapshotDate]);
-
-      if (top.length > 0) {
-        const values = top.map((row, idx) => [
-          snapshotDate, idx + 1, row.artista, row.canzone, row.num_richieste ?? 0
-        ]);
-
-        const placeholders = values.map(() => '(?,?,?,?,?)').join(',');
-        const flat = values.flat();
-
-        try {
-          await conn.query(
-            `INSERT INTO classifica_snapshot (snapshot_date, \`position\`, artista, canzone, num_richieste)
-             VALUES ${placeholders}`,
-            flat
-          );
-        } catch (bulkErr) {
-          const singleSql = `INSERT INTO classifica_snapshot
-            (snapshot_date, \`position\`, artista, canzone, num_richieste)
-            VALUES (?,?,?,?,?)`;
-          for (const row of values) await conn.query(singleSql, row);
-        }
-      }
-
-      await conn.commit();
-      return res.json({ message: 'Snapshot generato', date: snapshotDate, items: top.length });
-    } catch (txErr) {
-      if (conn) await conn.rollback();
-      return res.status(500).json({
-        message: 'Errore creazione snapshot',
-        code: txErr.code || null,
-        detail: txErr.sqlMessage || txErr.message || null
-      });
-    } finally {
-      if (conn) conn.release();
-    }
-  } catch (err) {
-    return res.status(500).json({
-      message: 'Errore creazione snapshot',
-      code: err.code || null,
-      detail: err.sqlMessage || err.message || null
-    });
-  }
-});
-
-// snapshot top
-app.get('/api/classifica/snapshot/top', async (req, res) => {
-  try {
-    const n = Number.parseInt(req.query.n, 10) || 30;
-
-    const [[last]] = await db.query('SELECT MAX(snapshot_date) AS latest FROM classifica_snapshot');
-    if (!last || !last.latest) return res.json([]);
-
-    const [rows] = await db.query(
-      `SELECT \`position\`, artista, canzone, num_richieste, snapshot_date, created_at
-       FROM classifica_snapshot
-       WHERE snapshot_date = ?
-       ORDER BY \`position\` ASC
-       LIMIT ?`,
-      [last.latest, n]
-    );
-
-    res.json(rows);
-  } catch (err) {
-    console.error('Errore GET snapshot top:', err.message || err);
-    res.status(500).json({ message: 'Errore nel recupero snapshot' });
-  }
-});
-
-// delete classifica (admin)
-app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
-  if (req.user.ruolo !== 'admin') {
-    return res.status(403).json({ message: 'Accesso negato: solo admin può eliminare' });
-  }
-
-  const { id } = req.params;
-
-  try {
-    const [result] = await db.query('DELETE FROM classifica WHERE id = ?', [id]);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Canzone non trovata in classifica' });
-    }
-    res.json({ message: 'Canzone eliminata dalla classifica con successo' });
-  } catch (err) {
-    console.error('Errore durante DELETE classifica:', err);
-    res.status(500).json({ message: 'Errore interno server' });
-  }
-});
-
 // prenota canzone (usa token se presente) + realtime
 app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
   let { nome, artista, canzone, tonalita, note, user_id, guest_id, accetta_partecipanti } = req.body;
@@ -1408,10 +1239,12 @@ app.delete('/api/esibizioni/:id', async (req, res) => {
     console.error("Errore creazione colonne:", e);
   }
 })();
+
+
 // ===========================
 //  SOCKET.IO
-//  - Queue canzoni: PUBBLICA (namespace /queue) ✅
-//  - Chat + presenza: SOLO utenti loggati (default namespace /) ✅
+//  - Queue canzoni: PUBBLICA (namespace /queue)
+//  - Chat + presenza: SOLO utenti loggati (default namespace /)
 // ===========================
 const server = http.createServer(app);
 
@@ -1419,7 +1252,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
-    methods: ['GET', 'POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: false
   },
@@ -1430,6 +1263,7 @@ const io = new Server(server, {
 // ===========================
 //  QUEUE namespace PUBBLICO
 // ===========================
+// ✅ QUI: assegno alla variabile già dichiarata sopra, NON ridichiaro
 ioQueue = io.of('/queue');
 
 ioQueue.on('connection', (socket) => {
@@ -1467,7 +1301,6 @@ ioChat.use((socket, next) => {
     if (!token) return next(new Error('Unauthorized'));
 
     const user = jwt.verify(token, SECRET_KEY);
-
     if (user?.ruolo === 'guest') return next(new Error('Unauthorized'));
 
     socket.data.user = {
@@ -1476,12 +1309,9 @@ ioChat.use((socket, next) => {
       ruolo: String(user.ruolo || '')
     };
 
-    if (!Number.isFinite(socket.data.user.id)) {
-      return next(new Error('Unauthorized'));
-    }
-
+    if (!Number.isFinite(socket.data.user.id)) return next(new Error('Unauthorized'));
     return next();
-  } catch (e) {
+  } catch {
     return next(new Error('Unauthorized'));
   }
 });
@@ -1493,11 +1323,7 @@ function dmKey(a, b) {
 
 ioChat.on('connection', (socket) => {
   const u = socket.data.user;
-
-  if (!u?.id) {
-    socket.disconnect(true);
-    return;
-  }
+  if (!u?.id) return socket.disconnect(true);
 
   usersBySocket.set(socket.id, u);
 
@@ -1580,11 +1406,7 @@ ioChat.on('connection', (socket) => {
     historyDm.set(key, arr);
 
     const toSockets = socketsByUser.get(pid);
-    if (toSockets) {
-      for (const sid of Array.from(toSockets)) {
-        ioChat.to(sid).emit('chat:dm:message', msg);
-      }
-    }
+    if (toSockets) for (const sid of Array.from(toSockets)) ioChat.to(sid).emit('chat:dm:message', msg);
 
     const meSockets = socketsByUser.get(u.id);
     if (meSockets) {
@@ -1627,6 +1449,87 @@ ioChat.on('connection', (socket) => {
     }
   });
 });
+
+
+// =======================================
+// CLASSIFICA (LIVE da tabella `classifica`) + REALTIME
+// - Nessuno snapshot
+// - Realtime: emette queue:changed su /queue (i client poi faranno GET)
+// =======================================
+
+// =======================================
+// CLASSIFICA (LIVE da tabella `classifica`) + REALTIME
+// - no snapshot
+// - realtime: emette queue:changed su /queue
+// =======================================
+
+// GET TOP N (live)
+app.get('/api/classifica/top', async (req, res) => {
+  const n = Number.parseInt(req.query.n, 10) || 30;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT id, artista, canzone, num_richieste
+       FROM classifica
+       ORDER BY num_richieste DESC
+       LIMIT ?`,
+      [n]
+    );
+
+    res.set('Cache-Control', 'no-store');
+    res.json(rows);
+  } catch (err) {
+    console.error('Errore GET /api/classifica/top:', err?.message || err);
+    res.status(500).json({ message: 'Errore nel recupero della classifica' });
+  }
+});
+
+// (opzionale) GET FULL (live)
+app.get('/api/classifica', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, artista, canzone, num_richieste
+       FROM classifica
+       ORDER BY num_richieste DESC`
+    );
+
+    res.set('Cache-Control', 'no-store');
+    res.json(rows);
+  } catch (err) {
+    console.error('Errore GET /api/classifica:', err?.message || err);
+    res.status(500).json({ message: 'Errore nel recupero della classifica' });
+  }
+});
+
+// DELETE (admin) + realtime
+app.delete('/api/classifica/:id', verifyToken, async (req, res) => {
+  if (req.user?.ruolo !== 'admin') {
+    return res.status(403).json({ message: 'Accesso negato: solo admin può eliminare' });
+  }
+
+  const id = Number.parseInt(req.params.id, 10);
+  if (!Number.isFinite(id)) {
+    return res.status(400).json({ message: 'ID non valido' });
+  }
+
+  try {
+    const [result] = await db.query('DELETE FROM classifica WHERE id = ?', [id]);
+
+    if (!result || result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata in classifica' });
+    }
+
+    // ✅ QUI STANDARDIZZI IL TYPE
+    emitQueueChanged('classifica:deleted', { id });
+
+    res.json({ message: 'Canzone eliminata dalla classifica con successo' });
+  } catch (err) {
+    console.error('Errore DELETE /api/classifica/:id:', err?.message || err);
+    res.status(500).json({ message: 'Errore interno server' });
+  }
+});
+
+
 
 server.listen(PORT, () => {
   console.log(`HTTP+WS attivi su http://localhost:${PORT}`);

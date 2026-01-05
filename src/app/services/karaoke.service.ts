@@ -16,9 +16,6 @@ export class KaraokeService {
   private classificaUrl = `${this.baseUrl}/classifica`;
   private votiUrl = `${this.baseUrl}/voti`;
 
-  // Snapshot endpoints
-  private snapshotTopUrl = `${this.baseUrl}/classifica/snapshot/top`;
-
   private nomeUtente: string = '';
 
   constructor(private http: HttpClient) {}
@@ -26,16 +23,15 @@ export class KaraokeService {
   // =========================
   // Helpers token/headers
   // =========================
-private getUserToken(): string | null {
-  const raw = (localStorage.getItem('token') || '').trim();
-  const t = raw.replace(/^Bearer\s+/i, '').trim();
-  return t || null;
-}
-
+  private getUserToken(): string | null {
+    const raw = (localStorage.getItem('token') || '').trim();
+    const t = raw.replace(/^Bearer\s+/i, '').trim();
+    return t || null;
+  }
 
   private getGuestToken(): string | null {
-    // ✅ FIX: chiave corretta usata in tutto il resto del progetto
-    return localStorage.getItem('guest_token');
+    const t = (localStorage.getItem('guest_token') || '').trim();
+    return t || null;
   }
 
   private authHeaders(token: string | null): HttpHeaders {
@@ -64,41 +60,21 @@ private getUserToken(): string | null {
   // API
   // =========================
   getCanzoni(): Observable<any[]> {
-    // ✅ FIX: cache-bust per garantire lista aggiornata dopo queue:changed
     const ts = Date.now();
     return this.http.get<any[]>(`${this.apiUrl}?_=${ts}`);
   }
 
-  /**
-   * POST /canzoni
-   * - se sei loggato: manda token user
-   * - se sei guest: manda guest_token
-   * - se non hai token: funziona SOLO se passi guest_id/user_id nel body (compat vecchia)
-   */
   addCanzone(canzone: any): Observable<any> {
     const headers = this.bestEffortAuthHeaders();
     return this.http.post(this.apiUrl, canzone, { headers });
   }
 
   resetLista(password: string): Observable<any> {
-    // backend usa password nel body (no token richiesto)
     return this.http.post(this.resetUrl, { password });
   }
 
-  // Aggiunge un partecipante (contatore semplice)
   aggiungiPartecipante(idCanzone: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/${idCanzone}/partecipa`, {});
-  }
-
-  // Classifica "live" (se hai un endpoint GET /classifica)
-  getClassifica(): Observable<any[]> {
-    return this.http.get<any[]>(this.classificaUrl);
-  }
-
-  // ✅ Classifica "snapshot del giorno"
-  getSnapshotTop(n: number): Observable<any[]> {
-    const ts = Date.now();
-    return this.http.get<any[]>(`${this.snapshotTopUrl}?n=${n}&_=${ts}`);
   }
 
   aggiornaCantata(idCanzone: number, cantata: boolean): Observable<any> {
@@ -110,40 +86,52 @@ private getUserToken(): string | null {
   }
 
   getArchivioMusicale(): Observable<any[]> {
-    return this.http.get<any[]>(this.archivioUrl);
+    const ts = Date.now();
+    return this.http.get<any[]>(`${this.archivioUrl}?_=${ts}`);
   }
 
   getArchivioMusicalePaginated(page: number, limit: number): Observable<any> {
-    return this.http.get<any>(`${this.archivioUrl}?page=${page}&limit=${limit}`);
+    const ts = Date.now();
+    return this.http.get<any>(`${this.archivioUrl}?page=${page}&limit=${limit}&_=${ts}`);
   }
 
   getArchivioMusicaleSearch(query: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.archivioUrl}/search?q=${encodeURIComponent(query)}`);
+    const ts = Date.now();
+    return this.http.get<any[]>(`${this.archivioUrl}/search?q=${encodeURIComponent(query)}&_=${ts}`);
   }
 
   deleteCanzone(id: number): Observable<any> {
-    // backend: verifyToken + owner/admin
     const headers = this.userAuthHeaders();
     return this.http.delete(`${this.apiUrl}/${id}`, { headers });
   }
 
   deleteFromArchivio(id: number): Observable<any> {
-    // backend: verifyToken + admin
     const headers = this.userAuthHeaders();
     return this.http.delete(`${this.archivioUrl}/${id}`, { headers });
   }
 
+  // =========================
+  // CLASSIFICA (LIVE: tabella `classifica`)
+  // =========================
+  getClassifica(): Observable<any[]> {
+    const ts = Date.now();
+    return this.http.get<any[]>(`${this.classificaUrl}?_=${ts}`);
+  }
+
+  getTopN(n: number): Observable<any[]> {
+    const ts = Date.now();
+    return this.http.get<any[]>(`${this.classificaUrl}/top?n=${n}&_=${ts}`);
+  }
+
   deleteFromClassifica(id: number): Observable<any> {
-    // backend: verifyToken + admin
     const headers = this.userAuthHeaders();
-    return this.http.delete(`${this.baseUrl}/classifica/${id}`, { headers });
+    return this.http.delete(`${this.classificaUrl}/${id}`, { headers });
   }
 
   aggiornaCanzone(
     id: number,
     dati: { nome: string; artista: string; canzone: string; tonalita?: string; note?: string; accetta_partecipanti?: boolean }
   ): Observable<any> {
-    // backend: verifyToken + owner/admin
     const headers = this.userAuthHeaders();
     return this.http.put(`${this.apiUrl}/${id}`, dati, { headers });
   }
@@ -157,24 +145,19 @@ private getUserToken(): string | null {
     return this.nomeUtente;
   }
 
-  // Voti emoji (crea/aggiorna) - nel tuo backend è pubblico
-  votaEmoji(canzoneId: number, voterId: number, emoji: string): Observable<any> {
+  // Voti emoji (pubblico nel backend)
+  votaEmoji(canzoneId: number, voterId: string | number, emoji: string): Observable<any> {
     const body = { canzone_id: canzoneId, voter_id: voterId, emoji };
     return this.http.post(this.votiUrl, body);
   }
 
-  // Classifica "live" top N
-  getTopN(n: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/classifica/top?n=${n}`);
-  }
-
-  // Riordino lista (admin) ✅ ora con token
+  // Riordino lista (admin)
   riordinaCanzoni(listaOrdinata: { id: number; posizione: number }[]): Observable<any> {
     const headers = this.userAuthHeaders();
     return this.http.post(`${this.baseUrl}/canzoni/riordina`, listaOrdinata, { headers });
   }
 
-  // Aggiunta partecipante con nome (nel backend richiede user token, non guest)
+  // Aggiunta partecipante con nome (backend richiede user token)
   aggiungiPartecipanteCompleto(idCanzone: number, nomePartecipante: string): Observable<any> {
     const headers = this.userAuthHeaders();
     return this.http.post(
@@ -184,7 +167,7 @@ private getUserToken(): string | null {
     );
   }
 
-  // Wishlist (backend: verifyToken) ✅ FIX header
+  // Wishlist (se già la usi così nel progetto la lascio intatta)
   aggiungiAWishlist(data: { user_id: number; artista: string; canzone: string }): Observable<any> {
     const headers = this.userAuthHeaders();
     return this.http.post(`${this.baseUrl}/wishlist`, data, { headers });
