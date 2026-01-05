@@ -817,6 +817,20 @@ app.post('/api/canzoni', optionalVerifyToken, async (req, res) => {
   artista = normalizeSongName(String(artista));
   canzone = normalizeSongName(String(canzone));
 
+    // ✅ BLOCCO DOPPIONI: stessa canzone già in lista (tabella canzoni)
+  const [dup] = await db.query(
+    `SELECT id FROM canzoni WHERE artista = ? AND canzone = ? LIMIT 1`,
+    [artista, canzone]
+  );
+
+  if (dup.length > 0) {
+    return res.status(409).json({
+      code: 'DUPLICATE_IN_QUEUE',
+      message: 'Questa canzone è già presente in lista. Scegline un’altra.',
+      existingId: dup[0].id
+    });
+  }
+
   try {
     const [maxPosResult] = await db.query('SELECT MAX(posizione) AS maxPos FROM canzoni');
     const maxPos = maxPosResult?.[0]?.maxPos || 0;

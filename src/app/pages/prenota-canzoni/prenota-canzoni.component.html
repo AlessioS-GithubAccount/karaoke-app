@@ -60,6 +60,11 @@
                   <datalist id="canzoni-list">
                     <option *ngFor="let canzone of canzoniFiltrate" [value]="canzone"></option>
                   </datalist>
+
+                  <!-- ✅ ALERT DOPPIONE -->
+                  <div *ngIf="isDuplicate" class="alert alert-warning mt-2 mb-0">
+                    {{ duplicateMsg }}
+                  </div>
                 </div>
 
                 <div class="mb-3">
@@ -104,7 +109,9 @@
                     id="accetta_partecipanti"
                     name="accetta_partecipanti"
                     [(ngModel)]="formData.accetta_partecipanti">
-                  <label class="form-check-label" for="accetta_partecipanti">{{ 'booking.accept_participants' | translate }}</label>
+                  <label class="form-check-label" for="accetta_partecipanti">
+                    {{ 'booking.accept_participants' | translate }}
+                  </label>
                 </div>
 
                 <div class="mb-3">
@@ -128,7 +135,7 @@
               <button
                 type="submit"
                 class="btn"
-                [disabled]="!karaokeForm.valid || microfoniInvalid">
+                [disabled]="!karaokeForm.valid || microfoniInvalid || isDuplicate">
                 {{ 'booking.save_button' | translate }}
               </button>
             </div>
@@ -138,16 +145,16 @@
       </ng-container>
 
       <ng-template #accessPromptTemplate class="text-center">
-          <h3 class="text-center">{{ 'booking.access_required' | translate }}</h3>
-          <p class="text-center">
-            {{ 'booking.access_text' | translate }}
-            <strong>{{ 'booking.logged_in' | translate }}</strong>
-            {{ 'booking.or' | translate }}
-            <strong>{{ 'booking.guest' | translate }}</strong>.
-          </p>
-          <div class="d-flex justify-content-center gap-3 mt-3">
-            <button class="btn btn1" (click)="goToLogin()">{{ 'booking.go_to_login' | translate }}</button>
-            <button class="btn btn1" (click)="enterAsGuest()">{{ 'booking.enter_guest' | translate }}</button>
+        <h3 class="text-center">{{ 'booking.access_required' | translate }}</h3>
+        <p class="text-center">
+          {{ 'booking.access_text' | translate }}
+          <strong>{{ 'booking.logged_in' | translate }}</strong>
+          {{ 'booking.or' | translate }}
+          <strong>{{ 'booking.guest' | translate }}</strong>.
+        </p>
+        <div class="d-flex justify-content-center gap-3 mt-3">
+          <button class="btn btn1" (click)="goToLogin()">{{ 'booking.go_to_login' | translate }}</button>
+          <button class="btn btn1" (click)="enterAsGuest()">{{ 'booking.enter_guest' | translate }}</button>
         </div>
       </ng-template>
 
