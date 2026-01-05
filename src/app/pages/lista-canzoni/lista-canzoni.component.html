@@ -57,6 +57,17 @@
                   [ngClass]="canzoni[i].cantata ? 'btn-cantata' : 'btn-dacantare'">
             {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
           </button>
+
+          <!-- ✅ Priority lock (solo admin) - sotto al bottone cantata -->
+          <div
+            *ngIf="isAdmin"
+            class="priority-toggle"
+            title="Priority"
+            (click)="togglePriorityLock(i, $event)"
+          >
+            <span class="priority-dot" [class.on]="!!canzoni[i].priority_lock"></span>
+            <span class="priority-label">Priority</span>
+          </div>
         </td>
         <td>{{ i + 1 }}</td>
 
@@ -194,6 +205,12 @@
                 [ngClass]="canzoni[i].cantata ? 'btn-cantata' : 'btn-dacantare'">
           {{ canzoni[i].cantata ? ('song_list.status_values.sung' | translate) : ('song_list.status_values.to_sing' | translate) }}
         </button>
+
+        <!-- ✅ Priority toggle (solo admin) sotto al pulsante cantata -->
+        <div *ngIf="isAdmin" class="priority-toggle" (click)="togglePriorityLock(i, $event)">
+          <span class="priority-dot" [class.on]="canzoni[i].priority_lock"></span>
+          <span class="priority-label">Priority</span>
+        </div>
       </div>
 
       <div><strong>#:</strong> {{ i + 1 }}</div>

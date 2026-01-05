@@ -996,7 +996,39 @@ app.delete('/api/wishlist/:id', verifyToken, async (req, res) => {
   }
 });
 
-app.put('/api/canzoni/:id/cantata', async (req, res) => {
+
+// PRIORITY LOCK (solo admin puo flaggare canzone in priorità per escluderla da algoritmo) + realtime
+app.put('/api/canzoni/:id/priority-lock', verifyToken, authorizeRoles('admin'), async (req, res) => {
+  const id = Number(req.params.id);
+  const locked = !!req.body?.locked;
+
+  if (!Number.isFinite(id)) {
+    return res.status(400).json({ message: 'ID non valido' });
+  }
+
+  try {
+    const [result] = await db.query(
+      'UPDATE canzoni SET priority_lock = ? WHERE id = ?',
+      [locked ? 1 : 0, id]
+    );
+
+    if (!result || result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Canzone non trovata' });
+    }
+
+    // realtime: lista canzoni si ricarica
+    emitQueueChanged('priority:lock', { id, priority_lock: locked ? 1 : 0 });
+
+    return res.json({ message: 'Priority aggiornata', id, priority_lock: locked ? 1 : 0 });
+  } catch (err) {
+    console.error('Errore PUT /api/canzoni/:id/priority-lock:', err?.sqlMessage || err?.message || err);
+    return res.status(500).json({ message: 'Errore interno del server' });
+  }
+});
+
+
+//modifica stato cantata/da cantare
+app.put('/api/canzoni/:id/cantata' , verifyToken, authorizeRoles('admin'), async (req, res) => {
   const { id } = req.params;
   const { cantata } = req.body;
 
@@ -1014,6 +1046,7 @@ app.put('/api/canzoni/:id/cantata', async (req, res) => {
 });
 
 
+//modifica numero partecipanti
 app.put('/api/canzoni/:id/partecipa', async (req, res) => {
   const { id } = req.params;
   try {
@@ -1046,26 +1079,44 @@ app.get('/api/canzoni/:id/nome-partecipante', async (req, res) => {
 });
 
 
-//resetta lista-canzoni
+// resetta lista-canzoni (svuota tabella in DB TRUNCATE) + realtime 
 app.post('/api/reset-canzoni', async (req, res) => {
-  const { password } = req.body;
+  const { password, mode } = req.body;
 
   if (password !== 'karaokeadmin') {
     return res.status(401).json({ message: 'Password errata' });
   }
 
+  // mode:
+  // - "soft": vecchio comportamento (azzera flag)
+  // - default: svuota tabella
+  const soft = String(mode || '').toLowerCase() === 'soft';
+
   try {
-    await db.query('UPDATE canzoni SET cantata = 0, partecipanti_add = 0');
+    if (soft) {
+      await db.query('UPDATE canzoni SET cantata = 0, partecipanti_add = 0');
+      emitQueueChanged('reset', { mode: 'soft' });
+      return res.json({ message: 'Lista resettata (soft)' });
+    }
 
-    // ✅ realtime
-    emitQueueChanged('reset', {});
+    // HARD RESET: svuota davvero
+    try {
+      await db.query('TRUNCATE TABLE canzoni');
+    } catch (e) {
+      // fallback se TRUNCATE non è consentito (es. FK)
+      await db.query('DELETE FROM canzoni');
+      await db.query('ALTER TABLE canzoni AUTO_INCREMENT = 1');
+    }
 
-    return res.json({ message: 'Lista resettata' });
+    emitQueueChanged('reset', { mode: 'truncate' });
+    return res.json({ message: 'Lista svuotata (hard)' });
+
   } catch (err) {
     console.error('Errore POST /api/reset-canzoni:', err?.sqlMessage || err?.message || err);
     return res.status(500).json({ message: 'Errore durante il reset' });
   }
 });
+
 
 
 app.get('/api/top20', async (req, res) => {

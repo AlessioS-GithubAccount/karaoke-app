@@ -31,9 +31,16 @@ interface Canzone {
   user_id?: number | null;
   guest_id?: string | null;
   numero_richieste?: number;
+  posizione?: number;
+
+  /** Admin-only: se true la canzone resta "bloccata" (fuori dall'algoritmo) */
+  priority_lock?: boolean;
+
   votoEmoji?: string;
   inWishlist?: boolean;
 }
+
+type SingerKey = string;
 
 @Component({
   selector: 'app-lista-canzoni',
@@ -44,6 +51,8 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('rigaCanzone') righeCanzoni!: QueryList<ElementRef>;
 
   canzoni: Canzone[] = [];
+  private allCanzoni: Canzone[] = [];
+
   isAdmin = false;
   userId: number | null = null;
   guestId: string | null = null;
@@ -82,6 +91,18 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly onResize = () => this.checkViewport();
   private readonly DEBUG = true;
 
+  // =========================
+  // AUTO-BALANCE (ALGORITMO)
+  // =========================
+  private readonly AUTO_BALANCE_ENABLED = true;
+  private readonly MAX_GAP_SONGS = 8;             // massimo gap (slot) tra due canzoni dello stesso cantante
+  private readonly AUTO_BALANCE_DEBOUNCE_MS = 250;
+
+  private autoBalanceTimer: any = null;
+  private autoBalanceInFlight = false;
+  private lastSentOrderSig = '';
+  private lastManualReorderAt = 0;                // cooldown dopo drag&drop manuale
+
   constructor(
     private karaokeService: KaraokeService,
     private authService: AuthService,
@@ -106,6 +127,12 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     this.queueSocket.connect();
     this.queueSub = this.queueSocket.onQueueChanged$().subscribe((evt: QueueChangedEvent) => {
       if (this.DEBUG) console.log('[lista-canzoni] queue:changed =>', evt);
+
+      // opzionale: filtra eventi inutili
+      const t = String(evt?.type || '');
+      // se vuoi, limita così:
+      // if (!['added','deleted','cantata','updated','reset','priority:lock','reordered','manual'].includes(t)) return;
+
       this.scheduleReloadSongs();
     });
 
@@ -141,6 +168,11 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       clearInterval(this.scrollIntervalId);
       this.scrollIntervalId = null;
     }
+
+    if (this.autoBalanceTimer) {
+      clearTimeout(this.autoBalanceTimer);
+      this.autoBalanceTimer = null;
+    }
   }
 
   private scheduleReloadSongs(): void {
@@ -167,7 +199,11 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
   onDrop(event: CdkDragDrop<Canzone[]>): void {
     if (!this.isAdmin) return;
 
+    this.lastManualReorderAt = Date.now();
+
     moveItemInArray(this.canzoni, event.previousIndex, event.currentIndex);
+    // mantieni sync con sorgente
+    this.allCanzoni = [...this.canzoni];
     this.salvaOrdine();
 
     setTimeout(() => {
@@ -231,12 +267,21 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.karaokeService.getCanzoni().subscribe({
       next: (data: Canzone[]) => {
-        this.canzoni = data;
+        const normalized = (data || []).map((c: any) => ({
+          ...c,
+          priority_lock: !!c.priority_lock
+        }));
+
+        this.allCanzoni = normalized;
+        this.applyFilteringAndSorting();
 
         this.isLoading = false;
         this.fetchInFlight = false;
 
         if (this.scrollToId != null) this.scheduleScrollTo(this.scrollToId);
+
+        // ✅ AUTO-BALANCE (solo admin)
+        this.scheduleAutoBalance();
 
         if (this.pendingReload) {
           this.pendingReload = false;
@@ -252,6 +297,246 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Mantiene un ordinamento stabile (posizione -> id).
+   */
+  private applyFilteringAndSorting(): void {
+    const list = [...(this.allCanzoni || [])];
+    list.sort((a, b) => {
+      const pa = (a.posizione ?? a.id ?? 0);
+      const pb = (b.posizione ?? b.id ?? 0);
+      return pa - pb;
+    });
+    this.canzoni = list;
+  }
+
+  // =========================
+  // AUTO-BALANCE (ALGORITMO)
+  // =========================
+
+  private scheduleAutoBalance(): void {
+    if (!this.AUTO_BALANCE_ENABLED) return;
+    if (!this.isAdmin) return; // solo admin può salvare l'ordine in DB
+
+    // cooldown: se admin ha appena fatto drag&drop manuale, non sovrascrivere subito
+    if (Date.now() - this.lastManualReorderAt < 3000) return;
+
+    if (this.autoBalanceTimer) clearTimeout(this.autoBalanceTimer);
+
+    this.autoBalanceTimer = setTimeout(() => {
+      this.autoBalanceTimer = null;
+      this.autoBalanceNow();
+    }, this.AUTO_BALANCE_DEBOUNCE_MS);
+  }
+
+  private autoBalanceNow(): void {
+    if (!this.AUTO_BALANCE_ENABLED) return;
+    if (!this.isAdmin) return;
+    if (this.autoBalanceInFlight) return;
+
+    const current = [...this.canzoni];
+    if (current.length < 3) return;
+
+    const balanced = this.buildBalancedOrder(current);
+
+    const currSig = this.orderSignature(current);
+    const newSig = this.orderSignature(balanced);
+
+    if (newSig === currSig) return;
+    if (newSig === this.lastSentOrderSig) return;
+
+    // aggiorna UI subito (admin)
+    this.canzoni = balanced.map((c, idx) => ({ ...c, posizione: idx + 1 }));
+    this.allCanzoni = [...this.canzoni];
+
+    const nuovaLista = this.canzoni.map((c, index) => ({ id: c.id, posizione: index + 1 }));
+
+    this.autoBalanceInFlight = true;
+
+    this.karaokeService.riordinaCanzoni(nuovaLista).subscribe({
+      next: () => {
+        this.lastSentOrderSig = newSig;
+        // niente toast (altrimenti spam)
+      },
+      error: (err) => {
+        console.error('[auto-balance] errore riordina:', err);
+        // fallback: al prossimo reload ritenterà
+      },
+      complete: () => {
+        this.autoBalanceInFlight = false;
+      }
+    });
+  }
+
+  private orderSignature(list: Canzone[]): string {
+    // firma semplice e veloce dell’ordine corrente
+    return (list || []).map(s => s.id).join(',');
+    // se vuoi più robusto: includi anche priority_lock/cantata
+  }
+
+  private singerKeyOf(s: Canzone): SingerKey {
+    if (s.user_id != null) return `u:${s.user_id}`;
+    if (s.guest_id) return `g:${s.guest_id}`;
+    return `a:${s.id}`; // fallback (non dovrebbe servire)
+  }
+
+  /**
+   * Crea un nuovo ordine:
+   * - mantiene fisse le canzoni con priority_lock=1
+   * - mantiene fisse le canzoni cantata=1 (non vogliamo “rimescolare” lo storico durante la serata)
+   * - riempie gli slot liberi distribuendo equamente i cantanti
+   * - best-effort per rispettare gap massimo MAX_GAP_SONGS
+   */
+  private buildBalancedOrder(currentOrder: Canzone[]): Canzone[] {
+    const n = currentOrder.length;
+    if (n <= 2) return currentOrder;
+
+    // slot fissi per indice
+    const fixedByIndex = new Map<number, Canzone>();
+    const movable: Canzone[] = [];
+
+    for (let i = 0; i < n; i++) {
+      const s = currentOrder[i];
+      const fixed = !!s.priority_lock || !!s.cantata;
+      if (fixed) fixedByIndex.set(i, s);
+      else movable.push(s);
+    }
+
+    // raggruppa canzoni mobili per cantante (mantieni ordine di arrivo -> posizione)
+    const groups = new Map<SingerKey, Canzone[]>();
+    for (const s of movable) {
+      const k = this.singerKeyOf(s);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(s);
+    }
+
+    // conteggio canzoni già cantate (per fairness)
+    const sungCount = new Map<SingerKey, number>();
+    for (const s of currentOrder) {
+      if (s.cantata) {
+        const k = this.singerKeyOf(s);
+        sungCount.set(k, (sungCount.get(k) || 0) + 1);
+      }
+    }
+
+    // prima occorrenza (tiebreak: chi ha prenotato prima)
+    const firstSeenIndex = new Map<SingerKey, number>();
+    for (let i = 0; i < currentOrder.length; i++) {
+      const s = currentOrder[i];
+      if (s.cantata) continue; // mi interessa l'ordine di chi è ancora "attivo" in coda
+      const k = this.singerKeyOf(s);
+      if (!firstSeenIndex.has(k)) firstSeenIndex.set(k, i);
+    }
+
+    // stato runtime
+    const placedCount = new Map<SingerKey, number>();
+    const lastPlacedIndex = new Map<SingerKey, number>();
+
+    // risultato
+    const result: Canzone[] = new Array(n);
+
+    const activeSingers = () =>
+      Array.from(groups.keys()).filter(k => (groups.get(k)?.length || 0) > 0);
+
+    for (let idx = 0; idx < n; idx++) {
+      const fixedSong = fixedByIndex.get(idx);
+      if (fixedSong) {
+        result[idx] = fixedSong;
+
+        // IMPORTANT: se è priority_lock (quindi ancora da cantare), aggiorna lastPlacedIndex
+        // così il gap considera anche questi slot fissi.
+        if (!fixedSong.cantata) {
+          const k = this.singerKeyOf(fixedSong);
+          lastPlacedIndex.set(k, idx);
+        }
+
+        continue;
+      }
+
+      const singers = activeSingers();
+      if (singers.length === 0) {
+        // safety: non dovrebbe succedere
+        break;
+      }
+
+      const chosen = this.pickNextSinger(
+        singers,
+        idx,
+        lastPlacedIndex,
+        sungCount,
+        placedCount,
+        firstSeenIndex
+      );
+
+      const q = groups.get(chosen)!;
+      const song = q.shift()!;
+      result[idx] = song;
+
+      placedCount.set(chosen, (placedCount.get(chosen) || 0) + 1);
+      lastPlacedIndex.set(chosen, idx);
+    }
+
+    // fill eventuali buchi (safety)
+    const leftovers: Canzone[] = [];
+    for (const [k, q] of groups.entries()) {
+      leftovers.push(...q);
+    }
+    for (let i = 0; i < result.length; i++) {
+      if (!result[i] && leftovers.length) result[i] = leftovers.shift()!;
+    }
+
+    return result.filter(Boolean);
+  }
+
+  private pickNextSinger(
+    candidates: SingerKey[],
+    idx: number,
+    lastPlacedIndex: Map<SingerKey, number>,
+    sungCount: Map<SingerKey, number>,
+    placedCount: Map<SingerKey, number>,
+    firstSeenIndex: Map<SingerKey, number>
+  ): SingerKey {
+    const gapOf = (k: SingerKey) => {
+      const last = lastPlacedIndex.get(k);
+      if (last == null) return 9999; // mai ancora piazzato: consideralo “in attesa”
+      return Math.max(0, idx - last - 1);
+    };
+
+    // prima: chi sta per superare il gap massimo (best-effort)
+    const urgent = candidates.filter(k => gapOf(k) >= this.MAX_GAP_SONGS);
+
+    const pool = urgent.length ? urgent : candidates;
+
+    // ordina per:
+    // 1) meno canzoni già cantate (fairness serata)
+    // 2) meno canzoni già piazzate dall’algoritmo (round-robin)
+    // 3) chi ha prenotato prima (firstSeenIndex)
+    // 4) chi aspetta da più slot (gap desc) -> solo come ultimo tiebreak
+    pool.sort((a, b) => {
+      const sa = sungCount.get(a) || 0;
+      const sb = sungCount.get(b) || 0;
+      if (sa !== sb) return sa - sb;
+
+      const pa = placedCount.get(a) || 0;
+      const pb = placedCount.get(b) || 0;
+      if (pa !== pb) return pa - pb;
+
+      const fa = firstSeenIndex.get(a) ?? 999999;
+      const fb = firstSeenIndex.get(b) ?? 999999;
+      if (fa !== fb) return fa - fb;
+
+      const ga = gapOf(a);
+      const gb = gapOf(b);
+      return gb - ga; // più gap -> prima
+    });
+
+    return pool[0];
+  }
+
+  // =========================
+  // AZIONI VARIE
+  // =========================
+
   toggleCantata(index: number): void {
     if (!this.isAdmin) return;
 
@@ -263,6 +548,35 @@ export class ListaCanzoniComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (err) => {
         console.error('Errore aggiornamento cantata:', err);
         this.translate.get('toast.CANTATA_UPDATE_ERROR').subscribe(msg => this.toastr.error(msg));
+      }
+    });
+  }
+
+  /**
+   * Admin: toggle "priority lock".
+   * Se attivo, la canzone viene esclusa dall'algoritmo e resta "bloccata".
+   */
+  togglePriorityLock(index: number, event?: Event): void {
+    event?.stopPropagation();
+    if (!this.isAdmin) return;
+
+    const canzone = this.canzoni[index];
+    if (!canzone) return;
+
+    const prev = !!canzone.priority_lock;
+    const next = !prev;
+
+    // ottimismo UI
+    canzone.priority_lock = next;
+
+    this.karaokeService.setPriorityLock(canzone.id, next).subscribe({
+      next: () => {
+        // niente toast (evita spam)
+      },
+      error: (err) => {
+        console.error('Errore aggiornamento priority_lock:', err);
+        canzone.priority_lock = prev;
+        this.toastr.error('Errore aggiornamento Priority');
       }
     });
   }

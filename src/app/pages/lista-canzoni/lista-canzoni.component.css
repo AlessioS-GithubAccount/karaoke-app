@@ -196,6 +196,48 @@ a:hover {
   box-shadow: 0 0 16px var(--glow-color), 0 0 32px var(--accent-hover);
 }
 
+/* =========================
+   PRIORITY (admin-only)
+   Banner sotto il pulsante "cantata/da cantare"
+   ========================= */
+.priority-toggle {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+}
+
+.priority-toggle:hover {
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d9534f; /* off = rosso */
+  box-shadow: 0 0 10px rgba(217, 83, 79, 0.55);
+}
+
+.priority-dot.on {
+  background: #5cb85c; /* on = verde */
+  box-shadow: 0 0 10px rgba(92, 184, 92, 0.55);
+}
+
+.priority-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
 /* Pulsanti base */
 button, .btn {
   background: linear-gradient(135deg, var(--button-gradient-1), var(--button-gradient-2));
